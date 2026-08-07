@@ -1,0 +1,146 @@
+<!-- =====================================================================
+     1. HEADER & NAVIGASI (sticky)
+     ===================================================================== -->
+<a
+  href="#konten-utama"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-pmii-900 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
+  Lompat ke konten utama
+</a>
+
+<header
+  id="site-header"
+  data-header
+  class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md transition-shadow duration-300">
+  <nav class="container-page" aria-label="Navigasi utama">
+    <div class="flex h-[4.5rem] items-center justify-between gap-4">
+      <!-- Kiri: Logo + Nama Organisasi -->
+      <a href="{{base}}index.html" class="group flex shrink-0 items-center gap-3">
+        <img
+          src="{{base}}assets/img/logo-pmii.svg"
+          alt="Logo PMII"
+          width="40"
+          height="48"
+          class="h-11 w-auto transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105" />
+        <span class="flex flex-col leading-none">
+          <span class="font-display text-[0.9375rem] font-extrabold text-pmii-900 sm:text-base">PK PMII UIN SGD</span>
+          <span class="mt-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-kuning-600 sm:text-xs">
+            Cab. Kab. Bandung
+          </span>
+        </span>
+      </a>
+
+      <!-- Kanan: Menu desktop -->
+      <div class="hidden items-center gap-1 xl:flex">
+        <a href="{{base}}index.html" data-nav="beranda" class="nav-link">Beranda</a>
+
+        <!-- Dropdown Profil -->
+        <div class="relative" data-dropdown>
+          <button
+            type="button"
+            class="nav-link inline-flex items-center gap-1"
+            data-nav="profil"
+            data-dropdown-trigger
+            aria-expanded="false"
+            aria-haspopup="true">
+            Profil
+            <svg class="h-4 w-4 transition-transform duration-200" data-dropdown-caret viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.19l3.71-3.96a.75.75 0 1 1 1.08 1.04l-4.25 4.53a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <div
+            data-dropdown-menu
+            class="invisible absolute left-0 top-full z-50 mt-2 w-60 origin-top-left translate-y-1 scale-95 rounded-2xl border border-slate-200 bg-white p-2 opacity-0 shadow-card-hover transition-all duration-200">
+            <a href="{{base}}profil/sejarah.html" class="flex items-start gap-3 rounded-xl p-3 hover:bg-pmii-50">
+              <span class="mt-0.5 text-pmii-600">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+              </span>
+              <span>
+                <span class="block text-sm font-semibold text-pmii-950">Sejarah</span>
+                <span class="mt-0.5 block text-xs text-slate-500">Jejak PMII sejak 17 April 1960</span>
+              </span>
+            </a>
+            <a href="{{base}}profil/struktur.html" class="flex items-start gap-3 rounded-xl p-3 hover:bg-pmii-50">
+              <span class="mt-0.5 text-pmii-600">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5h6v3H9v-3Zm-6 12h6v3H3v-3Zm12 0h6v3h-6v-3ZM12 7.5v4.5m0 0H6v4.5m6-4.5h6v4.5" />
+                </svg>
+              </span>
+              <span>
+                <span class="block text-sm font-semibold text-pmii-950">Struktur</span>
+                <span class="mt-0.5 block text-xs text-slate-500">Pengurus &amp; bidang kerja</span>
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <a href="{{base}}artikel.html" data-nav="artikel" class="nav-link">Artikel</a>
+        <a href="{{base}}galeri.html" data-nav="galeri" class="nav-link">Galeri</a>
+        <a href="{{base}}landasan-hukum.html" data-nav="landasan" class="nav-link">Landasan Hukum</a>
+        <a href="{{base}}advokasi.html" data-nav="advokasi" class="nav-link">Layanan Advokasi</a>
+        <a href="{{base}}mapaba.html" data-nav="mapaba" class="nav-link">MAPABA Raya</a>
+
+        <a href="{{base}}cbt/login.html" class="btn-accent btn-sm ml-2">
+          CBT BIMTES
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
+          </svg>
+        </a>
+      </div>
+
+      <!-- Kanan: Tombol hamburger (mobile & tablet) -->
+      <button
+        type="button"
+        class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-pmii-900 transition-colors hover:bg-pmii-50 xl:hidden"
+        data-menu-toggle
+        aria-controls="mobile-menu"
+        aria-expanded="false">
+        <span class="sr-only">Buka menu navigasi</span>
+        <svg class="h-6 w-6" data-icon-open viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+        </svg>
+        <svg class="hidden h-6 w-6" data-icon-close viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Panel menu mobile -->
+    <div id="mobile-menu" data-menu-panel class="hidden pb-5 xl:hidden">
+      <div class="space-y-1 border-t border-slate-200 pt-4">
+        <a href="{{base}}index.html" data-nav="beranda" class="nav-link-mobile">Beranda</a>
+
+        <div data-accordion>
+          <button
+            type="button"
+            class="nav-link-mobile flex w-full items-center justify-between"
+            data-accordion-trigger
+            aria-expanded="false">
+            Profil
+            <svg class="h-5 w-5 transition-transform duration-200" data-accordion-caret viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.19l3.71-3.96a.75.75 0 1 1 1.08 1.04l-4.25 4.53a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <div class="hidden space-y-1 pl-4" data-accordion-panel>
+            <a href="{{base}}profil/sejarah.html" class="nav-link-mobile text-[0.9375rem] text-slate-600">Sejarah</a>
+            <a href="{{base}}profil/struktur.html" class="nav-link-mobile text-[0.9375rem] text-slate-600">Struktur</a>
+          </div>
+        </div>
+
+        <a href="{{base}}artikel.html" data-nav="artikel" class="nav-link-mobile">Artikel</a>
+        <a href="{{base}}galeri.html" data-nav="galeri" class="nav-link-mobile">Galeri</a>
+        <a href="{{base}}landasan-hukum.html" data-nav="landasan" class="nav-link-mobile">Landasan Hukum</a>
+        <a href="{{base}}advokasi.html" data-nav="advokasi" class="nav-link-mobile">Layanan Advokasi</a>
+        <a href="{{base}}mapaba.html" data-nav="mapaba" class="nav-link-mobile">MAPABA Raya</a>
+
+        <a href="{{base}}cbt/login.html" class="btn-accent mt-3 w-full">
+          Akses CBT BIMTES 2026
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </nav>
+</header>

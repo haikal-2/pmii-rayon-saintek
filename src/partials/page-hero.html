@@ -1,0 +1,20 @@
+<!-- Hero ringkas untuk halaman dalam (bukan Beranda) -->
+<section class="relative overflow-hidden border-b border-slate-200 bg-white">
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 bg-grid-light opacity-60 [mask-image:radial-gradient(80%_70%_at_50%_0%,black,transparent)]"></div>
+  <div aria-hidden="true" class="pointer-events-none absolute -right-20 -top-32 h-80 w-80 rounded-full bg-pmii-200/40 blur-3xl"></div>
+  <div aria-hidden="true" class="pointer-events-none absolute -left-24 -bottom-10 h-64 w-64 rounded-full bg-kuning-200/40 blur-3xl"></div>
+
+  <div class="container-page relative py-12 sm:py-16 lg:py-20">
+    <nav aria-label="Breadcrumb" class="mb-6">
+      <ol class="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
+        <li><a href="{{base}}index.html" class="hover:text-pmii-700">Beranda</a></li>
+        <li aria-hidden="true" class="text-slate-300">/</li>
+        <li class="font-semibold text-pmii-800" aria-current="page">{{ pageTitle }}</li>
+      </ol>
+    </nav>
+
+    <p class="section-eyebrow">{{ pageEyebrow }}</p>
+    <h1 class="mt-4 text-3xl sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">{{ pageTitle }}</h1>
+    <p class="mt-4 max-w-3xl text-base leading-relaxed text-slate-600 sm:text-lg">{{ pageLead }}</p>
+  </div>
+</section>
