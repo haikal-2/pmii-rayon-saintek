@@ -143,8 +143,8 @@ Langkah lengkap termasuk contoh konfigurasi Nginx dan strategi backup ada di
 - Navigasi penuh dengan papan tik (keyboard), indikator fokus terlihat, dan tautan *lompat ke konten utama*.
 - Seluruh ikon dekoratif memakai `aria-hidden`, ikon fungsional memiliki label teks.
 - Animasi dinonaktifkan otomatis saat pengguna mengaktifkan `prefers-reduced-motion`.
-- Tanpa dependensi front-end di sisi klien: satu berkas CSS (~15 KB ter-minify + gzip) dan
-  beberapa berkas JS kecil tanpa framework.
+- Tanpa dependensi front-end di sisi klien: satu berkas CSS (56 KB ter-minify, ±9 KB setelah gzip)
+  dan beberapa berkas JS kecil tanpa framework.
 - Logo berupa SVG inline sehingga tajam di semua resolusi dan tidak memerlukan permintaan gambar tambahan.
 
 ---
