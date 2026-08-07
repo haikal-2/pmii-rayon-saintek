@@ -32,6 +32,10 @@ module.exports = {
           900: '#7a380d',
         },
       },
+      spacing: {
+        /* Ukuran ikon 18px — di antara h-4 dan h-5, dipakai untuk ikon dalam badge 36px */
+        4.5: '1.125rem',
+      },
       fontFamily: {
         sans: ['Plus Jakarta Sans', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: ['Sora', 'Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
