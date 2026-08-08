@@ -159,6 +159,12 @@ tepat di bawah input yang bersangkutan tanpa pemetaan tambahan.
 | POST | `/admin/auth/login` | publik | Login pengurus → access token audiens `admin` |
 | GET | `/admin/me` | admin | Profil pengurus |
 | GET | `/admin/ringkasan` | admin | Angka ringkas artikel, pengaduan, MAPABA, CBT |
+| POST | `/admin/users` | superadmin | Terbitkan akun pengurus (bcrypt cost 12, syarat sandi kuat) |
+| GET | `/admin/users` | superadmin | Daftar akun pengurus |
+| POST | `/admin/auth/ubah-sandi` | admin | Ganti sandi sendiri (wajib membuktikan sandi lama) |
+| POST | `/upload` | publik (20/15 mnt) | Pas foto & KTM pendaftar MAPABA — `multipart/form-data`, field `file` |
+| POST | `/upload/admin?tujuan=` | admin | Cover artikel, foto galeri, dokumen PDF |
+| GET | `/upload/admin/berkas` | admin | Katalog 100 berkas terakhir + driver aktif |
 
 ---
 
@@ -269,6 +275,9 @@ Halaman: [`public/cbt/login.html`](../public/cbt/login.html),
 | --- | --- | --- |
 | POST | `/cbt/auth/login` | publik (maks. 20 per IP per 10 menit) |
 | POST | `/cbt/auth/refresh` | publik (dengan refresh token) |
+| POST | `/cbt/auth/ubah-sandi` | peserta |
+| POST | `/cbt/admin/peserta` | panitia_cbt — terbitkan akun, sandi acak tampil sekali |
+| POST | `/cbt/admin/peserta/impor` | panitia_cbt — impor massal maksimal 500 akun |
 | GET | `/cbt/me` | peserta |
 | GET | `/cbt/ujian` | peserta |
 | POST | `/cbt/ujian/:paketId/mulai` | peserta |
@@ -491,13 +500,17 @@ pemeriksaan yang menutup seluruh alur penting, di antaranya:
 
 ## 11. Rencana Pengembangan Berikutnya
 
+Sudah selesai sejak revisi pertama: ruang ujian CBT, panel admin, unggah berkas ke cloud
+storage, notifikasi email/WhatsApp, impor peserta massal, dan skema produksi MySQL.
+
 | Prioritas | Pekerjaan | Komponen yang tersentuh |
 | --- | --- | --- |
-| Tinggi | Halaman pengerjaan soal CBT (`/cbt/ujian.html`) | Front-end baru; API sudah siap |
-| Tinggi | Panel admin (CMS artikel, verifikasi MAPABA, papan pengaduan) | Front-end baru + endpoint admin yang sudah ada |
-| Tinggi | Unggah berkas (cover artikel, foto galeri, PDF dokumen) | `multer` + endpoint `/upload`, atau S3/R2 |
-| Sedang | Notifikasi email/WhatsApp saat pengaduan & pendaftaran masuk | Nodemailer/gateway WA pada dua titik `TODO(integrasi)` |
-| Sedang | Impor peserta CBT massal dari CSV/XLSX | Endpoint admin + praviu sebelum simpan |
+| Tinggi | Editor artikel WYSIWYG + pembersihan HTML (`sanitize-html`) | `public/admin/artikel.html`; endpoint sudah siap |
+| Tinggi | Pengunggah album galeri (banyak foto, urutan, sampul) | `public/admin/galeri.html`; endpoint unggah sudah siap |
+| Tinggi | Editor bank soal CBT (paket, soal, opsi A–E, kunci) | `public/admin/cbt.html`; skema sudah final |
+| Sedang | Halaman detail artikel + `schema.org/Article` | Halaman baru + `GET /artikel/:slug` yang sudah ada |
 | Sedang | Analisis butir soal (tingkat kesukaran, daya beda) | Kueri agregat atas `cbt_jawaban` |
+| Sedang | Kebijakan retensi otomatis data pribadi | Cron + endpoint pembersihan |
+| Rendah | 2FA (TOTP) untuk akun superadmin | `routes/admin.js` + tabel baru |
 | Rendah | Pencarian teks penuh artikel | FTS5 (SQLite) atau `tsvector` (PostgreSQL) |
-| Rendah | Migrasi ke MySQL/PostgreSQL bila CBT dipakai serentak >200 peserta | Ganti `server/src/lib/db.js` saja |
+| Rendah | Migrasi ke MySQL/PostgreSQL bila CBT dipakai serentak >200 peserta | Ganti `server/src/lib/db.js` saja; `schema.mysql.sql` sudah tersedia |
