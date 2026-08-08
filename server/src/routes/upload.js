@@ -73,12 +73,15 @@ const limiter = rateLimit({
   message: { ok: false, message: 'Terlalu banyak unggahan dari jaringan ini. Coba lagi nanti.' },
 });
 
-/** Bungkus middleware Multer agar galatnya menjadi respons API yang rapi. */
-const tangani = (mw) => (req, res, next) =>
+/**
+ * Bungkus middleware Multer agar galatnya menjadi respons API yang rapi.
+ * Batas ukuran diteruskan eksplisit karena Multer tidak menyertakannya pada galat.
+ */
+const tangani = (mw, maksByte) => (req, res, next) =>
   mw(req, res, (error) => {
     if (!error) return next();
     if (error.code === 'LIMIT_FILE_SIZE') {
-      const maks = mw === uploadGambar.single('file') ? '3 MB' : '10 MB';
+      const maks = `${Math.round(maksByte / 1024 / 1024)} MB`;
       return next(badRequest(`Ukuran berkas melebihi batas ${maks}.`, { file: `Maksimal ${maks}.` }));
     }
     return next(badRequest(error.message, { file: error.message }));
@@ -119,7 +122,7 @@ async function proses(req, tujuan, pengunggah) {
 router.post(
   '/',
   limiter,
-  tangani(uploadGambar.single('file')),
+  tangani(uploadGambar.single('file'), MAKS_GAMBAR),
   asyncHandler(async (req, res) => {
     const hasil = await proses(req, 'mapaba', hashOpaque(req.ip || 'unknown'));
     return ok(res, { url: hasil.url, kunci: hasil.kunci, ukuranByte: hasil.ukuranByte });
@@ -131,7 +134,7 @@ router.post(
 router.post(
   '/admin',
   requireAdmin(),
-  tangani(uploadDokumen.single('file')),
+  tangani(uploadDokumen.single('file'), MAKS_DOKUMEN),
   asyncHandler(async (req, res) => {
     const tujuan = ['galeri', 'artikel', 'dokumen'].includes(req.query.tujuan)
       ? req.query.tujuan

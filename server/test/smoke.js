@@ -386,6 +386,14 @@ async function main() {
     assert.equal(status, 400);
   });
 
+  await uji('berkas melebihi 3 MB ditolak dengan pesan batas yang benar', async () => {
+    // PNG sah namun sengaja digelembungkan melewati batas ukuran.
+    const besar = Buffer.concat([PNG_1PX, Buffer.alloc(3.2 * 1024 * 1024)]);
+    const { status, payload } = await unggah('besar.png', besar, 'image/png');
+    assert.equal(status, 400);
+    assert.match(payload.errors?.file || payload.message, /3 MB/);
+  });
+
   await uji('pendaftaran MAPABA menyimpan URL pas foto dan KTM', async () => {
     const nim = String(Date.now() + 7).slice(-10);
     const { status } = await call('POST', '/mapaba/pendaftaran', {
