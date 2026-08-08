@@ -2,8 +2,8 @@
 {
   "out": "galeri.html",
   "active": "galeri",
-  "title": "Galeri Kegiatan — PK PMII UIN SGD Cab. Kab. Bandung",
-  "description": "Dokumentasi momen berharga kegiatan PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung: MAPABA, kajian, aksi, dan pengabdian masyarakat.",
+  "title": "Galeri Kegiatan — PR PMII Saintek UIN SGD",
+  "description": "Dokumentasi momen berharga kegiatan PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung: MAPABA, kajian, aksi, dan pengabdian masyarakat.",
   "pageEyebrow": "Dokumentasi",
   "pageTitle": "Galeri Kegiatan",
   "pageLead": "Dokumentasi momen berharga dari setiap agenda kaderisasi, kajian, aksi, dan pengabdian kepada masyarakat."
@@ -31,7 +31,12 @@ page-->
 
         <!-- Grid album.
              Produksi: GET /api/v1/galeri/album — setiap album memuat foto (media).
-             Placeholder di bawah memakai gradasi warna sebagai pengganti foto. -->
+             Placeholder di bawah memakai gradasi warna sebagai pengganti foto.
+
+             Saat foto sungguhan dipasang, ganti elemen gradasi dengan tag img
+             yang memakai srcset + sizes + width/height + loading lazy +
+             decoding async. Markup lengkap dan alasan tiap atribut ada di
+             docs/SEO-PERFORMA.md bagian 3. -->
         <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <a href="#" class="reveal group relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-pmii-700 via-pmii-900 to-pmii-950 shadow-card">
             <span aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></span>

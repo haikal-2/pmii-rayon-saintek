@@ -44,7 +44,7 @@ async function uji(nama, fn) {
 }
 
 async function main() {
-  console.log('Uji asap API PK PMII UIN SGD\n');
+  console.log('Uji asap API PR PMII Saintek\n');
 
   await uji('health mengembalikan status sehat', async () => {
     const { payload } = await call('GET', '/health');
@@ -58,9 +58,24 @@ async function main() {
       body: { nama: 'Ab', kontak: '08', status: 'mahasiswa', kategori: 'ukt', kronologi: 'pendek' },
     });
     assert.equal(status, 400);
-    assert.ok(payload.errors.nama, 'seharusnya ada galat pada kolom nama');
+    assert.ok(payload.errors.kontak, 'seharusnya ada galat pada kolom kontak');
     assert.ok(payload.errors.kronologi, 'seharusnya ada galat pada kolom kronologi');
     assert.ok(payload.errors.persetujuan, 'seharusnya ada galat pada kolom persetujuan');
+  });
+
+  await uji('pengaduan boleh dikirim tanpa nama (anonim)', async () => {
+    const { status, payload } = await call('POST', '/advokasi/pengaduan', {
+      body: {
+        kontak: '081200000000',
+        status: 'mahasiswa',
+        kategori: 'fasilitas',
+        kronologi:
+          'Lift gedung perkuliahan sudah tiga bulan rusak dan belum ada perbaikan, padahal ada mahasiswa pengguna kursi roda di lantai empat.',
+        persetujuan: true,
+      },
+    });
+    assert.equal(status, 201);
+    assert.match(payload.data.nomorTiket, /^ADV-\d{4}-\d{4}$/);
   });
 
   let nomorTiket;
@@ -140,101 +155,6 @@ async function main() {
     assert.equal(payload.data.status, 'menunggu');
   });
 
-  /* ------------------------------------------------------------------ CBT */
-
-  await uji('login CBT dengan sandi salah ditolak (401)', async () => {
-    const { status } = await call('POST', '/cbt/auth/login', {
-      body: { identitas: 'BIM-2026-0001', password: 'sandi-salah' },
-    });
-    assert.equal(status, 401);
-  });
-
-  let token;
-  await uji('login CBT yang benar mengembalikan access token', async () => {
-    const { status, payload } = await call('POST', '/cbt/auth/login', {
-      body: { identitas: 'BIM-2026-0001', password: 'bimtes2026' },
-    });
-    assert.equal(status, 200);
-    assert.ok(payload.data.accessToken);
-    assert.equal(payload.data.peserta.nomorPeserta, 'BIM-2026-0001');
-    token = payload.data.accessToken;
-  });
-
-  await uji('endpoint ujian menolak permintaan tanpa token (401)', async () => {
-    const { status } = await call('GET', '/cbt/ujian');
-    assert.equal(status, 401);
-  });
-
-  let paketId;
-  await uji('daftar ujian memuat paket tryout aktif', async () => {
-    const { payload } = await call('GET', '/cbt/ujian', { token });
-    assert.ok(payload.data.length >= 1);
-    paketId = payload.data[0].id;
-  });
-
-  let sesiId;
-  await uji('sesi ujian dapat dimulai dan menyimpan batas waktu di server', async () => {
-    const { status, payload } = await call('POST', `/cbt/ujian/${paketId}/mulai`, { token });
-    assert.ok([200, 201].includes(status));
-    assert.ok(payload.data.sesiId);
-    assert.ok(payload.data.deadlineAt || payload.data.dilanjutkan);
-    sesiId = payload.data.sesiId;
-  });
-
-  let soal;
-  await uji('soal dikirim tanpa membocorkan kunci jawaban', async () => {
-    const { payload } = await call('GET', `/cbt/sesi/${sesiId}`, { token });
-    soal = payload.data.soal;
-    assert.ok(soal.length >= 1);
-    const adaKunci = soal.some((item) => item.opsi.some((opsi) => 'isBenar' in opsi));
-    assert.equal(adaKunci, false, 'kunci jawaban tidak boleh terkirim saat sesi berjalan');
-    assert.ok(payload.data.sesi.sisaDetik > 0);
-  });
-
-  await uji('autosave jawaban bersifat idempoten', async () => {
-    const target = soal[0];
-    const kirim = () =>
-      call('PUT', `/cbt/sesi/${sesiId}/jawaban`, {
-        token,
-        body: { soalId: target.id, opsiId: target.opsi[0].id, ragu: false },
-      });
-    assert.equal((await kirim()).status, 200);
-    assert.equal((await kirim()).status, 200);
-  });
-
-  await uji('opsi milik soal lain ditolak (400)', async () => {
-    const { status } = await call('PUT', `/cbt/sesi/${sesiId}/jawaban`, {
-      token,
-      body: { soalId: soal[0].id, opsiId: soal[1].opsi[0].id },
-    });
-    assert.equal(status, 400);
-  });
-
-  await uji('submit menghasilkan skor dan rekap jawaban', async () => {
-    const { status, payload } = await call('POST', `/cbt/sesi/${sesiId}/submit`, { token });
-    assert.equal(status, 200);
-    assert.equal(payload.data.status, 'selesai');
-    assert.equal(typeof payload.data.skor, 'number');
-    assert.equal(payload.data.benar + payload.data.salah + payload.data.kosong, payload.data.totalSoal);
-  });
-
-  await uji('submit kedua kali ditolak (403)', async () => {
-    const { status } = await call('POST', `/cbt/sesi/${sesiId}/submit`, { token });
-    assert.equal(status, 403);
-  });
-
-  await uji('pembahasan terbuka setelah sesi selesai', async () => {
-    const { payload } = await call('GET', `/cbt/sesi/${sesiId}`, { token });
-    const adaKunci = payload.data.soal.some((item) => item.opsi.some((opsi) => 'isBenar' in opsi));
-    assert.equal(adaKunci, true, 'kunci jawaban seharusnya dibuka setelah sesi selesai');
-  });
-
-  await uji('riwayat hasil memuat skor dan peringkat', async () => {
-    const { payload } = await call('GET', '/cbt/hasil', { token });
-    assert.ok(payload.data.length >= 1);
-    assert.ok(payload.data[0].peringkat >= 1);
-  });
-
   /* ---------------------------------------------------------------- Admin */
 
   let adminToken;
@@ -246,8 +166,19 @@ async function main() {
     adminToken = payload.data.accessToken;
   });
 
-  await uji('token peserta tidak dapat dipakai di endpoint admin (401)', async () => {
-    const { status } = await call('GET', '/advokasi/admin/pengaduan', { token });
+  await uji('token palsu ditolak endpoint admin (401)', async () => {
+    // Token bertanda tangan kunci lain: bentuknya sah, tanda tangannya tidak.
+    const palsu = require('jsonwebtoken').sign({ sub: 1, role: 'superadmin' }, 'kunci-yang-salah', {
+      audience: 'admin',
+      issuer: 'pmii-uinsgd',
+      expiresIn: '1h',
+    });
+    const { status } = await call('GET', '/advokasi/admin/pengaduan', { token: palsu });
+    assert.equal(status, 401);
+  });
+
+  await uji('endpoint admin menolak permintaan tanpa token (401)', async () => {
+    const { status } = await call('GET', '/mapaba/admin/pendaftar');
     assert.equal(status, 401);
   });
 
@@ -261,9 +192,11 @@ async function main() {
   });
 
   await uji('admin dapat mengubah status pengaduan dan tercatat di log', async () => {
-    const daftar = await call('GET', '/advokasi/admin/pengaduan', { token: adminToken });
-    const id = daftar.payload.data[0].id;
-    const { status } = await call('PATCH', `/advokasi/admin/pengaduan/${id}`, {
+    const daftar = await call('GET', '/advokasi/admin/pengaduan?limit=100', { token: adminToken });
+    const target = daftar.payload.data.find((item) => item.nomorTiket === nomorTiket);
+    assert.ok(target, 'pengaduan yang baru dibuat harus muncul di daftar admin');
+
+    const { status } = await call('PATCH', `/advokasi/admin/pengaduan/${target.id}`, {
       token: adminToken,
       body: { status: 'verifikasi', catatanInternal: 'Menghubungi pelapor.' },
     });
@@ -276,7 +209,127 @@ async function main() {
   await uji('ringkasan dashboard admin mengembalikan angka', async () => {
     const { payload } = await call('GET', '/admin/ringkasan', { token: adminToken });
     assert.ok(payload.data.pengaduan.total >= 1);
-    assert.ok(payload.data.cbt.paket >= 1);
+  });
+
+  await uji('admin dapat memverifikasi pendaftar MAPABA (Terima)', async () => {
+    const daftar = await call('GET', '/mapaba/admin/pendaftar?status=menunggu', {
+      token: adminToken,
+    });
+    const target = daftar.payload.data[0];
+    const { status } = await call('PATCH', `/mapaba/admin/pendaftar/${target.id}`, {
+      token: adminToken,
+      body: { status: 'terverifikasi', catatanPanitia: 'Berkas lengkap.' },
+    });
+    assert.equal(status, 200);
+
+    const cek = await call('GET', `/mapaba/pendaftaran/${target.nomorRegistrasi}`);
+    assert.equal(cek.payload.data.status, 'terverifikasi');
+  });
+
+  /* -------------------------------------------------- Registrasi & bcrypt */
+
+  await uji('akun pengurus terkunci setelah lima kali gagal login', async () => {
+    // Dipakai akun sekali pakai supaya penguncian tidak mengganggu uji lain.
+    const email = `uji-kunci-${Date.now()}@pmii.test`;
+    const buat = await call('POST', '/admin/users', {
+      token: adminToken,
+      body: { nama: 'Akun Uji Kunci', email, password: 'SandiUjiKuat9', role: 'editor' },
+    });
+    assert.equal(buat.status, 201);
+
+    for (let i = 0; i < 5; i += 1) {
+      const { status } = await call('POST', '/admin/auth/login', {
+        body: { email, password: 'SandiSalah123' },
+      });
+      assert.equal(status, 401, `percobaan ke-${i + 1} seharusnya 401`);
+    }
+
+    // Setelah terkunci, sandi yang BENAR pun harus ditolak dengan 403.
+    const { status, payload } = await call('POST', '/admin/auth/login', {
+      body: { email, password: 'SandiUjiKuat9' },
+    });
+    assert.equal(status, 403);
+    assert.match(payload.message, /terkunci/i);
+  });
+
+  await uji('pembuatan akun pengurus menolak sandi lemah', async () => {
+    const { status, payload } = await call('POST', '/admin/users', {
+      token: adminToken,
+      body: { nama: 'Editor Baru', email: `editor${Date.now()}@pmii.test`, password: 'pendek', role: 'editor' },
+    });
+    assert.equal(status, 400);
+    assert.ok(payload.errors.password);
+  });
+
+  /* ------------------------------------------------------------- Unggahan */
+
+  // PNG 1x1 piksel yang sah — dipakai untuk menguji pemeriksaan magic bytes.
+  const PNG_1PX = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64'
+  );
+
+  async function unggah(nama, buffer, tipe) {
+    const form = new FormData();
+    form.append('file', new Blob([buffer], { type: tipe }), nama);
+    const response = await fetch(`${BASE}/upload`, { method: 'POST', body: form });
+    return { status: response.status, payload: await response.json().catch(() => ({})) };
+  }
+
+  let urlPasFoto;
+  await uji('unggah pas foto PNG berhasil dan mengembalikan URL', async () => {
+    const { status, payload } = await unggah('pasfoto.png', PNG_1PX, 'image/png');
+    assert.equal(status, 200);
+    assert.match(payload.data.url, /^https?:\/\//);
+    urlPasFoto = payload.data.url;
+  });
+
+  await uji('unggah berkas yang menyamar sebagai gambar ditolak (400)', async () => {
+    const jahat = Buffer.from('<?php system($_GET["c"]); ?>');
+    const { status, payload } = await unggah('shell.png', jahat, 'image/png');
+    assert.equal(status, 400);
+    assert.ok(payload.errors?.file || payload.message);
+  });
+
+  await uji('unggah tipe berkas terlarang ditolak (400)', async () => {
+    const { status } = await unggah('skrip.svg', Buffer.from('<svg onload="alert(1)"></svg>'), 'image/svg+xml');
+    assert.equal(status, 400);
+  });
+
+  await uji('berkas melebihi 3 MB ditolak dengan pesan batas yang benar', async () => {
+    // PNG sah namun sengaja digelembungkan melewati batas ukuran.
+    const besar = Buffer.concat([PNG_1PX, Buffer.alloc(3.2 * 1024 * 1024)]);
+    const { status, payload } = await unggah('besar.png', besar, 'image/png');
+    assert.equal(status, 400);
+    assert.match(payload.errors?.file || payload.message, /3 MB/);
+  });
+
+  await uji('pendaftaran MAPABA menyimpan URL pas foto dan KTM', async () => {
+    const nim = String(Date.now() + 7).slice(-10);
+    const { status } = await call('POST', '/mapaba/pendaftaran', {
+      body: {
+        namaLengkap: 'Rizky Pratama',
+        nim,
+        angkatan: 2026,
+        universitas: 'UIN Sunan Gunung Djati Bandung',
+        fakultas: 'Ushuluddin',
+        prodi: 'Aqidah dan Filsafat Islam',
+        jenisKelamin: 'L',
+        whatsapp: '081234567892',
+        email: 'rizky@example.com',
+        motivasi: 'Ingin memperdalam tradisi keilmuan dan belajar berorganisasi secara serius.',
+        pasFotoUrl: urlPasFoto,
+        ktmUrl: urlPasFoto,
+        kesediaan: true,
+        persetujuanData: true,
+      },
+    });
+    assert.equal(status, 201);
+
+    const { db } = require('../src/lib/db');
+    const row = db.prepare('SELECT pas_foto_url, ktm_url FROM mapaba_pendaftar WHERE nim = ?').get(nim);
+    assert.equal(row.pas_foto_url, urlPasFoto);
+    assert.ok(row.ktm_url);
   });
 
   console.log(`\n${lolos} pemeriksaan lolos.`);

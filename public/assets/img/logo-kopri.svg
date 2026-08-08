@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Lambang KOPRI Rayon Sains dan Teknologi">
+  <title>KOPRI Rayon Sains dan Teknologi</title>
+
+  <defs>
+    <path id="bintang-kopri"
+      d="M0,-1 L0.2245,-0.309 L0.9511,-0.309 L0.3633,0.118 L0.5878,0.809 L0,0.382 L-0.5878,0.809 L-0.3633,0.118 L-0.9511,-0.309 L-0.2245,-0.309 Z" />
+  </defs>
+
+  <!-- Lingkaran pembatas -->
+  <circle cx="256" cy="256" r="249" fill="#FFFFFF" stroke="#111111" stroke-width="2.5" />
+
+  <!-- ===================================================================
+       Motif utama: dua sapuan kaligrafis.
+
+       Digambar sebagai garis tebal (stroke) berujung membulat, bukan bidang
+       tertutup. Sapuan seperti ini jauh lebih mudah disetel lewat satu kurva
+       daripada lewat dua tepi bidang yang harus dijaga tetap sejajar.
+       Ruang putih di antara kedua sapuan sengaja dipertahankan.
+       =================================================================== -->
+  <g fill="none" stroke-linecap="round">
+    <!-- Sapuan kuning: lengkung terbuka memanjang di atas, lalu ekor menurun -->
+    <path d="M 292 106
+             C 232 92 190 130 196 182
+             C 202 230 250 250 288 232
+             C 306 264 296 296 278 320"
+      stroke="#FFE800" stroke-width="42" />
+
+    <!-- Sapuan hijau: lebih ramping, mengiringi di sisi kanan -->
+    <path d="M 324 170
+             C 350 214 350 264 324 308"
+      stroke="#3CD98A" stroke-width="32" />
+  </g>
+
+  <!-- ===================== Blok teks ===================== -->
+  <text x="256" y="356" text-anchor="middle" fill="#00AEEF"
+    font-family="Sora, 'Segoe UI', Arial, sans-serif" font-size="15" font-weight="700"
+    letter-spacing="1.7">RAYON SAINS DAN TEKNOLOGI</text>
+
+  <!-- Wordmark KOPRI digambar sebagai path agar bentuknya tidak berubah
+       ketika font tidak tersedia di perangkat pembaca. Jarak antar huruf
+       disamakan 10 satuan supaya rangkaiannya terbaca rata. -->
+  <g fill="#00AEEF">
+    <!-- K : 137-185 -->
+    <path d="M 137 374 h 15 v 24 l 21 -24 h 19 l -27 30 l 29 36 h -19 l -21 -27 l -2 2 v 25 h -15 Z" />
+    <!-- O : 195-247 -->
+    <ellipse cx="221" cy="407" rx="26" ry="33" />
+    <!-- P : 257-298 -->
+    <path d="M 257 374 h 22 a 19 19 0 0 1 0 38 h -7 v 28 h -15 Z" />
+    <!-- R : 308-349 -->
+    <path d="M 308 374 h 22 a 19 19 0 0 1 9 35 l 13 31 h -17 l -11 -27 h -1 v 27 h -15 Z" />
+    <!-- I : 359-374 -->
+    <path d="M 359 374 h 15 v 66 h -15 Z" />
+  </g>
+
+  <!-- Rongga huruf O, P, dan R -->
+  <g fill="#FFFFFF">
+    <ellipse cx="221" cy="407" rx="12" ry="18" />
+    <path d="M 272 387 h 7 a 6 6 0 0 1 0 12 h -7 Z" />
+    <path d="M 323 387 h 7 a 6 6 0 0 1 0 12 h -7 Z" />
+  </g>
+
+  <!-- Garis bawah + deretan bintang -->
+  <rect x="130" y="450" width="252" height="4.5" fill="#00AEEF" />
+
+  <g fill="#FFE800">
+    <use href="#bintang-kopri" transform="translate(145 472) scale(7.5)" />
+    <use href="#bintang-kopri" transform="translate(167 472) scale(7.5)" />
+    <use href="#bintang-kopri" transform="translate(189 472) scale(7.5)" />
+    <use href="#bintang-kopri" transform="translate(211 472) scale(7.5)" />
+    <use href="#bintang-kopri" transform="translate(233 472) scale(7.5)" />
+    <use href="#bintang-kopri" transform="translate(256 472) scale(7.5)" />
+    <use href="#bintang-kopri" transform="translate(278 472) scale(7.5)" />
+    <use href="#bintang-kopri" transform="translate(300 472) scale(7.5)" />
+    <use href="#bintang-kopri" transform="translate(322 472) scale(7.5)" />
+    <use href="#bintang-kopri" transform="translate(344 472) scale(7.5)" />
+    <use href="#bintang-kopri" transform="translate(366 472) scale(7.5)" />
+  </g>
+</svg>

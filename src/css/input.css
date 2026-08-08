@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   PK PMII UIN SGD Cab. Kab. Bandung — Design System
+   PR PMII Saintek UIN SGD — Design System
    Token warna & font didefinisikan di tailwind.config.js
    Lapisan di bawah ini adalah komponen yang dipakai berulang di semua halaman.
    ========================================================================== */
@@ -22,6 +22,22 @@
 
   body {
     @apply bg-white font-sans text-slate-700 antialiased;
+  }
+
+  /*
+   * Atribut `hidden` harus selalu mengalahkan utilitas display.
+   *
+   * Aturan bawaan peramban untuk [hidden] berasal dari UA stylesheet, sehingga
+   * kelas seperti .grid atau .flex — yang berada di layer utilities — selalu
+   * memenangkannya. Akibatnya elemen bertanda `hidden` tetap tampil, dan
+   * `el.hidden = true` dari JavaScript tidak berpengaruh apa-apa.
+   *
+   * Ini menyangkut dialog konfirmasi panel admin dan panel sukses formulir
+   * yang semuanya memakai `display: grid`. Tanpa aturan ini, dialog tampil
+   * sendiri begitu halaman dibuka dan tidak bisa ditutup.
+   */
+  [hidden] {
+    display: none !important;
   }
 
   h1,
@@ -116,7 +132,7 @@
     @apply grid h-12 w-12 place-items-center rounded-xl bg-pmii-50 text-pmii-700 ring-1 ring-inset ring-pmii-100;
   }
 
-  /* Kartu sorotan (dipakai untuk CBT BIMTES) */
+  /* Kartu sorotan (dipakai untuk KOPRI di panel akses cepat) */
   .card-featured {
     @apply relative flex flex-col overflow-hidden rounded-2xl border border-pmii-800 bg-pmii-900 p-6
            text-pmii-100 shadow-card-hover transition-all duration-300 hover:-translate-y-1;
@@ -177,6 +193,39 @@
 
   .footer-link {
     @apply text-sm text-pmii-100/80 transition-colors hover:text-kuning-300;
+  }
+
+  /* ------------------------------------------------------------ Panel admin */
+  .admin-link {
+    @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-pmii-100/75
+           transition-colors hover:bg-white/10 hover:text-white;
+  }
+
+  .admin-link-active {
+    @apply bg-white/10 font-semibold text-white shadow-inner;
+  }
+
+  .admin-badge {
+    @apply ml-auto grid h-5 min-w-[1.25rem] place-items-center rounded-full bg-kuning-400 px-1.5
+           text-[0.6875rem] font-bold text-pmii-950;
+  }
+
+  .admin-card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-card;
+  }
+
+  .admin-th {
+    @apply whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500;
+  }
+
+  .admin-td {
+    @apply px-5 py-4 align-top text-sm text-slate-700;
+  }
+
+  /* Lencana status untuk tabel pendaftar & laporan */
+  .pill {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1
+           text-xs font-semibold ring-1 ring-inset;
   }
 
   /* ------------------------------------------------------------------ Utils */

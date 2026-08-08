@@ -1,6 +1,6 @@
 # Spesifikasi Back-End
 
-Website PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung
+Website PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung
 
 ---
 
@@ -20,7 +20,6 @@ Pengunjung ──HTTPS──► Nginx ──► /            → berkas statis (
 | --- | --- | --- |
 | Runtime | Node.js 20+ | Satu bahasa dengan front-end, mudah dilanjutkan pengurus berikutnya |
 | Framework | Express 4 | Ringan, sangat banyak referensi, cukup untuk skala organisasi |
-| Basis data | SQLite (better-sqlite3) | Tanpa server terpisah, satu berkas mudah di-backup. Bermigrasi ke MySQL/PostgreSQL bila trafik CBT tumbuh |
 | Validasi | Zod | Skema sekaligus tipe; galat dapat dipetakan per-kolom untuk front-end |
 | Autentikasi | JWT (jsonwebtoken) + bcryptjs | Stateless, cocok untuk front-end statis lintas domain |
 | Pembatas laju | express-rate-limit | Melindungi formulir publik dari spam |
@@ -51,7 +50,6 @@ server/
 │       ├── konten.js          galeri, dokumen, pengurus
 │       ├── advokasi.js        pengaduan + panel advokat
 │       ├── mapaba.js          pendaftaran + panel panitia
-│       ├── cbt.js             autentikasi peserta + alur ujian
 │       └── admin.js           login pengurus + ringkasan dashboard
 ├── db/{schema.sql, migrate.js, seed.js}
 └── test/smoke.js              24 pemeriksaan alur end-to-end
@@ -71,8 +69,6 @@ artikel >──< tag (artikel_tag)
 galeri_album ──< galeri_media
 pengaduan ──< pengaduan_log >── users
 mapaba_gelombang ──< mapaba_pendaftar
-cbt_paket ──< cbt_soal ──< cbt_opsi
-cbt_peserta ──< cbt_sesi ──< cbt_jawaban
 counters (penomoran per tahun)          audit_log      settings
 ```
 
@@ -87,10 +83,6 @@ counters (penomoran per tahun)          audit_log      settings
 | `dokumen` | Landasan hukum (AD/ART, NDP, PO) | `kategori` CHECK; penghitung `diunduh` |
 | `pengaduan`, `pengaduan_log` | Layanan Advokasi | `nomor_tiket` unik; `status`, `prioritas`, `kategori` CHECK |
 | `mapaba_gelombang`, `mapaba_pendaftar` | MAPABA Raya | `UNIQUE(gelombang_id, nim)` mencegah pendaftaran ganda |
-| `cbt_peserta` | Akun peserta ujian | `nomor_peserta` unik; `gagal_login` + `locked_until` untuk penguncian |
-| `cbt_paket`, `cbt_soal`, `cbt_opsi` | Bank soal | `cbt_opsi.is_benar` **tidak pernah** dikirim saat sesi berjalan |
-| `cbt_sesi` | Satu percobaan pengerjaan | `UNIQUE(peserta_id, paket_id, percobaan)`; `deadline_at` sumber kebenaran waktu |
-| `cbt_jawaban` | Jawaban tersimpan | `UNIQUE(sesi_id, soal_id)` membuat autosave idempoten (UPSERT) |
 | `counters` | Penomoran `ADV-`/`MPB-`/`BIM-` per tahun | PK gabungan `(nama, tahun)`, dinaikkan dalam transaksi |
 | `audit_log` | Jejak tindakan pengurus | — |
 
@@ -158,11 +150,16 @@ tepat di bawah input yang bersangkutan tanpa pemetaan tambahan.
 | GET | `/pengurus` | publik | Query: `periode` (default: periode aktif) |
 | POST | `/admin/auth/login` | publik | Login pengurus → access token audiens `admin` |
 | GET | `/admin/me` | admin | Profil pengurus |
-| GET | `/admin/ringkasan` | admin | Angka ringkas artikel, pengaduan, MAPABA, CBT |
+| POST | `/admin/users` | superadmin | Terbitkan akun pengurus (bcrypt cost 12, syarat sandi kuat) |
+| GET | `/admin/users` | superadmin | Daftar akun pengurus |
+| POST | `/admin/auth/ubah-sandi` | admin | Ganti sandi sendiri (wajib membuktikan sandi lama) |
+| POST | `/upload` | publik (20/15 mnt) | Pas foto & KTM pendaftar MAPABA — `multipart/form-data`, field `file` |
+| POST | `/upload/admin?tujuan=` | admin | Cover artikel, foto galeri, dokumen PDF |
+| GET | `/upload/admin/berkas` | admin | Katalog 100 berkas terakhir + driver aktif |
 
 ---
 
-## 6. Tiga Layanan Interaktif
+## 6. Dua Layanan Interaktif
 
 ### 6.1 Layanan Advokasi
 
@@ -259,87 +256,6 @@ POST /api/v1/mapaba/pendaftaran
    dengan `errors.nim` yang menyebutkan nomor registrasi sebelumnya.
 4. Siklus status: `menunggu → terverifikasi → hadir`, atau `ditolak`/`batal`.
 
-### 6.3 CBT BIMTES
-
-Halaman: [`public/cbt/login.html`](../public/cbt/login.html),
-[`public/cbt/dashboard.html`](../public/cbt/dashboard.html) — kode:
-[`server/src/routes/cbt.js`](../server/src/routes/cbt.js)
-
-| Metode | Path | Akses |
-| --- | --- | --- |
-| POST | `/cbt/auth/login` | publik (maks. 20 per IP per 10 menit) |
-| POST | `/cbt/auth/refresh` | publik (dengan refresh token) |
-| GET | `/cbt/me` | peserta |
-| GET | `/cbt/ujian` | peserta |
-| POST | `/cbt/ujian/:paketId/mulai` | peserta |
-| GET | `/cbt/sesi/:sesiId` | peserta (pemilik sesi) |
-| PUT | `/cbt/sesi/:sesiId/jawaban` | peserta (pemilik sesi) |
-| POST | `/cbt/sesi/:sesiId/submit` | peserta (pemilik sesi) |
-| GET | `/cbt/hasil` | peserta |
-
-**Login**
-
-```jsonc
-POST /api/v1/cbt/auth/login
-{ "identitas": "BIM-2026-0001", "password": "…", "ingatSaya": true }
-
-// 200
-{ "ok": true, "data": {
-    "accessToken": "eyJ…",              // audiens "cbt", masa hidup 2 jam
-    "refreshToken": "eyJ…",             // hanya bila ingatSaya = true, 7 hari
-    "harusUbahSandi": false,
-    "peserta": { "id": 1, "nomorPeserta": "BIM-2026-0001", "nama": "…", "email": "…" }
-} }
-```
-
-Login menerima nomor peserta **atau** email. Pesan galat tidak membedakan "akun tidak ada" dan
-"sandi salah" agar nomor peserta tidak bisa ditebak. Lima kegagalan berturut-turut mengunci akun
-15 menit (`gagal_login`, `locked_until`).
-
-**Alur pengerjaan**
-
-```
-POST /cbt/ujian/:paketId/mulai
-  ├─ sesi 'berjalan' sudah ada → dikembalikan kembali (dilanjutkan: true)
-  ├─ percobaan >= max_percobaan → 403
-  └─ buat cbt_sesi:
-       urutan_soal = JSON hasil Fisher–Yates (bila paket.acak_soal)
-       deadline_at = datetime('now', '+<durasi_menit> minutes')   ← sumber kebenaran waktu
-
-GET /cbt/sesi/:sesiId
-  → { sesi: { status, deadlineAt, sisaDetik }, paket, soal: [ … ] }
-     · urutan soal mengikuti urutan_soal yang tersimpan (konsisten saat refresh)
-     · opsi diacak bila paket.acak_opsi
-     · is_benar & pembahasan TIDAK dikirim selama status = 'berjalan'
-
-PUT /cbt/sesi/:sesiId/jawaban   { soalId, opsiId, ragu }
-  → UPSERT pada UNIQUE(sesi_id, soal_id); aman dipanggil berulang
-  → memvalidasi bahwa soal milik paket sesi dan opsi milik soal tersebut
-  → mengembalikan sisaDetik agar timer klien dapat menyelaraskan diri
-
-POST /cbt/sesi/:sesiId/submit
-  → penilaian dalam transaksi, status 'selesai'
-  → skor = round(1000 × Σbobot benar / Σbobot total)   (skala menyerupai UTBK)
-  → submit kedua → 403
-
-GET /cbt/hasil
-  → riwayat + skor + peringkat (dihitung dengan subquery COUNT skor lebih tinggi)
-```
-
-**Kedaluwarsa otomatis.** Setiap kali sesi diakses, server memeriksa `deadline_at`. Bila terlampaui,
-sesi langsung dinilai dengan status `kedaluwarsa`. Peserta tidak dapat "menahan" waktu dengan
-menutup browser atau memutus koneksi.
-
-**Anti-kecurangan yang sudah tertanam**
-
-| Risiko | Penanganan |
-| --- | --- |
-| Membaca kunci jawaban dari respons | `is_benar` hanya disertakan setelah sesi tidak lagi `berjalan` |
-| Memanipulasi timer di klien | Waktu dihitung dari `deadline_at` di basis data |
-| Mengulang ujian | `max_percobaan` + `UNIQUE(peserta_id, paket_id, percobaan)` |
-| Mengerjakan soal paket lain | Validasi `soalId` terhadap `paket_id` sesi |
-| Mengerjakan sesi peserta lain | Pemeriksaan `sesi.peserta_id === req.peserta.id` → 403 |
-| Berbagi akun antar perangkat | `device_hash` tercatat per sesi (dasar untuk penegakan lebih ketat) |
 
 ---
 
@@ -349,7 +265,6 @@ Dua audiens JWT dipisahkan agar token tidak dapat dipakai lintas area:
 
 | Audiens | Subjek | Dipakai oleh | Middleware |
 | --- | --- | --- | --- |
-| `cbt` | `cbt_peserta.id` | Peserta ujian | `requirePeserta` |
 | `admin` | `users.id` | Pengurus/panitia | `requireAdmin(...roles)` |
 
 Token peserta yang dipakai pada endpoint admin menghasilkan 401 (diuji di `smoke.js`).
@@ -360,7 +275,6 @@ Token peserta yang dipakai pada endpoint admin menghasilkan 401 (diuji di `smoke
 | `editor` | CRUD artikel, galeri, dokumen |
 | `advokat` | Baca & ubah status pengaduan |
 | `panitia_mapaba` | Verifikasi pendaftar MAPABA |
-| `panitia_cbt` | Kelola paket, bank soal, dan sesi ujian |
 
 Kata sandi di-hash dengan bcrypt (cost 10). Access token berumur 2 jam; refresh token 7 hari dan
 hanya diterbitkan bila pengguna memilih "Ingat saya".
@@ -368,7 +282,6 @@ hanya diterbitkan bila pengguna memilih "Ingat saya".
 **Catatan penyimpanan token.** Front-end saat ini menyimpan access token di `sessionStorage`
 (hilang saat tab ditutup). Untuk pengetatan, pindahkan refresh token ke cookie `HttpOnly; Secure;
 SameSite=Strict` dan simpan access token hanya di memori — perubahan terbatas pada `forms.js` dan
-`cbt.js`.
 
 ---
 
@@ -475,29 +388,30 @@ npm run db:migrate && npm run db:seed
 npm test
 ```
 
-`server/test/smoke.js` menyalakan aplikasi Express pada port terpisah lalu menjalankan 24
+`server/test/smoke.js` menyalakan aplikasi Express pada port terpisah lalu menjalankan 22
 pemeriksaan yang menutup seluruh alur penting, di antaranya:
 
 - Validasi per-kolom pada formulir pengaduan (`nama`, `kronologi`, `persetujuan`).
+- Pengaduan anonim diterima dan dicatat tanpa identitas.
 - Penerbitan `ADV-…`/`MPB-…` dan pencegahan NIM ganda (409).
 - Endpoint pelacakan tiket tidak membocorkan identitas pelapor.
-- Login CBT gagal/berhasil, penolakan akses tanpa token.
-- Kunci jawaban tidak terkirim saat sesi berjalan, lalu terbuka setelah submit.
-- Autosave idempoten dan penolakan opsi milik soal lain.
-- Penilaian (benar + salah + kosong = total soal) dan penolakan submit ganda.
-- Token peserta ditolak di endpoint admin; perubahan status pengaduan tercatat di log.
+- Unggahan sah diterima; berkas menyamar, tipe terlarang, dan berkas kelewat besar ditolak.
+- Kata sandi tersimpan sebagai hash bcrypt, bukan teks polos; sandi lemah ditolak.
+- Akun pengurus terkunci setelah lima kali gagal login.
+- Token palsu dan permintaan tanpa token ditolak endpoint admin.
+- Verifikasi pendaftar MAPABA dan perubahan status pengaduan tercatat di log.
 
 ---
 
 ## 11. Rencana Pengembangan Berikutnya
 
+storage, notifikasi email/WhatsApp, impor peserta massal, dan skema produksi MySQL.
+
 | Prioritas | Pekerjaan | Komponen yang tersentuh |
 | --- | --- | --- |
-| Tinggi | Halaman pengerjaan soal CBT (`/cbt/ujian.html`) | Front-end baru; API sudah siap |
-| Tinggi | Panel admin (CMS artikel, verifikasi MAPABA, papan pengaduan) | Front-end baru + endpoint admin yang sudah ada |
-| Tinggi | Unggah berkas (cover artikel, foto galeri, PDF dokumen) | `multer` + endpoint `/upload`, atau S3/R2 |
-| Sedang | Notifikasi email/WhatsApp saat pengaduan & pendaftaran masuk | Nodemailer/gateway WA pada dua titik `TODO(integrasi)` |
-| Sedang | Impor peserta CBT massal dari CSV/XLSX | Endpoint admin + praviu sebelum simpan |
-| Sedang | Analisis butir soal (tingkat kesukaran, daya beda) | Kueri agregat atas `cbt_jawaban` |
+| Tinggi | Editor artikel WYSIWYG + pembersihan HTML (`sanitize-html`) | `public/admin/artikel.html`; endpoint sudah siap |
+| Tinggi | Pengunggah album galeri (banyak foto, urutan, sampul) | `public/admin/galeri.html`; endpoint unggah sudah siap |
+| Sedang | Halaman detail artikel + `schema.org/Article` | Halaman baru + `GET /artikel/:slug` yang sudah ada |
+| Sedang | Kebijakan retensi otomatis data pribadi | Cron + endpoint pembersihan |
+| Rendah | 2FA (TOTP) untuk akun superadmin | `routes/admin.js` + tabel baru |
 | Rendah | Pencarian teks penuh artikel | FTS5 (SQLite) atau `tsvector` (PostgreSQL) |
-| Rendah | Migrasi ke MySQL/PostgreSQL bila CBT dipakai serentak >200 peserta | Ganti `server/src/lib/db.js` saja |

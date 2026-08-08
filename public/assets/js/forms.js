@@ -38,8 +38,10 @@
   }
 
   function showFieldError(field, message) {
-    field.classList.add('input-error');
-    field.setAttribute('aria-invalid', 'true');
+    if (field.type !== 'hidden') {
+      field.classList.add('input-error');
+      field.setAttribute('aria-invalid', 'true');
+    }
     const target = document.querySelector(`[data-error-for="${field.name}"]`);
     if (target) {
       target.textContent = message;
@@ -63,7 +65,17 @@
 
     fields.forEach((field) => {
       clearFieldError(field);
-      if (field.type === 'hidden' || field.disabled) return;
+      if (field.disabled) return;
+
+      // Input tersembunyi hanya divalidasi bila ditandai wajib — dipakai oleh
+      // hasil unggahan (pasFotoUrl/ktmUrl) yang diisi uploader.js.
+      if (field.type === 'hidden') {
+        if (field.dataset.required !== undefined && !(field.value || '').trim()) {
+          showFieldError(field, `${labelOf(field)} wajib diunggah.`);
+          firstInvalid = firstInvalid || field;
+        }
+        return;
+      }
 
       const label = labelOf(field);
       const value = (field.value || '').trim();

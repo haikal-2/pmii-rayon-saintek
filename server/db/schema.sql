@@ -1,5 +1,5 @@
 -- =============================================================================
---  Skema basis data — Website PK PMII UIN SGD Cab. Kab. Bandung
+--  Skema basis data — Website PR PMII Saintek UIN SGD
 --  Dialek: SQLite (untuk pengembangan). Catatan padanan MySQL/PostgreSQL
 --  tersedia di docs/BACKEND-SPEC.md bagian 3.
 --
@@ -20,10 +20,13 @@ CREATE TABLE IF NOT EXISTS users (
   email         TEXT    NOT NULL UNIQUE,
   password_hash TEXT    NOT NULL,
   -- superadmin: seluruh akses | editor: konten | advokat: pengaduan
-  -- panitia_mapaba: pendaftaran | panitia_cbt: bank soal & sesi ujian
+  -- panitia_mapaba: verifikasi pendaftar MAPABA
   role          TEXT    NOT NULL DEFAULT 'editor'
-                CHECK (role IN ('superadmin','editor','advokat','panitia_mapaba','panitia_cbt')),
+                CHECK (role IN ('superadmin','editor','advokat','panitia_mapaba')),
   is_active     INTEGER NOT NULL DEFAULT 1,
+  -- Penguncian sementara setelah beberapa kali gagal login
+  gagal_login   INTEGER NOT NULL DEFAULT 0,
+  locked_until  TEXT,
   last_login_at TEXT,
   created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
   updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
@@ -156,7 +159,7 @@ CREATE TABLE IF NOT EXISTS pengaduan (
   status_pelapor TEXT   NOT NULL
                 CHECK (status_pelapor IN ('mahasiswa','alumni','kader','masyarakat')),
   kategori      TEXT    NOT NULL
-                CHECK (kategori IN ('ukt','akademik','kekerasan_seksual','perundungan',
+                CHECK (kategori IN ('akademik','fasilitas','kekerasan_seksual','ukt','perundungan',
                                     'kebebasan_berpendapat','ketenagakerjaan','lainnya')),
   kronologi     TEXT    NOT NULL,
   lampiran_url  TEXT,
@@ -210,6 +213,7 @@ CREATE TABLE IF NOT EXISTS mapaba_pendaftar (
   nama_lengkap      TEXT    NOT NULL,
   nim               TEXT    NOT NULL,
   angkatan          INTEGER NOT NULL,
+  universitas       TEXT    NOT NULL DEFAULT 'UIN Sunan Gunung Djati Bandung',
   fakultas          TEXT    NOT NULL,
   prodi             TEXT    NOT NULL,
   jenis_kelamin     TEXT    NOT NULL CHECK (jenis_kelamin IN ('L','P')),
@@ -219,6 +223,10 @@ CREATE TABLE IF NOT EXISTS mapaba_pendaftar (
   motivasi          TEXT    NOT NULL,
   riwayat_organisasi TEXT,
   sumber_informasi  TEXT,
+  -- URL berkas hasil unggah (lihat routes/upload.js). Disimpan sebagai URL, bukan
+  -- BLOB, agar berkas dapat dipindah ke object storage tanpa mengubah skema.
+  pas_foto_url      TEXT,
+  ktm_url           TEXT,
   bukti_bayar_url   TEXT,
   status            TEXT    NOT NULL DEFAULT 'menunggu'
                     CHECK (status IN ('menunggu','terverifikasi','hadir','ditolak','batal')),
@@ -232,108 +240,10 @@ CREATE TABLE IF NOT EXISTS mapaba_pendaftar (
 CREATE INDEX IF NOT EXISTS idx_mapaba_status ON mapaba_pendaftar(gelombang_id, status);
 
 -- -----------------------------------------------------------------------------
--- 8. CBT BIMTES — peserta, bank soal, sesi ujian, hasil
--- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS cbt_peserta (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
-  nomor_peserta  TEXT    NOT NULL UNIQUE,    -- BIM-2026-0001 (dipakai untuk login)
-  nama           TEXT    NOT NULL,
-  email          TEXT    UNIQUE,
-  whatsapp       TEXT,
-  asal_sekolah   TEXT,
-  password_hash  TEXT    NOT NULL,
-  must_change_password INTEGER NOT NULL DEFAULT 1,
-  is_active      INTEGER NOT NULL DEFAULT 1,
-  gagal_login    INTEGER NOT NULL DEFAULT 0, -- untuk penguncian sementara
-  locked_until   TEXT,
-  last_login_at  TEXT,
-  created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS cbt_paket (
-  id               INTEGER PRIMARY KEY AUTOINCREMENT,
-  kode             TEXT    NOT NULL UNIQUE,  -- TPS-2026-01
-  nama             TEXT    NOT NULL,
-  deskripsi        TEXT,
-  durasi_menit     INTEGER NOT NULL,
-  jumlah_soal      INTEGER NOT NULL,
-  acak_soal        INTEGER NOT NULL DEFAULT 1,
-  acak_opsi        INTEGER NOT NULL DEFAULT 1,
-  max_percobaan    INTEGER NOT NULL DEFAULT 1,
-  tampilkan_pembahasan INTEGER NOT NULL DEFAULT 1,
-  buka_at          TEXT,
-  tutup_at         TEXT,
-  is_aktif         INTEGER NOT NULL DEFAULT 1,
-  created_at       TEXT    NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS cbt_soal (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  paket_id    INTEGER NOT NULL REFERENCES cbt_paket(id) ON DELETE CASCADE,
-  subtes      TEXT,                          -- Penalaran Umum, Literasi, dsb.
-  tipe        TEXT    NOT NULL DEFAULT 'pilihan_ganda'
-              CHECK (tipe IN ('pilihan_ganda','benar_salah','isian_singkat')),
-  pertanyaan  TEXT    NOT NULL,
-  gambar_url  TEXT,
-  pembahasan  TEXT,
-  bobot       REAL    NOT NULL DEFAULT 1,
-  urutan      INTEGER NOT NULL DEFAULT 0
-);
-
-CREATE INDEX IF NOT EXISTS idx_cbt_soal_paket ON cbt_soal(paket_id, urutan);
-
-CREATE TABLE IF NOT EXISTS cbt_opsi (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  soal_id    INTEGER NOT NULL REFERENCES cbt_soal(id) ON DELETE CASCADE,
-  label      TEXT    NOT NULL,               -- A, B, C, D, E
-  teks       TEXT    NOT NULL,
-  gambar_url TEXT,
-  is_benar   INTEGER NOT NULL DEFAULT 0      -- JANGAN pernah dikirim ke klien saat ujian
-);
-
-CREATE INDEX IF NOT EXISTS idx_cbt_opsi_soal ON cbt_opsi(soal_id);
-
--- Satu sesi = satu percobaan pengerjaan oleh satu peserta
-CREATE TABLE IF NOT EXISTS cbt_sesi (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  peserta_id    INTEGER NOT NULL REFERENCES cbt_peserta(id) ON DELETE CASCADE,
-  paket_id      INTEGER NOT NULL REFERENCES cbt_paket(id)   ON DELETE CASCADE,
-  percobaan     INTEGER NOT NULL DEFAULT 1,
-  -- Urutan soal & opsi hasil pengacakan, disimpan agar konsisten saat refresh
-  urutan_soal   TEXT,                        -- JSON array id soal
-  mulai_at      TEXT    NOT NULL DEFAULT (datetime('now')),
-  -- Batas waktu dihitung di server: mulai_at + durasi_menit
-  deadline_at   TEXT    NOT NULL,
-  submit_at     TEXT,
-  status        TEXT    NOT NULL DEFAULT 'berjalan'
-                CHECK (status IN ('berjalan','selesai','kedaluwarsa','diskualifikasi')),
-  skor          REAL,
-  jumlah_benar  INTEGER,
-  jumlah_salah  INTEGER,
-  jumlah_kosong INTEGER,
-  device_hash   TEXT,                        -- mengunci sesi pada satu perangkat
-  UNIQUE (peserta_id, paket_id, percobaan)
-);
-
-CREATE INDEX IF NOT EXISTS idx_cbt_sesi_peserta ON cbt_sesi(peserta_id, status);
-
-CREATE TABLE IF NOT EXISTS cbt_jawaban (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  sesi_id     INTEGER NOT NULL REFERENCES cbt_sesi(id) ON DELETE CASCADE,
-  soal_id     INTEGER NOT NULL REFERENCES cbt_soal(id) ON DELETE CASCADE,
-  opsi_id     INTEGER REFERENCES cbt_opsi(id) ON DELETE SET NULL,
-  teks_isian  TEXT,
-  ragu        INTEGER NOT NULL DEFAULT 0,    -- tanda "ragu-ragu" pada navigasi soal
-  is_benar    INTEGER,                       -- diisi saat penilaian
-  answered_at TEXT    NOT NULL DEFAULT (datetime('now')),
-  UNIQUE (sesi_id, soal_id)                  -- autosave = UPSERT per soal
-);
-
--- -----------------------------------------------------------------------------
--- 9. Utilitas: penomoran tiket/registrasi & jejak audit
+-- 8. Utilitas: penomoran tiket/registrasi & jejak audit
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS counters (
-  nama       TEXT    NOT NULL,               -- 'advokasi' | 'mapaba' | 'cbt'
+  nama       TEXT    NOT NULL,               -- 'advokasi' | 'mapaba'
   tahun      INTEGER NOT NULL,
   nilai      INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (nama, tahun)
@@ -353,3 +263,41 @@ CREATE TABLE IF NOT EXISTS settings (
   kunci TEXT PRIMARY KEY,
   nilai TEXT NOT NULL
 );
+
+-- -----------------------------------------------------------------------------
+-- 9. Berkas unggahan & log notifikasi keluar
+-- -----------------------------------------------------------------------------
+
+-- Katalog seluruh berkas yang diunggah (pas foto, KTM, cover artikel, foto galeri).
+-- Tabel ini membuat berkas yatim (tidak dipakai entitas mana pun) mudah ditemukan
+-- dan dibersihkan, serta menyimpan kunci objek asli bila memakai S3/Cloudinary.
+CREATE TABLE IF NOT EXISTS berkas (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  driver      TEXT    NOT NULL DEFAULT 'local' CHECK (driver IN ('local','s3','cloudinary')),
+  kunci       TEXT    NOT NULL,               -- object key / path relatif
+  url         TEXT    NOT NULL,
+  nama_asli   TEXT,
+  mime        TEXT    NOT NULL,
+  ukuran_byte INTEGER NOT NULL,
+  tujuan      TEXT    NOT NULL DEFAULT 'umum' -- mapaba | galeri | artikel | dokumen | umum
+              CHECK (tujuan IN ('mapaba','galeri','artikel','dokumen','umum')),
+  pengunggah  TEXT,                           -- hash IP (publik) atau 'user:<id>' (admin)
+  created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_berkas_tujuan ON berkas(tujuan, created_at DESC);
+
+-- Riwayat notifikasi email/WhatsApp agar kegagalan kirim dapat ditelusuri
+-- dan tidak ada pengaduan darurat yang lolos tanpa pemberitahuan.
+CREATE TABLE IF NOT EXISTS notifikasi_log (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  kanal      TEXT    NOT NULL CHECK (kanal IN ('email','whatsapp')),
+  tujuan     TEXT    NOT NULL,
+  perihal    TEXT,
+  entitas    TEXT,                            -- 'pengaduan' | 'mapaba_pendaftar'
+  entitas_id INTEGER,
+  status     TEXT    NOT NULL DEFAULT 'terkirim' CHECK (status IN ('terkirim','gagal','dilewati')),
+  galat      TEXT,
+  created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+

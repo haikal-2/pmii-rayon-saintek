@@ -15,6 +15,8 @@ const rateLimit = require('express-rate-limit');
 const { z } = require('zod');
 
 const { db, nextNumber } = require('../lib/db');
+const { notifikasiPendaftarMapaba, notifikasiStatusMapaba } = require('../lib/notify');
+const { verifyCaptcha } = require('../middleware/captcha');
 const { requireAdmin } = require('../middleware/auth');
 const {
   ok,
@@ -39,6 +41,12 @@ const pendaftaranSchema = z.object({
     .int()
     .min(2015, 'Tahun angkatan tidak valid.')
     .max(new Date().getFullYear()),
+  universitas: z
+    .string()
+    .trim()
+    .max(150)
+    .optional()
+    .transform((value) => value || 'UIN Sunan Gunung Djati Bandung'),
   fakultas: z.string().trim().min(3, 'Fakultas wajib dipilih.').max(80),
   prodi: z.string().trim().min(2, 'Program studi wajib diisi.').max(80),
   jenisKelamin: z.enum(['L', 'P'], {
@@ -58,6 +66,12 @@ const pendaftaranSchema = z.object({
     .enum(['instagram', 'teman', 'website', 'poster', 'lainnya'])
     .optional()
     .or(z.literal('')),
+  // URL hasil unggah dari POST /upload. Berkas tidak dikirim sebagai base64 di
+  // sini agar payload JSON tetap kecil dan penyimpanan bisa dipindah ke S3.
+  pasFotoUrl: z
+    .union([z.string().trim().url('Tautan pas foto tidak valid.'), z.literal('')])
+    .optional(),
+  ktmUrl: z.union([z.string().trim().url('Tautan KTM tidak valid.'), z.literal('')]).optional(),
   kesediaan: z.literal(true, {
     errorMap: () => ({ message: 'Kesediaan mengikuti seluruh rangkaian wajib dicentang.' }),
   }),
@@ -122,6 +136,7 @@ router.get(
 router.post(
   '/pendaftaran',
   limiter,
+  verifyCaptcha,
   asyncHandler((req, res) => {
     const data = parseOrThrow(pendaftaranSchema, req.body);
 
@@ -144,30 +159,37 @@ router.post(
 
     const nomorRegistrasi = nextNumber('mapaba', 'MPB');
 
-    db.prepare(
-      `INSERT INTO mapaba_pendaftar
-         (nomor_registrasi, gelombang_id, nama_lengkap, nim, angkatan, fakultas, prodi,
-          jenis_kelamin, whatsapp, email, asal_daerah, motivasi, riwayat_organisasi, sumber_informasi)
-       VALUES (@nomorRegistrasi, @gelombangId, @namaLengkap, @nim, @angkatan, @fakultas, @prodi,
-               @jenisKelamin, @whatsapp, @email, @asalDaerah, @motivasi, @riwayatOrganisasi, @sumberInformasi)`
-    ).run({
-      nomorRegistrasi,
-      gelombangId: g.id,
-      namaLengkap: data.namaLengkap,
-      nim: data.nim,
-      angkatan: data.angkatan,
-      fakultas: data.fakultas,
-      prodi: data.prodi,
-      jenisKelamin: data.jenisKelamin,
-      whatsapp: data.whatsapp,
-      email: data.email,
-      asalDaerah: data.asalDaerah || null,
-      motivasi: data.motivasi,
-      riwayatOrganisasi: data.riwayatOrganisasi || null,
-      sumberInformasi: data.sumberInformasi || null,
-    });
+    const info = db
+      .prepare(
+        `INSERT INTO mapaba_pendaftar
+           (nomor_registrasi, gelombang_id, nama_lengkap, nim, angkatan, universitas, fakultas, prodi,
+            jenis_kelamin, whatsapp, email, asal_daerah, motivasi, riwayat_organisasi, sumber_informasi,
+            pas_foto_url, ktm_url)
+         VALUES (@nomorRegistrasi, @gelombangId, @namaLengkap, @nim, @angkatan, @universitas, @fakultas, @prodi,
+                 @jenisKelamin, @whatsapp, @email, @asalDaerah, @motivasi, @riwayatOrganisasi, @sumberInformasi,
+                 @pasFotoUrl, @ktmUrl)`
+      )
+      .run({
+        nomorRegistrasi,
+        gelombangId: g.id,
+        namaLengkap: data.namaLengkap,
+        nim: data.nim,
+        angkatan: data.angkatan,
+        universitas: data.universitas,
+        fakultas: data.fakultas,
+        prodi: data.prodi,
+        jenisKelamin: data.jenisKelamin,
+        whatsapp: data.whatsapp,
+        email: data.email,
+        asalDaerah: data.asalDaerah || null,
+        motivasi: data.motivasi,
+        riwayatOrganisasi: data.riwayatOrganisasi || null,
+        sumberInformasi: data.sumberInformasi || null,
+        pasFotoUrl: data.pasFotoUrl || null,
+        ktmUrl: data.ktmUrl || null,
+      });
 
-    // TODO(integrasi): kirim email/WhatsApp berisi nomor registrasi & tautan grup peserta.
+    notifikasiPendaftarMapaba({ id: info.lastInsertRowid, nomorRegistrasi, ...data });
 
     return created(res, {
       nomorRegistrasi,
@@ -236,8 +258,11 @@ router.get(
     const rows = db
       .prepare(
         `SELECT id, nomor_registrasi AS nomorRegistrasi, nama_lengkap AS namaLengkap, nim,
-                angkatan, fakultas, prodi, jenis_kelamin AS jenisKelamin, whatsapp, email,
-                status, created_at AS dibuatPada
+                angkatan, universitas, fakultas, prodi, jenis_kelamin AS jenisKelamin,
+                whatsapp, email, asal_daerah AS asalDaerah, motivasi,
+                riwayat_organisasi AS riwayatOrganisasi,
+                pas_foto_url AS pasFotoUrl, ktm_url AS ktmUrl,
+                status, catatan_panitia AS catatanPanitia, created_at AS dibuatPada
          FROM mapaba_pendaftar ${clause}
          ORDER BY created_at DESC
          LIMIT @limit OFFSET @offset`
@@ -265,7 +290,7 @@ router.patch(
       req.body
     );
 
-    const row = db.prepare('SELECT id FROM mapaba_pendaftar WHERE id = ?').get(req.params.id);
+    const row = db.prepare('SELECT * FROM mapaba_pendaftar WHERE id = ?').get(req.params.id);
     if (!row) throw notFound('Pendaftar tidak ditemukan.');
 
     db.prepare(
@@ -284,6 +309,12 @@ router.patch(
       `INSERT INTO audit_log (user_id, aksi, entitas, entitas_id, metadata)
        VALUES (?, 'mapaba.update', 'mapaba_pendaftar', ?, ?)`
     ).run(req.user.id, row.id, JSON.stringify(data));
+
+    // Kabari pendaftar hanya saat keputusan panitia benar-benar berubah,
+    // supaya tidak ada pesan berulang setiap kali catatan disunting.
+    if (data.status && data.status !== row.status && ['terverifikasi', 'ditolak'].includes(data.status)) {
+      notifikasiStatusMapaba(row, data.status, data.catatanPanitia);
+    }
 
     return ok(res, db.prepare('SELECT * FROM mapaba_pendaftar WHERE id = ?').get(row.id));
   })

@@ -7,6 +7,7 @@
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
 const { errorHandler, notFound } = require('./lib/http');
@@ -37,13 +38,22 @@ app.use(
 app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: true, limit: '256kb' }));
 
-// Header keamanan dasar. Bila `helmet` dipasang, ganti blok ini dengan helmet().
-app.use((_req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  next();
-});
+/**
+ * Header keamanan.
+ *
+ * `crossOriginResourcePolicy: cross-origin` diperlukan karena berkas di /uploads
+ * dimuat oleh front-end yang berada di domain berbeda (mis. Vercel → API VPS).
+ * CSP untuk halaman HTML diatur di Nginx (lihat deploy/nginx.conf); di sini CSP
+ * dimatikan agar tidak berbenturan dengan respons JSON.
+ */
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    hsts: process.env.NODE_ENV === 'production' ? { maxAge: 31536000, includeSubDomains: true } : false,
+  })
+);
 
 // Pembatas laju global; endpoint sensitif punya pembatas sendiri di route-nya.
 app.use(
@@ -61,10 +71,10 @@ app.get(`${PREFIX}/health`, (_req, res) =>
   res.json({ ok: true, data: { status: 'sehat', waktu: new Date().toISOString() } })
 );
 
+app.use(`${PREFIX}/upload`, require('./routes/upload'));
 app.use(`${PREFIX}/artikel`, require('./routes/artikel'));
 app.use(`${PREFIX}/advokasi`, require('./routes/advokasi'));
 app.use(`${PREFIX}/mapaba`, require('./routes/mapaba'));
-app.use(`${PREFIX}/cbt`, require('./routes/cbt'));
 app.use(`${PREFIX}/admin`, require('./routes/admin'));
 app.use(PREFIX, require('./routes/konten'));
 

@@ -1,0 +1,141 @@
+<!--page
+{
+  "out": "admin/mapaba.html",
+  "adminNav": "mapaba",
+  "title": "Data Pendaftar MAPABA — Panel Admin",
+  "description": "Kelola dan verifikasi pendaftar MAPABA Raya.",
+  "noindex": true
+}
+page-->
+<!DOCTYPE html>
+<html lang="id">
+<head>{{> head }}</head>
+
+<!--
+  Data Pendaftar MAPABA.
+
+  Sumber data : GET   /api/v1/mapaba/admin/pendaftar?status=&q=&page=
+  Aksi        : PATCH /api/v1/mapaba/admin/pendaftar/:id  { status, catatanPanitia }
+  Keduanya membutuhkan Bearer token pengurus dengan role panitia_mapaba/superadmin.
+
+  Tombol "Terima" mengirim status 'terverifikasi', "Tolak" mengirim 'ditolak'.
+  Server yang mengirim notifikasi email/WhatsApp ke pendaftar — halaman ini tidak
+  perlu tahu detailnya.
+-->
+<body class="bg-slate-100">
+  {{> admin-shell }}
+
+  <main id="konten-utama" class="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-2xl">Data Pendaftar MAPABA</h1>
+        <p class="mt-1 text-sm text-slate-600">
+          Verifikasi berkas calon anggota baru, lalu terima atau tolak pendaftarannya.
+        </p>
+      </div>
+      <button type="button" class="btn-outline btn-sm self-start" data-ekspor-csv>
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+        Ekspor CSV
+      </button>
+    </header>
+
+    <!-- Ringkasan status -->
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="admin-card p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Pendaftar</p>
+        <p class="mt-2 font-display text-3xl font-extrabold text-pmii-900" data-stat-total>—</p>
+      </div>
+      <div class="admin-card p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Menunggu Verifikasi</p>
+        <p class="mt-2 font-display text-3xl font-extrabold text-amber-600" data-stat-menunggu>—</p>
+      </div>
+      <div class="admin-card p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Diterima</p>
+        <p class="mt-2 font-display text-3xl font-extrabold text-emerald-600" data-stat-diterima>—</p>
+      </div>
+      <div class="admin-card p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Sisa Kuota</p>
+        <p class="mt-2 font-display text-3xl font-extrabold text-pmii-900" data-stat-kuota>—</p>
+      </div>
+    </div>
+
+    <!-- Penyaring -->
+    <div class="admin-card mt-6 flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Saring berdasarkan status">
+        <button type="button" class="btn-primary btn-sm" data-filter="" aria-pressed="true">Semua</button>
+        <button type="button" class="btn-outline btn-sm" data-filter="menunggu" aria-pressed="false">Menunggu</button>
+        <button type="button" class="btn-outline btn-sm" data-filter="terverifikasi" aria-pressed="false">Diterima</button>
+        <button type="button" class="btn-outline btn-sm" data-filter="ditolak" aria-pressed="false">Ditolak</button>
+        <button type="button" class="btn-outline btn-sm" data-filter="hadir" aria-pressed="false">Hadir</button>
+      </div>
+
+      <div class="relative w-full lg:w-72">
+        <label for="cari" class="sr-only">Cari pendaftar</label>
+        <input id="cari" type="search" class="input pl-11" placeholder="Cari nama, NIM, atau nomor registrasi…"
+          data-cari />
+        <svg class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Tabel pendaftar -->
+    <div class="admin-card mt-6 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[64rem]">
+          <thead class="border-b border-slate-200 bg-slate-50">
+            <tr>
+              <th scope="col" class="admin-th">No. Registrasi</th>
+              <th scope="col" class="admin-th">Nama &amp; NIM</th>
+              <th scope="col" class="admin-th">Fakultas / Prodi</th>
+              <th scope="col" class="admin-th">Kontak</th>
+              <th scope="col" class="admin-th">Berkas</th>
+              <th scope="col" class="admin-th">Status</th>
+              <th scope="col" class="admin-th text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100" data-tabel>
+            <tr><td class="admin-td text-slate-500" colspan="7">Memuat data pendaftar…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex flex-col items-center justify-between gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row">
+        <p class="text-sm text-slate-500" data-info-halaman>—</p>
+        <div class="flex gap-2">
+          <button type="button" class="btn-outline btn-sm" data-hal-sebelumnya>Sebelumnya</button>
+          <button type="button" class="btn-outline btn-sm" data-hal-berikutnya>Berikutnya</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Dialog detail + catatan panitia -->
+  <div data-dialog hidden class="fixed inset-0 z-50 grid place-items-center bg-pmii-950/60 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-lg rounded-2xl bg-white p-7 shadow-card-hover" role="dialog" aria-modal="true" aria-labelledby="judul-dialog">
+      <h2 id="judul-dialog" class="text-xl" data-dialog-judul>Konfirmasi</h2>
+      <p class="mt-2 text-sm leading-relaxed text-slate-600" data-dialog-pesan></p>
+
+      <div class="mt-5">
+        <label class="label" for="catatan">Catatan panitia</label>
+        <textarea class="input min-h-[6rem] resize-y" id="catatan" data-dialog-catatan
+          placeholder="Opsional. Catatan ini ikut dikirimkan ke pendaftar."></textarea>
+      </div>
+
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
+        <button type="button" class="btn-primary w-full sm:w-auto" data-dialog-konfirmasi>Konfirmasi</button>
+        <button type="button" class="btn-outline w-full sm:w-auto" data-dialog-batal>Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <div data-toast hidden class="fixed bottom-6 right-6 z-50 rounded-xl px-5 py-3 text-sm font-semibold shadow-card-hover"></div>
+
+  <script src="{{base}}assets/js/config.js"></script>
+  <script src="{{base}}assets/js/main.js" defer></script>
+  <script src="{{base}}assets/js/admin.js" defer></script>
+  <script src="{{base}}assets/js/admin-mapaba.js" defer></script>
+</body>
+</html>
