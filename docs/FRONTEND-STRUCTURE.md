@@ -10,7 +10,6 @@ front-end publik dibangun sebagai **HTML statis + Tailwind CSS + JavaScript vani
 - Halaman tetap tampil utuh tanpa JavaScript (penting untuk jaringan kampus yang tidak stabil).
 - Hasil build berupa berkas statis, bisa dihosting gratis di Netlify/Cloudflare Pages.
 
-Bagian yang benar-benar aplikatif — **halaman pengerjaan soal CBT** — adalah kandidat paling tepat
 untuk React. Pemetaan komponennya ada di bagian 5.
 
 ---
@@ -46,7 +45,7 @@ Front-matter ditulis sebagai komentar HTML pertama:
 {
   "out": "profil/sejarah.html",
   "active": "profil",
-  "title": "Sejarah — PK PMII UIN SGD Cab. Kab. Bandung",
+  "title": "Sejarah — PR PMII Saintek UIN SGD",
   "description": "…",
   "pageEyebrow": "Profil",
   "pageTitle": "Sejarah",
@@ -70,7 +69,6 @@ Jalankan `npm run html:build` (sekali) atau `npm run dev` (mode watch).
 | --- | --- | --- | --- |
 | 1 | Header & navigasi | `{{> header }}` | `sticky top-0 z-50`, latar `bg-white/85 backdrop-blur`, bayangan muncul setelah scroll 8 px |
 | 2 | Hero | `<section aria-labelledby="hero-title">` | Grid 12 kolom: 7 kolom teks + 5 kolom visual; ornamen grid SVG dengan `mask-image` radial |
-| 3 | Panel akses cepat | `id="layanan"` | Grid 4 kartu; kartu keempat (CBT BIMTES) memakai `.card-featured` + tombol `.btn-accent` agar menonjol |
 | 4 | Tentang kami & Trilogi | `id="tentang-kami"` | Naskah 17 April 1960 + tiga kartu ikon (Dzikir/Fikir/Amal Sholeh) + kutipan besar |
 | 5 | Artikel terkini | `<section aria-labelledby="artikel-title">` | 3 kartu dengan label kategori, `<time>`, preview, tautan "Baca Selengkapnya →" |
 | 6 | Quote banner | `<section aria-labelledby="quote-title">` | Latar `pmii-950` + tiga lapis ornamen blur; kutipan Mahbub Djunaidi |
@@ -94,7 +92,6 @@ tertutup navbar.
 | `main.js` | Bayangan navbar, hamburger menu, dropdown Profil, akordeon, animasi reveal, tombol ke atas, tahun berjalan |
 | `forms.js` | Validasi klien, kirim JSON ke API, galat per-kolom, status memuat, panel sukses + nomor tiket, penghitung karakter, tampil/sembunyi sandi |
 | `countdown.js` | Hitung mundur penutupan pendaftaran MAPABA |
-| `cbt.js` | Penjaga akses dashboard, render identitas peserta, `cbtFetch()` dengan Bearer token, logout |
 
 Semua modul memakai pola IIFE, memasang diri lewat atribut `data-*`, dan aman dimuat pada halaman
 yang tidak memakainya (selector kosong → tidak melakukan apa pun).
@@ -150,14 +147,14 @@ partial dan seksi yang sudah ada:
 </SiteLayout>
 ```
 
-Komponen yang paling diuntungkan oleh React adalah **ruang ujian CBT**, karena state-nya kaya:
+Komponen yang paling diuntungkan oleh React adalah **panel admin**, karena state-nya kaya
+dan saling bergantung:
 
 | Komponen | State yang dikelola |
 | --- | --- |
-| `<ExamRoom>` | `sesiId`, daftar soal, indeks aktif, status pengiriman |
-| `<QuestionNavigator>` | Peta nomor soal: terjawab / ragu / kosong |
-| `<Timer>` | Sisa detik dari `sesi.sisaDetik`, sinkronisasi ulang saat tab kembali aktif |
-| `<AnswerOption>` | Optimistic update + autosave `PUT /cbt/sesi/:id/jawaban` (debounce) |
-| `<SubmitDialog>` | Konfirmasi, ringkasan jumlah soal belum terjawab |
+| `<RegistrantTable>` | Baris, penyaring status, kata kunci pencarian, halaman aktif |
+| `<StatusDialog>` | Pendaftar terpilih, catatan panitia, status pengiriman |
+| `<Uploader>` | Berkas terpilih, persentase progres, URL hasil unggah |
+| `<Toast>` | Antrean pesan dan penghitung waktu tampil |
 
 Kontrak API-nya sudah siap dipakai apa adanya — lihat [`BACKEND-SPEC.md`](BACKEND-SPEC.md) bagian 6.

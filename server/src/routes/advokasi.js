@@ -15,6 +15,8 @@ const { z } = require('zod');
 
 const { db, nextNumber } = require('../lib/db');
 const { hashOpaque } = require('../lib/tokens');
+const { notifikasiPengaduanBaru } = require('../lib/notify');
+const { verifyCaptcha } = require('../middleware/captcha');
 const { requireAdmin } = require('../middleware/auth');
 const { ok, created, notFound, asyncHandler, parseOrThrow } = require('../lib/http');
 
@@ -23,17 +25,25 @@ const router = express.Router();
 /* -------------------------------------------------------------- Skema Zod */
 
 const KATEGORI = [
-  'ukt',
   'akademik',
+  'fasilitas',
   'kekerasan_seksual',
+  'ukt',
   'perundungan',
   'kebebasan_berpendapat',
   'ketenagakerjaan',
   'lainnya',
 ];
 
+/** Kategori yang otomatis diperlakukan sebagai kasus berprioritas tinggi. */
+const KATEGORI_MENDESAK = new Set(['kekerasan_seksual', 'perundungan']);
+
 const pengaduanSchema = z.object({
-  nama: z.string().trim().min(3, 'Nama lengkap minimal 3 karakter.').max(100),
+  // Nama boleh dikosongkan: pelapor berhak menyampaikan aduan secara anonim.
+  nama: z
+    .union([z.string().trim().max(100), z.literal('')])
+    .optional()
+    .transform((value) => (value && value.length >= 2 ? value : 'Anonim')),
   kontak: z
     .string()
     .trim()
@@ -88,12 +98,15 @@ const limiter = rateLimit({
 router.post(
   '/pengaduan',
   limiter,
+  verifyCaptcha,
   asyncHandler((req, res) => {
     const data = parseOrThrow(pengaduanSchema, req.body);
     const nomorTiket = nextNumber('advokasi', 'ADV');
 
-    // Kasus kekerasan seksual otomatis berprioritas tinggi agar segera ditangani.
-    const prioritas = data.kategori === 'kekerasan_seksual' ? 'tinggi' : 'normal';
+    // Kasus kekerasan/pelecehan otomatis berprioritas tinggi agar segera ditangani
+    // dan memicu notifikasi mendesak ke tim Advokasi.
+    const mendesak = KATEGORI_MENDESAK.has(data.kategori);
+    const prioritas = mendesak ? 'tinggi' : 'normal';
 
     const info = db
       .prepare(
@@ -122,7 +135,18 @@ router.post(
        VALUES (?, 'baru', 'Pengaduan diterima melalui formulir website.')`
     ).run(info.lastInsertRowid);
 
-    // TODO(integrasi): kirim notifikasi ke email/WhatsApp tim Advokasi di sini.
+    // Notifikasi dikirim tanpa menunggu (fire-and-forget): kegagalan SMTP atau
+    // gateway WhatsApp tidak boleh membuat pengaduan pelapor ikut gagal.
+    notifikasiPengaduanBaru({
+      id: info.lastInsertRowid,
+      nomorTiket,
+      nama: data.nama,
+      kontak: data.kontak,
+      kategori: data.kategori,
+      prioritas,
+      mendesak,
+      kronologi: data.kronologi,
+    });
 
     return created(res, {
       nomorTiket,

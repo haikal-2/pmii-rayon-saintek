@@ -14,7 +14,7 @@ const PORT = Number(process.env.PORT || 4000);
 migrate();
 
 const server = app.listen(PORT, () => {
-  console.log(`API PK PMII UIN SGD siap di http://localhost:${PORT}${PREFIX}`);
+  console.log(`API PR PMII Saintek siap di http://localhost:${PORT}${PREFIX}`);
   console.log(`Basis data: ${DB_PATH}`);
 });
 

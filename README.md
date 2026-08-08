@@ -1,11 +1,11 @@
-# Website PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung
+# Website PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung
 
 > **Dzikir, Fikir, Amal Sholeh**
 > Organisasi ekstra kampus yang berlandaskan Islam Ahlussunnah wal Jama'ah dan Pancasila.
 
 Repositori ini berisi **front-end statis** (HTML + Tailwind CSS + JavaScript) dan **API back-end**
-(Express + SQLite) untuk website resmi PK PMII UIN SGD Cab. Kab. Bandung, termasuk tiga layanan
-interaktif: Layanan Advokasi, MAPABA Raya, dan CBT BIMTES.
+(Express + SQLite) untuk website resmi PR PMII Saintek UIN SGD, termasuk tiga layanan
+interaktif: Layanan Advokasi, MAPABA Raya, dan panel admin.
 
 ---
 
@@ -13,12 +13,14 @@ interaktif: Layanan Advokasi, MAPABA Raya, dan CBT BIMTES.
 
 | Bagian | Lokasi | Keterangan |
 | --- | --- | --- |
-| Halaman publik | `src/pages/`, hasil build di `public/` | 10 halaman statis, termasuk Beranda |
+| Halaman publik | `src/pages/`, hasil build di `public/` | 15 halaman statis, termasuk Beranda dan KOPRI |
+| Panel admin | `public/admin/` | Dashboard, verifikasi MAPABA, laporan advokasi, kelola konten |
 | Design system | `src/css/input.css`, `tailwind.config.js` | Token warna PMII, komponen tombol/kartu/form |
-| Interaksi UI | `public/assets/js/` | Navbar, dropdown, reveal, formulir, hitung mundur, CBT |
-| API | `server/src/` | Express + better-sqlite3, validasi Zod, JWT |
-| Skema basis data | `server/db/schema.sql` | 20 tabel dengan relasi dan constraint |
-| Dokumentasi | `docs/` | Design system, struktur front-end, spesifikasi back-end |
+| Interaksi UI | `public/assets/js/` | Navbar, formulir, unggah berkas, CAPTCHA, panel admin |
+| API | `server/src/` | Express + better-sqlite3, validasi Zod, JWT, Multer |
+| Skema basis data | `server/db/schema.sql` (SQLite) · `schema.mysql.sql` (produksi) | 19 tabel dengan relasi dan constraint |
+| Deployment | `deploy/`, `vercel.json` | Nginx, PM2, konfigurasi Vercel |
+| Dokumentasi | `docs/` | Design system, front-end, back-end, keamanan, SEO, deployment |
 
 ---
 
@@ -49,7 +51,6 @@ Kredensial data contoh (**hanya untuk pengembangan**):
 | Peran | Identitas | Kata sandi |
 | --- | --- | --- |
 | Admin/pengurus | `admin@pmiiuinbandung.test` | `RahasiaAdmin123` |
-| Peserta CBT | `BIM-2026-0001` | `bimtes2026` |
 
 ### Perintah npm
 
@@ -61,7 +62,7 @@ Kredensial data contoh (**hanya untuk pengembangan**):
 | `npm run css:build` | Kompilasi Tailwind ke `public/assets/css/style.css` |
 | `npm run api` | Jalankan API Express |
 | `npm run db:migrate` / `npm run db:seed` | Terapkan skema / isi data contoh |
-| `npm test` | Uji asap API (24 pemeriksaan alur end-to-end) |
+| `npm test` | Uji asap API (22 pemeriksaan alur end-to-end) |
 
 ---
 
@@ -77,18 +78,24 @@ Kredensial data contoh (**hanya untuk pengembangan**):
 ├── public/                    HASIL BUILD — inilah yang di-deploy
 │   ├── index.html             Beranda
 │   ├── profil/{sejarah,struktur}.html
-│   ├── artikel.html, galeri.html, landasan-hukum.html
+│   ├── artikel.html, galeri.html, landasan-hukum.html, kopri.html
 │   ├── advokasi.html, mapaba.html
-│   ├── cbt/{login,dashboard}.html
 │   └── assets/{css,js,img}/
 ├── server/
-│   ├── src/{app.js,index.js,lib,middleware,routes}
-│   ├── db/{schema.sql,migrate.js,seed.js}
+│   ├── src/
+│   │   ├── lib/{db,http,tokens,storage,notify}.js
+│   │   ├── middleware/{auth,captcha}.js
+│   │   └── routes/{artikel,konten,advokasi,mapaba,admin,upload}.js
+│   ├── db/{schema.sql,schema.mysql.sql,migrate.js,seed.js}
 │   └── test/smoke.js
+├── deploy/{nginx.conf,ecosystem.config.js}
 └── docs/
     ├── DESIGN-SYSTEM.md
     ├── FRONTEND-STRUCTURE.md
-    └── BACKEND-SPEC.md
+    ├── BACKEND-SPEC.md
+    ├── KEAMANAN.md
+    ├── SEO-PERFORMA.md
+    └── DEPLOYMENT.md
 ```
 
 > `public/*.html` adalah **hasil build**. Untuk mengubah tampilan, edit berkas di
@@ -103,13 +110,23 @@ Kredensial data contoh (**hanya untuk pengembangan**):
 | Beranda | `/index.html` | Hero, panel akses cepat, tentang kami + Trilogi PMII, artikel terkini, quote banner |
 | Sejarah | `/profil/sejarah.html` | Naskah sejarah PMII sejak 17 April 1960 + linimasa |
 | Struktur | `/profil/struktur.html` | Pengurus inti, enam bidang kerja, bagan koordinasi |
+| KOPRI | `/kopri.html` | Profil Korps PMII Putri, nilai, dan program kerja |
 | Artikel | `/artikel.html` | Filter kategori, pencarian, artikel unggulan, paginasi |
 | Galeri | `/galeri.html` | Grid album kegiatan dengan filter kategori |
 | Landasan Hukum | `/landasan-hukum.html` | AD/ART, NDP, PO, pedoman kaderisasi + hierarki peraturan |
 | Layanan Advokasi | `/advokasi.html` | Form pengaduan + alur penanganan + nomor tiket |
 | MAPABA Raya | `/mapaba.html` | Landing page, hitung mundur, agenda, formulir registrasi, FAQ |
-| Login CBT | `/cbt/login.html` | Login peserta CBT BIMTES 2026 |
-| Dashboard CBT | `/cbt/dashboard.html` | Daftar ujian, riwayat skor, tata tertib |
+
+### Panel Admin (`/admin/`, tidak diindeks mesin pencari)
+
+| Halaman | URL | Status |
+| --- | --- | --- |
+| Masuk | `/admin/login.html` | Berfungsi penuh |
+| Dashboard | `/admin/index.html` | Berfungsi penuh — ringkasan + daftar terbaru |
+| Data Pendaftar MAPABA | `/admin/mapaba.html` | Berfungsi penuh — tabel, filter, Terima/Tolak, ekspor CSV |
+| Laporan Advokasi | `/admin/advokasi.html` | Berfungsi penuh — alur status berjenjang |
+| Kelola Artikel | `/admin/artikel.html` | Daftar artikel berfungsi; editor WYSIWYG menyusul |
+| Kelola Galeri | `/admin/galeri.html` | Daftar album berfungsi; pengunggah album menyusul |
 
 ---
 
@@ -132,9 +149,16 @@ window.PMII_CONFIG = {
 };
 ```
 
-**Back-end** — jalankan API di VPS dengan proses manager (PM2/systemd) di belakang Nginx.
-Langkah lengkap termasuk contoh konfigurasi Nginx dan strategi backup ada di
-[`docs/BACKEND-SPEC.md`](docs/BACKEND-SPEC.md) bagian 9.
+**Back-end** — jalankan API di VPS dengan PM2 di belakang Nginx, atau di Render/Railway.
+
+Panduan lengkap ada di [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): rekomendasi VPS beserta
+kisaran harganya, langkah demi langkah pemasangan, konfigurasi Nginx dan PM2 yang sudah
+disediakan di `deploy/`, cara mengarahkan domain `www.pmiiuinsgd.site`, strategi backup,
+serta daftar periksa sebelum peluncuran.
+
+Sebelum diumumkan ke publik, kerjakan daftar periksa di
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) bagian 8 dan baca
+[`docs/KEAMANAN.md`](docs/KEAMANAN.md) bagian 7.
 
 ---
 
@@ -151,7 +175,7 @@ Langkah lengkap termasuk contoh konfigurasi Nginx dan strategi backup ada di
 
 ## Lisensi & Atribusi
 
-Kode dalam repositori ini disiapkan untuk keperluan internal PK PMII UIN Sunan Gunung Djati
+Kode dalam repositori ini disiapkan untuk keperluan internal PR PMII Sains dan Teknologi UIN Sunan Gunung Djati
 Cabang Kabupaten Bandung. Lambang PMII pada `public/assets/img/logo-pmii.svg` adalah render SVG
 bergaya untuk keperluan antarmuka; untuk dokumen resmi gunakan berkas lambang resmi organisasi.
 

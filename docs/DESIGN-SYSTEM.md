@@ -1,4 +1,4 @@
-# Design System — PK PMII UIN SGD Cab. Kab. Bandung
+# Design System — PR PMII Saintek UIN SGD
 
 Rancangan visual mengikuti tiga kata kunci: **akademis, bersih, dan bergerak.** Latar putih
 mendominasi agar teks panjang (naskah sejarah, AD/ART, artikel) nyaman dibaca; biru dipakai untuk
@@ -110,7 +110,6 @@ ditekan (umpan balik sentuh), dan tinggi ≥ 44 px agar nyaman disentuh di ponse
 ### Kartu
 
 - `.card` — putih, border `slate-200`, `shadow-card`; saat hover naik 4 px dan border menjadi biru.
-- `.card-featured` — biru gelap untuk kartu sorotan CBT BIMTES, dilengkapi ornamen blur kuning dan
   pola grid transparan.
 - `.card-icon` — kotak ikon 48 px dengan latar `pmii-50` dan ring `pmii-100`.
 
@@ -150,6 +149,5 @@ Animasi masuk dijalankan `IntersectionObserver`; urutan tunda diatur lewat atrib
 - Cincin fokus kuning tebal 2 px + offset 2 px pada semua elemen interaktif.
 - Menu mobile dan dropdown memelihara `aria-expanded`, dapat ditutup dengan tombol `Esc`, dan
   fokus kembali ke tombol pemicu.
-- Tabel riwayat CBT memakai `scope="col"`; ikon dekoratif memakai `aria-hidden="true"`.
 - Tanggal artikel memakai elemen `<time datetime="…">` agar terbaca mesin.
 - Struktur data `schema.org/Organization` disematkan di Beranda untuk pencarian.
