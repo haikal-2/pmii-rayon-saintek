@@ -1,0 +1,414 @@
+<!--page
+{
+  "out": "mapaba.html",
+  "active": "mapaba",
+  "title": "MAPABA Raya 2026 — Pendaftaran Anggota Baru PK PMII UIN SGD",
+  "description": "Landing page dan formulir pendaftaran MAPABA Raya 2026 PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung. Masa Penerimaan Anggota Baru: gerbang pertama menjadi kader pergerakan.",
+  "pageEyebrow": "Kaderisasi",
+  "pageTitle": "MAPABA Raya 2026",
+  "pageLead": "Masa Penerimaan Anggota Baru — gerbang pertama menjadi kader Pergerakan Mahasiswa Islam Indonesia."
+}
+page-->
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>{{> head }}</head>
+
+<body>
+  {{> header }}
+
+  <main id="konten-utama">
+    <!-- Hero khusus MAPABA (gelap, lebih "berkampanye") -->
+    <section class="relative overflow-hidden bg-pmii-950 py-16 sm:py-20 lg:py-24">
+      <div aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-[0.09] invert"></div>
+      <div aria-hidden="true" class="absolute -right-24 -top-28 h-96 w-96 rounded-full bg-pmii-600/30 blur-3xl"></div>
+      <div aria-hidden="true" class="absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-kuning-500/20 blur-3xl"></div>
+
+      <div class="container-page relative grid items-center gap-12 lg:grid-cols-12">
+        <div class="lg:col-span-7">
+          <nav aria-label="Breadcrumb" class="mb-6">
+            <ol class="flex flex-wrap items-center gap-2 text-xs font-medium text-pmii-100/60">
+              <li><a href="{{base}}index.html" class="hover:text-kuning-300">Beranda</a></li>
+              <li aria-hidden="true">/</li>
+              <li class="font-semibold text-kuning-300" aria-current="page">MAPABA Raya</li>
+            </ol>
+          </nav>
+
+          <p class="inline-flex items-center gap-2 rounded-full border border-kuning-400/30 bg-kuning-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-kuning-300">
+            <span class="relative flex h-2 w-2">
+              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-kuning-400 opacity-75"></span>
+              <span class="relative inline-flex h-2 w-2 rounded-full bg-kuning-400"></span>
+            </span>
+            Pendaftaran Dibuka
+          </p>
+
+          <h1 class="mt-6 text-[2rem] leading-tight text-white sm:text-4xl lg:text-[3rem] lg:leading-[1.08]">
+            MAPABA Raya <span class="text-kuning-300">2026</span>
+          </h1>
+          <p class="mt-5 max-w-2xl text-base leading-relaxed text-pmii-100/80 sm:text-lg">
+            Tiga hari untuk mengenal diri, tradisi, dan arah gerak. Bukan sekadar pelatihan — MAPABA adalah pintu masuk
+            menjadi bagian dari keluarga besar Pergerakan Mahasiswa Islam Indonesia.
+          </p>
+
+          <dl class="mt-10 grid max-w-2xl grid-cols-2 gap-6 border-t border-white/10 pt-8 sm:grid-cols-4">
+            <div>
+              <dt class="text-xs uppercase tracking-wider text-pmii-100/50">Tanggal</dt>
+              <dd class="mt-1 font-display text-base font-bold text-white">16–18 Okt 2026</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wider text-pmii-100/50">Lokasi</dt>
+              <dd class="mt-1 font-display text-base font-bold text-white">Cibiru, Kab. Bandung</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wider text-pmii-100/50">Kuota</dt>
+              <dd class="mt-1 font-display text-base font-bold text-white">150 peserta</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wider text-pmii-100/50">Kontribusi</dt>
+              <dd class="mt-1 font-display text-base font-bold text-kuning-300">Rp75.000</dd>
+            </div>
+          </dl>
+
+          <div class="mt-10 flex flex-col gap-3 sm:flex-row">
+            <a href="#form-pendaftaran" class="btn-accent w-full sm:w-auto">
+              Daftar Sekarang
+              <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L9 13.586V4a1 1 0 0 1 1-1Z" clip-rule="evenodd" />
+              </svg>
+            </a>
+            <a href="#agenda" class="btn-ghost-light w-full sm:w-auto">Lihat Agenda</a>
+          </div>
+        </div>
+
+        <!-- Kartu hitung mundur -->
+        <div class="lg:col-span-5">
+          <div class="rounded-3xl border border-white/15 bg-white/5 p-7 backdrop-blur">
+            <p class="text-xs font-semibold uppercase tracking-widest text-kuning-300">Pendaftaran ditutup dalam</p>
+            <div class="mt-5 grid grid-cols-4 gap-3 text-center" data-countdown="2026-10-10T23:59:59+07:00">
+              <div class="rounded-xl bg-white/10 py-4">
+                <p class="font-display text-2xl font-extrabold text-white" data-countdown-days>--</p>
+                <p class="mt-1 text-[0.625rem] uppercase tracking-wider text-pmii-100/60">Hari</p>
+              </div>
+              <div class="rounded-xl bg-white/10 py-4">
+                <p class="font-display text-2xl font-extrabold text-white" data-countdown-hours>--</p>
+                <p class="mt-1 text-[0.625rem] uppercase tracking-wider text-pmii-100/60">Jam</p>
+              </div>
+              <div class="rounded-xl bg-white/10 py-4">
+                <p class="font-display text-2xl font-extrabold text-white" data-countdown-minutes>--</p>
+                <p class="mt-1 text-[0.625rem] uppercase tracking-wider text-pmii-100/60">Menit</p>
+              </div>
+              <div class="rounded-xl bg-white/10 py-4">
+                <p class="font-display text-2xl font-extrabold text-white" data-countdown-seconds>--</p>
+                <p class="mt-1 text-[0.625rem] uppercase tracking-wider text-pmii-100/60">Detik</p>
+              </div>
+            </div>
+            <ul class="mt-7 space-y-3 text-sm text-pmii-100/80">
+              <li class="flex gap-3">
+                <svg class="mt-0.5 h-5 w-5 shrink-0 text-kuning-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                Terbuka untuk seluruh mahasiswa aktif UIN SGD Bandung.
+              </li>
+              <li class="flex gap-3">
+                <svg class="mt-0.5 h-5 w-5 shrink-0 text-kuning-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                Fasilitas: modul, sertifikat, konsumsi, dan kaos peserta.
+              </li>
+              <li class="flex gap-3">
+                <svg class="mt-0.5 h-5 w-5 shrink-0 text-kuning-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                Tersedia keringanan biaya bagi peserta yang membutuhkan.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Materi & agenda -->
+    <section id="agenda" class="section bg-white">
+      <div class="container-page">
+        <p class="section-eyebrow">Agenda</p>
+        <h2 class="section-title">Tiga hari, tiga tahap</h2>
+        <p class="section-subtitle">
+          Kurikulum MAPABA mengacu pada Pedoman Kaderisasi PMII (Multi Level Strategy) dengan penyesuaian konteks lokal.
+        </p>
+
+        <div class="mt-12 grid gap-6 lg:grid-cols-3">
+          <div class="card reveal">
+            <span class="badge-blue self-start">Hari 1</span>
+            <h3 class="mt-4 font-display text-lg font-bold">Mengenal Diri &amp; Tradisi</h3>
+            <ul class="mt-4 space-y-2 text-sm text-slate-600">
+              <li>· Sejarah PMII dan Ahlussunnah wal Jama'ah</li>
+              <li>· Nilai Dasar Pergerakan (NDP)</li>
+              <li>· Keorganisasian dan AD/ART</li>
+            </ul>
+          </div>
+          <div class="card reveal" data-reveal-delay="80">
+            <span class="badge-blue self-start">Hari 2</span>
+            <h3 class="mt-4 font-display text-lg font-bold">Membaca Realitas</h3>
+            <ul class="mt-4 space-y-2 text-sm text-slate-600">
+              <li>· Analisis sosial dan pemetaan persoalan kampus</li>
+              <li>· Gender, keberagaman, dan keadilan sosial</li>
+              <li>· Literasi digital dan advokasi</li>
+            </ul>
+          </div>
+          <div class="card reveal" data-reveal-delay="160">
+            <span class="badge-yellow self-start">Hari 3</span>
+            <h3 class="mt-4 font-display text-lg font-bold">Bergerak Bersama</h3>
+            <ul class="mt-4 space-y-2 text-sm text-slate-600">
+              <li>· Rencana tindak lanjut kader</li>
+              <li>· Baiat dan pelantikan anggota baru</li>
+              <li>· Penempatan rayon &amp; pendampingan</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------ Formulir registrasi -->
+    <section id="form-pendaftaran" class="section bg-slate-50/70">
+      <div class="container-page grid gap-10 lg:grid-cols-12 lg:gap-12">
+        <div class="lg:col-span-7">
+          <!-- Panel sukses -->
+          <div data-form-success hidden class="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center shadow-card">
+            <span class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+              <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </span>
+            <h2 class="mt-5 text-xl text-emerald-900">Pendaftaran diterima</h2>
+            <p class="mt-2 text-sm leading-relaxed text-emerald-800/80">
+              Simpan nomor registrasi berikut. Panitia akan mengirimkan tautan grup peserta dan petunjuk teknis melalui
+              WhatsApp.
+            </p>
+            <p class="mt-5 inline-block rounded-xl border border-emerald-300 bg-white px-6 py-3 font-display text-lg font-extrabold tracking-wider text-emerald-900" data-ticket>—</p>
+            <div class="mt-6">
+              <a href="{{base}}index.html" class="btn-outline btn-sm">Kembali ke Beranda</a>
+            </div>
+          </div>
+
+          <div data-form-wrapper>
+            <div class="fieldset-card">
+              <h2 class="text-xl sm:text-2xl">Formulir Registrasi Peserta</h2>
+              <p class="mt-2 text-sm leading-relaxed text-slate-600">
+                Kolom bertanda <span class="text-red-600">*</span> wajib diisi. Pastikan nomor WhatsApp aktif karena
+                seluruh koordinasi dilakukan melalui grup peserta.
+              </p>
+
+              <!-- POST /api/v1/mapaba/pendaftaran -->
+              <form data-api-form="/mapaba/pendaftaran" class="mt-8 space-y-6">
+                <div data-form-alert hidden></div>
+
+                <div class="grid gap-6 sm:grid-cols-2">
+                  <div class="sm:col-span-2">
+                    <label class="label" for="namaLengkap">Nama lengkap <span class="text-red-600">*</span></label>
+                    <input class="input" id="namaLengkap" name="namaLengkap" type="text" required minlength="3"
+                      maxlength="100" autocomplete="name" placeholder="Sesuai KTM" data-label="Nama lengkap" />
+                    <p class="error-text" data-error-for="namaLengkap"></p>
+                  </div>
+
+                  <div>
+                    <label class="label" for="nim">NIM <span class="text-red-600">*</span></label>
+                    <input class="input" id="nim" name="nim" type="text" required pattern="[0-9]{8,15}" inputmode="numeric"
+                      placeholder="1234567890" data-label="NIM" />
+                    <p class="error-text" data-error-for="nim"></p>
+                  </div>
+
+                  <div>
+                    <label class="label" for="angkatan">Angkatan <span class="text-red-600">*</span></label>
+                    <select class="input" id="angkatan" name="angkatan" required data-label="Angkatan">
+                      <option value="">— Pilih tahun —</option>
+                      <option value="2026">2026</option>
+                      <option value="2025">2025</option>
+                      <option value="2024">2024</option>
+                      <option value="2023">2023</option>
+                    </select>
+                    <p class="error-text" data-error-for="angkatan"></p>
+                  </div>
+
+                  <div>
+                    <label class="label" for="fakultas">Fakultas <span class="text-red-600">*</span></label>
+                    <select class="input" id="fakultas" name="fakultas" required data-label="Fakultas">
+                      <option value="">— Pilih fakultas —</option>
+                      <option>Ushuluddin</option>
+                      <option>Tarbiyah dan Keguruan</option>
+                      <option>Syariah dan Hukum</option>
+                      <option>Dakwah dan Komunikasi</option>
+                      <option>Adab dan Humaniora</option>
+                      <option>Psikologi</option>
+                      <option>Sains dan Teknologi</option>
+                      <option>Ilmu Sosial dan Ilmu Politik</option>
+                      <option>Ekonomi dan Bisnis Islam</option>
+                    </select>
+                    <p class="error-text" data-error-for="fakultas"></p>
+                  </div>
+
+                  <div>
+                    <label class="label" for="prodi">Program studi <span class="text-red-600">*</span></label>
+                    <input class="input" id="prodi" name="prodi" type="text" required maxlength="80"
+                      placeholder="Contoh: Teknik Informatika" data-label="Program studi" />
+                    <p class="error-text" data-error-for="prodi"></p>
+                  </div>
+
+                  <div>
+                    <label class="label" for="whatsapp">Nomor WhatsApp <span class="text-red-600">*</span></label>
+                    <input class="input" id="whatsapp" name="whatsapp" type="tel" required pattern="[0-9+\-\s()]{8,20}"
+                      inputmode="tel" autocomplete="tel" placeholder="0812xxxxxxxx" data-label="Nomor WhatsApp" />
+                    <p class="error-text" data-error-for="whatsapp"></p>
+                  </div>
+
+                  <div>
+                    <label class="label" for="emailPeserta">Email <span class="text-red-600">*</span></label>
+                    <input class="input" id="emailPeserta" name="email" type="email" required maxlength="120"
+                      autocomplete="email" placeholder="nama@email.com" data-label="Email" />
+                    <p class="error-text" data-error-for="email"></p>
+                  </div>
+
+                  <div>
+                    <label class="label" for="jenisKelamin">Jenis kelamin <span class="text-red-600">*</span></label>
+                    <select class="input" id="jenisKelamin" name="jenisKelamin" required data-label="Jenis kelamin">
+                      <option value="">— Pilih —</option>
+                      <option value="L">Laki-laki</option>
+                      <option value="P">Perempuan</option>
+                    </select>
+                    <p class="error-text" data-error-for="jenisKelamin"></p>
+                  </div>
+
+                  <div>
+                    <label class="label" for="asalDaerah">Asal daerah</label>
+                    <input class="input" id="asalDaerah" name="asalDaerah" type="text" maxlength="100"
+                      placeholder="Kabupaten/Kota" data-label="Asal daerah" />
+                    <p class="error-text" data-error-for="asalDaerah"></p>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="label" for="motivasi">Motivasi mengikuti MAPABA <span class="text-red-600">*</span></label>
+                  <textarea class="input min-h-[9rem] resize-y" id="motivasi" name="motivasi" required minlength="30"
+                    maxlength="1000" placeholder="Ceritakan alasanmu ingin bergabung dan apa yang ingin kamu pelajari."
+                    data-label="Motivasi"></textarea>
+                  <div class="mt-1.5 flex items-start justify-between gap-4">
+                    <p class="error-text" data-error-for="motivasi"></p>
+                    <p class="ml-auto shrink-0 text-xs text-slate-500" data-counter-for="motivasi">0/1000 karakter</p>
+                  </div>
+                </div>
+
+                <div class="grid gap-6 sm:grid-cols-2">
+                  <div>
+                    <label class="label" for="sumberInformasi">Tahu MAPABA dari mana?</label>
+                    <select class="input" id="sumberInformasi" name="sumberInformasi" data-label="Sumber informasi">
+                      <option value="">— Pilih —</option>
+                      <option value="instagram">Instagram</option>
+                      <option value="teman">Teman / senior</option>
+                      <option value="website">Website PMII</option>
+                      <option value="poster">Poster di kampus</option>
+                      <option value="lainnya">Lainnya</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="label" for="riwayatOrganisasi">Riwayat organisasi</label>
+                    <input class="input" id="riwayatOrganisasi" name="riwayatOrganisasi" type="text" maxlength="200"
+                      placeholder="Contoh: OSIS, IPNU, Pramuka" data-label="Riwayat organisasi" />
+                  </div>
+                </div>
+
+                <fieldset class="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-5">
+                  <legend class="px-2 text-sm font-semibold text-pmii-950">Pernyataan peserta</legend>
+                  <label class="flex items-start gap-3 text-sm text-slate-700">
+                    <input type="checkbox" name="kesediaan" value="true" required data-label="Kesediaan mengikuti seluruh rangkaian"
+                      class="mt-0.5 h-4 w-4 rounded border-slate-300 text-pmii-700 focus:ring-pmii-500" />
+                    <span>Saya bersedia mengikuti seluruh rangkaian MAPABA dari awal hingga akhir. <span class="text-red-600">*</span></span>
+                  </label>
+                  <p class="error-text" data-error-for="kesediaan"></p>
+
+                  <label class="flex items-start gap-3 text-sm text-slate-700">
+                    <input type="checkbox" name="persetujuanData" value="true" required data-label="Persetujuan pengolahan data"
+                      class="mt-0.5 h-4 w-4 rounded border-slate-300 text-pmii-700 focus:ring-pmii-500" />
+                    <span>Saya menyetujui data saya diolah panitia untuk keperluan administrasi MAPABA. <span class="text-red-600">*</span></span>
+                  </label>
+                  <p class="error-text" data-error-for="persetujuanData"></p>
+                </fieldset>
+
+                <button type="submit" class="btn-accent w-full sm:w-auto" data-submit>
+                  Kirim Pendaftaran
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Persyaratan & FAQ -->
+        <aside class="space-y-6 lg:col-span-5">
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+            <h2 class="font-display text-base font-bold uppercase tracking-wider text-pmii-900">Persyaratan</h2>
+            <ul class="mt-4 space-y-3 text-sm text-slate-600">
+              <li class="flex gap-3"><span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-kuning-400"></span> Mahasiswa aktif UIN Sunan Gunung Djati Bandung.</li>
+              <li class="flex gap-3"><span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-kuning-400"></span> Mengisi formulir registrasi secara lengkap.</li>
+              <li class="flex gap-3"><span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-kuning-400"></span> Menyerahkan salinan KTM dan foto 3×4.</li>
+              <li class="flex gap-3"><span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-kuning-400"></span> Membayar kontribusi peserta Rp75.000.</li>
+              <li class="flex gap-3"><span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-kuning-400"></span> Bersedia mengikuti seluruh rangkaian kegiatan.</li>
+            </ul>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+            <h2 class="font-display text-base font-bold uppercase tracking-wider text-pmii-900">Pertanyaan Umum</h2>
+            <div class="mt-4 divide-y divide-slate-200">
+              <div data-accordion class="py-3">
+                <button type="button" data-accordion-trigger aria-expanded="false"
+                  class="flex w-full items-center justify-between gap-3 text-left text-sm font-semibold text-pmii-950">
+                  Apakah harus berlatar belakang NU?
+                  <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform" data-accordion-caret viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.19l3.71-3.96a.75.75 0 1 1 1.08 1.04l-4.25 4.53a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+                <div data-accordion-panel class="hidden pt-2 text-sm leading-relaxed text-slate-600">
+                  Tidak. MAPABA terbuka bagi siapa pun yang bersedia belajar bersama dalam tradisi Ahlussunnah wal Jama'ah.
+                </div>
+              </div>
+
+              <div data-accordion class="py-3">
+                <button type="button" data-accordion-trigger aria-expanded="false"
+                  class="flex w-full items-center justify-between gap-3 text-left text-sm font-semibold text-pmii-950">
+                  Apakah kegiatan menginap?
+                  <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform" data-accordion-caret viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.19l3.71-3.96a.75.75 0 1 1 1.08 1.04l-4.25 4.53a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+                <div data-accordion-panel class="hidden pt-2 text-sm leading-relaxed text-slate-600">
+                  Ya, kegiatan berlangsung tiga hari dua malam di lokasi yang disiapkan panitia. Peserta putra dan putri
+                  ditempatkan terpisah.
+                </div>
+              </div>
+
+              <div data-accordion class="py-3">
+                <button type="button" data-accordion-trigger aria-expanded="false"
+                  class="flex w-full items-center justify-between gap-3 text-left text-sm font-semibold text-pmii-950">
+                  Bagaimana jika saya tidak mampu membayar kontribusi?
+                  <svg class="h-5 w-5 shrink-0 text-slate-400 transition-transform" data-accordion-caret viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.19l3.71-3.96a.75.75 0 1 1 1.08 1.04l-4.25 4.53a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+                <div data-accordion-panel class="hidden pt-2 text-sm leading-relaxed text-slate-600">
+                  Sampaikan pada kolom motivasi atau hubungi panitia melalui Instagram. Tersedia skema keringanan biaya —
+                  tidak ada calon kader yang gugur karena alasan ekonomi.
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  {{> footer }}
+  {{> back-to-top }}
+  {{> scripts }}
+  <script src="{{base}}assets/js/forms.js" defer></script>
+  <script src="{{base}}assets/js/countdown.js" defer></script>
+</body>
+</html>

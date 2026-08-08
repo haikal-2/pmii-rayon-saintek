@@ -1,0 +1,35 @@
+{
+  "name": "pk-pmii-uin-sgd-kab-bandung",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Website resmi PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung — front-end statis (HTML + Tailwind CSS + Vanilla JS) dengan API back-end Express + SQLite.",
+  "scripts": {
+    "dev": "npm-run-all html:build --parallel css:watch html:watch serve",
+    "css:watch": "tailwindcss -i ./src/css/input.css -o ./public/assets/css/style.css --watch",
+    "css:build": "tailwindcss -i ./src/css/input.css -o ./public/assets/css/style.css --minify",
+    "html:build": "node scripts/build-html.js",
+    "html:watch": "node scripts/build-html.js --watch",
+    "serve": "http-server ./public -p 4321 -c-1",
+    "build": "npm-run-all html:build css:build",
+    "api": "node server/src/index.js",
+    "api:dev": "node --watch server/src/index.js",
+    "db:migrate": "node server/db/migrate.js",
+    "db:seed": "node server/db/seed.js",
+    "test": "node server/test/smoke.js"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "npm-run-all": "^4.1.5",
+    "tailwindcss": "^3.4.17"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.24.1"
+  }
+}

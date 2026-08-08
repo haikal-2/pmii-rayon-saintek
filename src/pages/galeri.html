@@ -1,0 +1,103 @@
+<!--page
+{
+  "out": "galeri.html",
+  "active": "galeri",
+  "title": "Galeri Kegiatan — PK PMII UIN SGD Cab. Kab. Bandung",
+  "description": "Dokumentasi momen berharga kegiatan PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung: MAPABA, kajian, aksi, dan pengabdian masyarakat.",
+  "pageEyebrow": "Dokumentasi",
+  "pageTitle": "Galeri Kegiatan",
+  "pageLead": "Dokumentasi momen berharga dari setiap agenda kaderisasi, kajian, aksi, dan pengabdian kepada masyarakat."
+}
+page-->
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>{{> head }}</head>
+
+<body>
+  {{> header }}
+
+  <main id="konten-utama">
+    {{> page-hero }}
+
+    <section class="section bg-white">
+      <div class="container-page">
+        <div class="flex flex-wrap gap-2" role="group" aria-label="Filter album">
+          <button type="button" class="btn-primary btn-sm" aria-pressed="true">Semua</button>
+          <button type="button" class="btn-outline btn-sm" aria-pressed="false">MAPABA</button>
+          <button type="button" class="btn-outline btn-sm" aria-pressed="false">Kajian</button>
+          <button type="button" class="btn-outline btn-sm" aria-pressed="false">Aksi</button>
+          <button type="button" class="btn-outline btn-sm" aria-pressed="false">Pengabdian</button>
+        </div>
+
+        <!-- Grid album.
+             Produksi: GET /api/v1/galeri/album — setiap album memuat foto (media).
+             Placeholder di bawah memakai gradasi warna sebagai pengganti foto. -->
+        <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <a href="#" class="reveal group relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-pmii-700 via-pmii-900 to-pmii-950 shadow-card">
+            <span aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></span>
+            <span aria-hidden="true" class="absolute -bottom-10 -right-8 h-40 w-40 rounded-full bg-kuning-400/25 blur-2xl transition-transform duration-500 group-hover:scale-125"></span>
+            <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-pmii-950/90 to-transparent p-5">
+              <span class="badge bg-kuning-400 text-pmii-950">MAPABA</span>
+              <span class="mt-2 block font-display text-base font-bold text-white">MAPABA Raya 2025</span>
+              <span class="mt-0.5 block text-xs text-pmii-100/80">42 foto · 12 Oktober 2025</span>
+            </span>
+          </a>
+
+          <a href="#" class="reveal group relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-kuning-500 via-kuning-700 to-pmii-950 shadow-card" data-reveal-delay="70">
+            <span aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></span>
+            <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-pmii-950/90 to-transparent p-5">
+              <span class="badge bg-white/95 text-pmii-800">Kajian</span>
+              <span class="mt-2 block font-display text-base font-bold text-white">Ngaji Filsafat Sore</span>
+              <span class="mt-0.5 block text-xs text-pmii-100/80">18 foto · 3 September 2025</span>
+            </span>
+          </a>
+
+          <a href="#" class="reveal group relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-emerald-700 via-pmii-800 to-pmii-950 shadow-card" data-reveal-delay="140">
+            <span aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></span>
+            <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-pmii-950/90 to-transparent p-5">
+              <span class="badge bg-white/95 text-pmii-800">Pengabdian</span>
+              <span class="mt-2 block font-display text-base font-bold text-white">Bakti Sosial Cibiru</span>
+              <span class="mt-0.5 block text-xs text-pmii-100/80">27 foto · 21 Agustus 2025</span>
+            </span>
+          </a>
+
+          <a href="#" class="reveal group relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-rose-700 via-pmii-800 to-pmii-950 shadow-card" data-reveal-delay="210">
+            <span aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></span>
+            <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-pmii-950/90 to-transparent p-5">
+              <span class="badge bg-white/95 text-pmii-800">Aksi</span>
+              <span class="mt-2 block font-display text-base font-bold text-white">Aksi Tolak Kenaikan UKT</span>
+              <span class="mt-0.5 block text-xs text-pmii-100/80">35 foto · 2 Mei 2025</span>
+            </span>
+          </a>
+
+          <a href="#" class="reveal group relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-pmii-500 via-pmii-800 to-pmii-950 shadow-card" data-reveal-delay="280">
+            <span aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></span>
+            <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-pmii-950/90 to-transparent p-5">
+              <span class="badge bg-white/95 text-pmii-800">Kaderisasi</span>
+              <span class="mt-2 block font-display text-base font-bold text-white">PKD Angkatan XII</span>
+              <span class="mt-0.5 block text-xs text-pmii-100/80">51 foto · 14 Maret 2025</span>
+            </span>
+          </a>
+
+          <a href="#" class="reveal group relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-indigo-700 via-pmii-900 to-pmii-950 shadow-card" data-reveal-delay="350">
+            <span aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></span>
+            <span class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-pmii-950/90 to-transparent p-5">
+              <span class="badge bg-white/95 text-pmii-800">Harlah</span>
+              <span class="mt-2 block font-display text-base font-bold text-white">Harlah PMII ke-65</span>
+              <span class="mt-0.5 block text-xs text-pmii-100/80">63 foto · 17 April 2025</span>
+            </span>
+          </a>
+        </div>
+
+        <div class="mt-12 text-center">
+          <button type="button" class="btn-outline">Muat Lebih Banyak</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  {{> footer }}
+  {{> back-to-top }}
+  {{> scripts }}
+</body>
+</html>

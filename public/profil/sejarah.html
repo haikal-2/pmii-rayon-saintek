@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head><meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sejarah — PK PMII UIN SGD Cab. Kab. Bandung</title>
+<meta name="description" content="Sejarah Pergerakan Mahasiswa Islam Indonesia (PMII) sejak 17 April 1960 di Surabaya hingga perjalanan PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung." />
+<meta name="theme-color" content="#122a8f" />
+<meta name="author" content="PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+
+<!-- Open Graph / social share -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="PK PMII UIN SGD Cab. Kab. Bandung" />
+<meta property="og:title" content="Sejarah — PK PMII UIN SGD Cab. Kab. Bandung" />
+<meta property="og:description" content="Sejarah Pergerakan Mahasiswa Islam Indonesia (PMII) sejak 17 April 1960 di Surabaya hingga perjalanan PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung." />
+<meta property="og:image" content="../assets/img/logo-pmii.svg" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="icon" type="image/svg+xml" href="../assets/img/logo-pmii.svg" />
+<link rel="apple-touch-icon" href="../assets/img/logo-pmii.svg" />
+
+<!-- Font: Plus Jakarta Sans (body) + Sora (display). Fallback ke system font. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap"
+  rel="stylesheet" />
+
+<link rel="stylesheet" href="../assets/css/style.css" />
+
+<!-- Animasi masuk dijalankan JavaScript; tanpa JS, tampilkan langsung. -->
+<noscript>
+  <style>
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  </style>
+</noscript>
+</head>
+
+<body>
+  <!-- =====================================================================
+     1. HEADER & NAVIGASI (sticky)
+     ===================================================================== -->
+<a
+  href="#konten-utama"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-pmii-900 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
+  Lompat ke konten utama
+</a>
+
+<header
+  id="site-header"
+  data-header
+  class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md transition-shadow duration-300">
+  <nav class="container-page" aria-label="Navigasi utama">
+    <div class="flex h-[4.5rem] items-center justify-between gap-4">
+      <!-- Kiri: Logo + Nama Organisasi -->
+      <a href="../index.html" class="group flex shrink-0 items-center gap-3">
+        <img
+          src="../assets/img/logo-pmii.svg"
+          alt="Logo PMII"
+          width="40"
+          height="48"
+          class="h-11 w-auto transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105" />
+        <span class="flex flex-col leading-none">
+          <span class="font-display text-[0.9375rem] font-extrabold text-pmii-900 sm:text-base">PK PMII UIN SGD</span>
+          <span class="mt-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-kuning-600 sm:text-xs">
+            Cab. Kab. Bandung
+          </span>
+        </span>
+      </a>
+
+      <!-- Kanan: Menu desktop -->
+      <div class="hidden items-center gap-1 xl:flex">
+        <a href="../index.html" data-nav="beranda" class="nav-link">Beranda</a>
+
+        <!-- Dropdown Profil -->
+        <div class="relative" data-dropdown>
+          <button
+            type="button"
+            class="nav-link inline-flex items-center gap-1"
+            data-nav="profil"
+            data-dropdown-trigger
+            aria-expanded="false"
+            aria-haspopup="true">
+            Profil
+            <svg class="h-4 w-4 transition-transform duration-200" data-dropdown-caret viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.19l3.71-3.96a.75.75 0 1 1 1.08 1.04l-4.25 4.53a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <div
+            data-dropdown-menu
+            class="invisible absolute left-0 top-full z-50 mt-2 w-60 origin-top-left translate-y-1 scale-95 rounded-2xl border border-slate-200 bg-white p-2 opacity-0 shadow-card-hover transition-all duration-200">
+            <a href="../profil/sejarah.html" class="flex items-start gap-3 rounded-xl p-3 hover:bg-pmii-50">
+              <span class="mt-0.5 text-pmii-600">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+              </span>
+              <span>
+                <span class="block text-sm font-semibold text-pmii-950">Sejarah</span>
+                <span class="mt-0.5 block text-xs text-slate-500">Jejak PMII sejak 17 April 1960</span>
+              </span>
+            </a>
+            <a href="../profil/struktur.html" class="flex items-start gap-3 rounded-xl p-3 hover:bg-pmii-50">
+              <span class="mt-0.5 text-pmii-600">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5h6v3H9v-3Zm-6 12h6v3H3v-3Zm12 0h6v3h-6v-3ZM12 7.5v4.5m0 0H6v4.5m6-4.5h6v4.5" />
+                </svg>
+              </span>
+              <span>
+                <span class="block text-sm font-semibold text-pmii-950">Struktur</span>
+                <span class="mt-0.5 block text-xs text-slate-500">Pengurus &amp; bidang kerja</span>
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <a href="../artikel.html" data-nav="artikel" class="nav-link">Artikel</a>
+        <a href="../galeri.html" data-nav="galeri" class="nav-link">Galeri</a>
+        <a href="../landasan-hukum.html" data-nav="landasan" class="nav-link">Landasan Hukum</a>
+        <a href="../advokasi.html" data-nav="advokasi" class="nav-link">Layanan Advokasi</a>
+        <a href="../mapaba.html" data-nav="mapaba" class="nav-link">MAPABA Raya</a>
+
+        <a href="../cbt/login.html" class="btn-accent btn-sm ml-2">
+          CBT BIMTES
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
+          </svg>
+        </a>
+      </div>
+
+      <!-- Kanan: Tombol hamburger (mobile & tablet) -->
+      <button
+        type="button"
+        class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-pmii-900 transition-colors hover:bg-pmii-50 xl:hidden"
+        data-menu-toggle
+        aria-controls="mobile-menu"
+        aria-expanded="false">
+        <span class="sr-only">Buka menu navigasi</span>
+        <svg class="h-6 w-6" data-icon-open viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+        </svg>
+        <svg class="hidden h-6 w-6" data-icon-close viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Panel menu mobile -->
+    <div id="mobile-menu" data-menu-panel class="hidden pb-5 xl:hidden">
+      <div class="space-y-1 border-t border-slate-200 pt-4">
+        <a href="../index.html" data-nav="beranda" class="nav-link-mobile">Beranda</a>
+
+        <div data-accordion>
+          <button
+            type="button"
+            class="nav-link-mobile flex w-full items-center justify-between"
+            data-accordion-trigger
+            aria-expanded="false">
+            Profil
+            <svg class="h-5 w-5 transition-transform duration-200" data-accordion-caret viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.19l3.71-3.96a.75.75 0 1 1 1.08 1.04l-4.25 4.53a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <div class="hidden space-y-1 pl-4" data-accordion-panel>
+            <a href="../profil/sejarah.html" class="nav-link-mobile text-[0.9375rem] text-slate-600">Sejarah</a>
+            <a href="../profil/struktur.html" class="nav-link-mobile text-[0.9375rem] text-slate-600">Struktur</a>
+          </div>
+        </div>
+
+        <a href="../artikel.html" data-nav="artikel" class="nav-link-mobile">Artikel</a>
+        <a href="../galeri.html" data-nav="galeri" class="nav-link-mobile">Galeri</a>
+        <a href="../landasan-hukum.html" data-nav="landasan" class="nav-link-mobile">Landasan Hukum</a>
+        <a href="../advokasi.html" data-nav="advokasi" class="nav-link-mobile">Layanan Advokasi</a>
+        <a href="../mapaba.html" data-nav="mapaba" class="nav-link-mobile">MAPABA Raya</a>
+
+        <a href="../cbt/login.html" class="btn-accent mt-3 w-full">
+          Akses CBT BIMTES 2026
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+
+  <main id="konten-utama">
+    <!-- Hero ringkas untuk halaman dalam (bukan Beranda) -->
+<section class="relative overflow-hidden border-b border-slate-200 bg-white">
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 bg-grid-light opacity-60 [mask-image:radial-gradient(80%_70%_at_50%_0%,black,transparent)]"></div>
+  <div aria-hidden="true" class="pointer-events-none absolute -right-20 -top-32 h-80 w-80 rounded-full bg-pmii-200/40 blur-3xl"></div>
+  <div aria-hidden="true" class="pointer-events-none absolute -left-24 -bottom-10 h-64 w-64 rounded-full bg-kuning-200/40 blur-3xl"></div>
+
+  <div class="container-page relative py-12 sm:py-16 lg:py-20">
+    <nav aria-label="Breadcrumb" class="mb-6">
+      <ol class="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
+        <li><a href="../index.html" class="hover:text-pmii-700">Beranda</a></li>
+        <li aria-hidden="true" class="text-slate-300">/</li>
+        <li class="font-semibold text-pmii-800" aria-current="page">Sejarah</li>
+      </ol>
+    </nav>
+
+    <p class="section-eyebrow">Profil</p>
+    <h1 class="mt-4 text-3xl sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">Sejarah</h1>
+    <p class="mt-4 max-w-3xl text-base leading-relaxed text-slate-600 sm:text-lg">Dari musyawarah mahasiswa Nahdliyin di Surabaya pada 17 April 1960, hingga kerja-kerja kaderisasi di lingkungan UIN Sunan Gunung Djati Bandung hari ini.</p>
+  </div>
+</section>
+
+
+    <section class="section bg-white">
+      <div class="container-page grid gap-12 lg:grid-cols-12 lg:gap-16">
+        <!-- Naskah sejarah -->
+        <div class="lg:col-span-8">
+          <div class="prose-page">
+            <h2 class="text-2xl sm:text-3xl">Kelahiran PMII: 17 April 1960</h2>
+            <p>
+              PMII lahir dari kebutuhan mahasiswa Islam — khususnya kalangan Nahdliyin — akan wadah perjuangan yang
+              mandiri. Setelah rangkaian musyawarah yang berpuncak pada pertemuan di Taman Pendidikan Putri Khadijah,
+              Surabaya, pada <strong>14–16 April 1960</strong>, disepakati berdirinya
+              <strong>Pergerakan Mahasiswa Islam Indonesia</strong> yang dideklarasikan pada
+              <strong>17 April 1960</strong>. Tanggal itu kemudian diperingati sebagai Hari Lahir PMII (Harlah PMII).
+            </p>
+            <p>
+              Pemilihan kata <em>pergerakan</em> bukan kebetulan. Ia menegaskan bahwa organisasi ini bukan sekadar
+              perkumpulan, melainkan gerak yang terus-menerus: bergerak dari kesadaran spiritual, menuju kematangan
+              intelektual, dan berujung pada kerja sosial yang nyata.
+            </p>
+
+            <h2 class="pt-6 text-2xl sm:text-3xl">Deklarasi Independensi Murnajati</h2>
+            <p>
+              Pada <strong>14 Juli 1972</strong> di Murnajati, Lawang, Malang, PMII mendeklarasikan independensinya —
+              melepaskan diri dari keterikatan struktural dengan organisasi induk agar dapat mengambil sikap politik
+              secara bebas dan bertanggung jawab. Deklarasi Murnajati menjadi salah satu tonggak paling menentukan dalam
+              sejarah PMII, dan hingga kini menjadi rujukan setiap kader dalam memahami posisi organisasi.
+            </p>
+
+            <h2 class="pt-6 text-2xl sm:text-3xl">PMII di UIN Sunan Gunung Djati Bandung</h2>
+            <p>
+              Di lingkungan UIN Sunan Gunung Djati Bandung, PMII tumbuh bersama dinamika kampus: dari mimbar diskusi di
+              pelataran masjid kampus, kajian rutin di sekretariat Cibiru, hingga aksi-aksi advokasi menyangkut biaya
+              pendidikan dan keberpihakan kepada masyarakat sekitar. <strong>PK PMII UIN Sunan Gunung Djati Cabang
+              Kabupaten Bandung</strong> menjalankan kaderisasi berjenjang — MAPABA, PKD, hingga PKL — sekaligus
+              merawat tradisi literasi dan keilmuan sebagai ciri khas kader Ahlussunnah wal Jama'ah.
+            </p>
+
+            <h2 class="pt-6 text-2xl sm:text-3xl">Makna Lambang</h2>
+            <p>
+              Perisai pada lambang PMII bermakna ketahanan dan kesiapsiagaan. <strong>Tiga bintang</strong> di bidang
+              biru melambangkan Iman, Islam, dan Ihsan, sedangkan <strong>enam bintang</strong> di bidang kuning
+              melambangkan rukun iman. Warna <strong>biru</strong> menandakan kedalaman ilmu, kesetiaan, dan keluasan
+              wawasan; warna <strong>kuning</strong> menandakan cita-cita luhur serta semangat kepemimpinan generasi
+              muda.
+            </p>
+          </div>
+
+          <div class="mt-10 flex flex-wrap gap-3">
+            <a href="../profil/struktur.html" class="btn-primary">Lihat Struktur Pengurus</a>
+            <a href="../landasan-hukum.html" class="btn-outline">Baca AD/ART &amp; NDP</a>
+          </div>
+        </div>
+
+        <!-- Linimasa -->
+        <aside class="lg:col-span-4">
+          <div class="sticky top-28 rounded-2xl border border-slate-200 bg-slate-50/70 p-6 shadow-card">
+            <h2 class="font-display text-base font-bold uppercase tracking-wider text-pmii-900">Linimasa</h2>
+            <ol class="mt-6 space-y-6">
+              <li class="relative border-l-2 border-pmii-200 pl-6">
+                <span class="absolute -left-[0.4375rem] top-1 h-3 w-3 rounded-full bg-kuning-400 ring-4 ring-white"></span>
+                <p class="font-display text-sm font-bold text-pmii-900">17 April 1960</p>
+                <p class="mt-1 text-sm text-slate-600">PMII dideklarasikan di Surabaya.</p>
+              </li>
+              <li class="relative border-l-2 border-pmii-200 pl-6">
+                <span class="absolute -left-[0.4375rem] top-1 h-3 w-3 rounded-full bg-pmii-400 ring-4 ring-white"></span>
+                <p class="font-display text-sm font-bold text-pmii-900">1960–1961</p>
+                <p class="mt-1 text-sm text-slate-600">Mahbub Djunaidi memimpin sebagai Ketua Umum PB PMII pertama.</p>
+              </li>
+              <li class="relative border-l-2 border-pmii-200 pl-6">
+                <span class="absolute -left-[0.4375rem] top-1 h-3 w-3 rounded-full bg-pmii-400 ring-4 ring-white"></span>
+                <p class="font-display text-sm font-bold text-pmii-900">14 Juli 1972</p>
+                <p class="mt-1 text-sm text-slate-600">Deklarasi Independensi PMII di Murnajati, Malang.</p>
+              </li>
+              <li class="relative border-l-2 border-pmii-200 pl-6">
+                <span class="absolute -left-[0.4375rem] top-1 h-3 w-3 rounded-full bg-pmii-400 ring-4 ring-white"></span>
+                <p class="font-display text-sm font-bold text-pmii-900">1988</p>
+                <p class="mt-1 text-sm text-slate-600">Penegasan interdependensi PMII dengan Nahdlatul Ulama.</p>
+              </li>
+              <li class="relative pl-6">
+                <span class="absolute -left-[0.4375rem] top-1 h-3 w-3 rounded-full bg-kuning-400 ring-4 ring-white"></span>
+                <p class="font-display text-sm font-bold text-pmii-900">Hari ini</p>
+                <p class="mt-1 text-sm text-slate-600">
+                  Kaderisasi berjalan di UIN SGD Bandung melalui MAPABA, PKD, PKL, kajian, dan advokasi.
+                </p>
+              </li>
+            </ol>
+            <p class="mt-6 border-t border-slate-200 pt-4 text-xs leading-relaxed text-slate-500">
+              Catatan: penanggalan mengikuti dokumen resmi PMII. Perbaikan dan penambahan arsip dapat dikirim ke
+              <a href="mailto:pmiiuinbandun9@gmail.com" class="font-semibold text-pmii-700 hover:underline">pmiiuinbandun9@gmail.com</a>.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <!-- =====================================================================
+     7. FOOTER
+     ===================================================================== -->
+<footer class="relative overflow-hidden bg-pmii-950 text-pmii-100">
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 opacity-[0.07] bg-grid-light"></div>
+  <div aria-hidden="true" class="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-pmii-600/30 blur-3xl"></div>
+  <div aria-hidden="true" class="pointer-events-none absolute -bottom-32 right-0 h-80 w-80 rounded-full bg-kuning-500/20 blur-3xl"></div>
+
+  <div class="container-page relative py-14 sm:py-16">
+    <div class="grid gap-12 md:grid-cols-3 md:gap-8 lg:gap-12">
+      <!-- Kolom 1: Identitas -->
+      <div>
+        <div class="flex items-center gap-3">
+          <img src="../assets/img/logo-pmii.svg" alt="Logo PMII" width="44" height="53" class="h-12 w-auto" />
+          <div>
+            <p class="font-display text-base font-extrabold leading-tight text-white">PK PMII UIN SGD</p>
+            <p class="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-kuning-300">Cab. Kab. Bandung</p>
+          </div>
+        </div>
+        <p class="mt-5 max-w-sm text-sm leading-relaxed text-pmii-100/75">
+          PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung — organisasi ekstra kampus yang berlandaskan Islam Ahlussunnah wal Jama'ah dan Pancasila.
+        </p>
+        <p class="mt-5 inline-flex items-center gap-2 rounded-full border border-kuning-400/30 bg-kuning-400/10 px-4 py-2 font-display text-sm font-bold text-kuning-300">
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M10 1.5l2.4 5.1 5.6.72-4.1 3.86 1.03 5.55L10 14.1l-4.93 2.63L6.1 11.18 2 7.32l5.6-.72L10 1.5z" />
+          </svg>
+          Dzikir, Fikir, Amal Sholeh
+        </p>
+      </div>
+
+      <!-- Kolom 2: Tautan Cepat -->
+      <div>
+        <h2 class="font-display text-sm font-bold uppercase tracking-[0.18em] text-white">Tautan Cepat</h2>
+        <ul class="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-2 md:grid-cols-1 md:gap-y-2.5">
+          <li><a href="../index.html" class="footer-link">Beranda</a></li>
+          <li><a href="../profil/sejarah.html" class="footer-link">Sejarah</a></li>
+          <li><a href="../profil/struktur.html" class="footer-link">Struktur</a></li>
+          <li><a href="../artikel.html" class="footer-link">Artikel</a></li>
+          <li><a href="../galeri.html" class="footer-link">Galeri</a></li>
+          <li><a href="../advokasi.html" class="footer-link">Layanan Advokasi</a></li>
+          <li><a href="../mapaba.html" class="footer-link">MAPABA Raya</a></li>
+          <li><a href="../landasan-hukum.html" class="footer-link">Landasan Hukum</a></li>
+          <li><a href="../cbt/login.html" class="footer-link font-semibold text-kuning-300 hover:text-kuning-200">CBT BIMTES</a></li>
+        </ul>
+      </div>
+
+      <!-- Kolom 3: Kontak & Sosial Media -->
+      <div>
+        <h2 class="font-display text-sm font-bold uppercase tracking-[0.18em] text-white">Kontak &amp; Sosial Media</h2>
+        <ul class="mt-5 space-y-4 text-sm">
+          <li class="flex gap-3">
+            <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/10 text-kuning-300">
+              <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
+            </span>
+            <span>
+              <span class="block text-xs uppercase tracking-wider text-pmii-100/50">Email</span>
+              <a href="mailto:pmiiuinbandun9@gmail.com" class="footer-link break-all">pmiiuinbandun9@gmail.com</a>
+            </span>
+          </li>
+          <li class="flex gap-3">
+            <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/10 text-kuning-300">
+              <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.96.24 2.65.51.71.27 1.31.64 1.9 1.23.59.59.96 1.19 1.23 1.9.27.69.46 1.48.51 2.65.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.24 1.96-.51 2.65-.27.71-.64 1.31-1.23 1.9-.59.59-1.19.96-1.9 1.23-.69.27-1.48.46-2.65.51-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.96-.24-2.65-.51a5.27 5.27 0 0 1-1.9-1.23 5.27 5.27 0 0 1-1.23-1.9c-.27-.69-.46-1.48-.51-2.65C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.24-1.96.51-2.65.27-.71.64-1.31 1.23-1.9.59-.59 1.19-.96 1.9-1.23.69-.27 1.48-.46 2.65-.51C8.42 2.17 8.8 2.16 12 2.16Zm0 1.98c-3.15 0-3.5.01-4.74.07-.95.04-1.47.2-1.81.34-.46.18-.79.39-1.13.74-.35.34-.56.67-.74 1.13-.14.34-.3.86-.34 1.81-.06 1.24-.07 1.59-.07 4.74s.01 3.5.07 4.74c.04.95.2 1.47.34 1.81.18.46.39.79.74 1.13.34.35.67.56 1.13.74.34.14.86.3 1.81.34 1.24.06 1.59.07 4.74.07s3.5-.01 4.74-.07c.95-.04 1.47-.2 1.81-.34.46-.18.79-.39 1.13-.74.35-.34.56-.67.74-1.13.14-.34.3-.86.34-1.81.06-1.24.07-1.59.07-4.74s-.01-3.5-.07-4.74c-.04-.95-.2-1.47-.34-1.81a3.06 3.06 0 0 0-.74-1.13 3.06 3.06 0 0 0-1.13-.74c-.34-.14-.86-.3-1.81-.34-1.24-.06-1.59-.07-4.74-.07Zm0 3.37a5.05 5.05 0 1 1 0 10.1 5.05 5.05 0 0 1 0-10.1Zm0 2a3.05 3.05 0 1 0 0 6.1 3.05 3.05 0 0 0 0-6.1Zm6.42-2.4a1.18 1.18 0 1 1-2.36 0 1.18 1.18 0 0 1 2.36 0Z" />
+              </svg>
+            </span>
+            <span>
+              <span class="block text-xs uppercase tracking-wider text-pmii-100/50">Instagram</span>
+              <a href="https://instagram.com/pmii_uinbandung" target="_blank" rel="noopener noreferrer" class="footer-link">@pmii_uinbandung</a>
+            </span>
+          </li>
+          <li class="flex gap-3">
+            <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/10 text-kuning-300">
+              <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.14-7.5 11.25-7.5 11.25S4.5 17.64 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+              </svg>
+            </span>
+            <span>
+              <span class="block text-xs uppercase tracking-wider text-pmii-100/50">Sekretariat</span>
+              <span class="text-sm leading-relaxed text-pmii-100/80">Jl. Manisi No. 21B Gang Kramat III RT 01 RW 09, Cibiru, Bandung, Jawa Barat</span>
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 sm:flex-row">
+      <p class="text-xs text-pmii-100/60">© 2026 PK PMII UIN Bandung. All rights reserved.</p>
+      <p class="text-xs text-pmii-100/60">
+        Dibangun dengan semangat <span class="font-semibold text-kuning-300">Salam Pergerakan!</span>
+      </p>
+    </div>
+  </div>
+</footer>
+
+  <button
+  type="button"
+  data-back-to-top
+  class="fixed bottom-6 right-6 z-40 grid h-12 w-12 translate-y-3 place-items-center rounded-full bg-pmii-900 text-white opacity-0 shadow-card-hover transition-all duration-300 hover:bg-pmii-800">
+  <span class="sr-only">Kembali ke atas</span>
+  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M12 19.5v-15m0 0-6.75 6.75M12 4.5l6.75 6.75" />
+  </svg>
+</button>
+
+  <script src="../assets/js/config.js"></script>
+<script src="../assets/js/main.js" defer></script>
+
+</body>
+</html>

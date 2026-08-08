@@ -1,0 +1,136 @@
+<!--page
+{
+  "out": "artikel.html",
+  "active": "artikel",
+  "title": "Artikel — PK PMII UIN SGD Cab. Kab. Bandung",
+  "description": "Kumpulan artikel, berita, opini, dan kajian dari kader PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung.",
+  "pageEyebrow": "Kabar & Gagasan",
+  "pageTitle": "Artikel",
+  "pageLead": "Kumpulan artikel dan informasi terbaru: berita organisasi, opini kader, hasil kajian, dan catatan pergerakan."
+}
+page-->
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>{{> head }}</head>
+
+<body>
+  {{> header }}
+
+  <main id="konten-utama">
+    {{> page-hero }}
+
+    <section class="section bg-white">
+      <div class="container-page">
+        <!-- Filter kategori & pencarian.
+             Produksi: GET /api/v1/artikel?kategori=opini&q=...&page=1 -->
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div class="flex flex-wrap gap-2" role="group" aria-label="Filter kategori">
+            <button type="button" class="btn-primary btn-sm" aria-pressed="true">Semua</button>
+            <button type="button" class="btn-outline btn-sm" aria-pressed="false">Berita</button>
+            <button type="button" class="btn-outline btn-sm" aria-pressed="false">Opini</button>
+            <button type="button" class="btn-outline btn-sm" aria-pressed="false">Kajian</button>
+            <button type="button" class="btn-outline btn-sm" aria-pressed="false">Sastra</button>
+          </div>
+
+          <form class="relative w-full lg:w-80" role="search" onsubmit="return false">
+            <label for="cari-artikel" class="sr-only">Cari artikel</label>
+            <input id="cari-artikel" name="q" type="search" class="input pl-11" placeholder="Cari artikel…" />
+            <svg class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+          </form>
+        </div>
+
+        <!-- Artikel unggulan -->
+        <article id="barangkali-kita-terlalu-banyak-membawa" class="reveal mt-12 grid gap-8 overflow-hidden rounded-3xl border border-slate-200 bg-slate-50/70 shadow-card lg:grid-cols-2">
+          <div class="relative min-h-[16rem] bg-gradient-to-br from-pmii-800 via-pmii-900 to-pmii-950">
+            <div aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></div>
+            <div aria-hidden="true" class="absolute -bottom-10 -right-8 h-40 w-40 rounded-full bg-kuning-400/25 blur-2xl"></div>
+            <span class="absolute left-5 top-5 badge bg-white/95 text-pmii-800">Berita</span>
+          </div>
+          <div class="flex flex-col justify-center p-7 sm:p-10">
+            <p class="text-xs font-semibold uppercase tracking-wider text-kuning-600">Artikel Unggulan</p>
+            <h2 class="mt-3 text-2xl sm:text-3xl">Barangkali, Kita Terlalu Banyak Membawa</h2>
+            <p class="mt-2 text-sm text-slate-500"><time datetime="2026-07-26">26 Juli 2026</time> · 6 menit baca</p>
+            <p class="mt-4 text-base leading-relaxed text-slate-600">
+              Catatan reflektif tentang beban ekspektasi yang dipikul kader muda: mana yang benar-benar perlu dibawa, dan
+              mana yang sebaiknya diletakkan di tengah jalan agar langkah tetap ringan tanpa kehilangan arah.
+            </p>
+            <a href="#" class="link-arrow mt-6">Baca Selengkapnya <span class="arrow" aria-hidden="true">→</span></a>
+          </div>
+        </article>
+
+        <!-- Daftar artikel -->
+        <div class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <article id="apakah-hijau-selalu-berarti-baik" class="card reveal group overflow-hidden !p-0">
+            <a href="#" class="flex h-full flex-col">
+              <div class="relative aspect-[16/10] bg-gradient-to-br from-emerald-700 via-pmii-800 to-pmii-950">
+                <div aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></div>
+                <span class="absolute left-4 top-4 badge bg-white/95 text-pmii-800">Opini</span>
+              </div>
+              <div class="flex flex-1 flex-col p-6">
+                <p class="text-xs font-medium text-slate-500"><time datetime="2026-07-19">19 Juli 2026</time></p>
+                <h3 class="mt-3 font-display text-lg font-bold leading-snug group-hover:text-pmii-700">Apakah Hijau Selalu Berarti Baik?</h3>
+                <p class="mt-3 flex-1 text-sm leading-relaxed text-slate-600">
+                  Membaca ulang narasi pembangunan berkelanjutan di Kabupaten Bandung — ketika label ramah lingkungan
+                  justru menutupi persoalan agraria.
+                </p>
+                <span class="link-arrow mt-5">Baca Selengkapnya <span class="arrow" aria-hidden="true">→</span></span>
+              </div>
+            </a>
+          </article>
+
+          <article id="formasi-counter-hegemony-gerakan-mahasiswa" class="card reveal group overflow-hidden !p-0" data-reveal-delay="80">
+            <a href="#" class="flex h-full flex-col">
+              <div class="relative aspect-[16/10] bg-gradient-to-br from-kuning-600 via-pmii-800 to-pmii-950">
+                <div aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></div>
+                <span class="absolute left-4 top-4 badge bg-white/95 text-pmii-800">Kajian</span>
+              </div>
+              <div class="flex flex-1 flex-col p-6">
+                <p class="text-xs font-medium text-slate-500"><time datetime="2026-07-12">12 Juli 2026</time></p>
+                <h3 class="mt-3 font-display text-lg font-bold leading-snug group-hover:text-pmii-700">Formasi Counter-Hegemony Gerakan Mahasiswa di Era Digital</h3>
+                <p class="mt-3 flex-1 text-sm leading-relaxed text-slate-600">
+                  Dari Gramsci ke grup pesan singkat: bagaimana kader menyusun blok historis baru ketika ruang wacana
+                  dikuasai algoritma.
+                </p>
+                <span class="link-arrow mt-5">Baca Selengkapnya <span class="arrow" aria-hidden="true">→</span></span>
+              </div>
+            </a>
+          </article>
+
+          <article class="card reveal group overflow-hidden !p-0" data-reveal-delay="160">
+            <a href="#" class="flex h-full flex-col">
+              <div class="relative aspect-[16/10] bg-gradient-to-br from-pmii-600 via-pmii-800 to-pmii-950">
+                <div aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></div>
+                <span class="absolute left-4 top-4 badge bg-white/95 text-pmii-800">Berita</span>
+              </div>
+              <div class="flex flex-1 flex-col p-6">
+                <p class="text-xs font-medium text-slate-500"><time datetime="2026-07-05">5 Juli 2026</time></p>
+                <h3 class="mt-3 font-display text-lg font-bold leading-snug group-hover:text-pmii-700">Sekolah Advokasi Kader: Belajar Mendampingi, Bukan Mewakili</h3>
+                <p class="mt-3 flex-1 text-sm leading-relaxed text-slate-600">
+                  Rangkaian pelatihan paralegal dasar bagi kader komisariat, dari pemetaan kasus hingga penyusunan
+                  kronologi yang layak diadvokasi.
+                </p>
+                <span class="link-arrow mt-5">Baca Selengkapnya <span class="arrow" aria-hidden="true">→</span></span>
+              </div>
+            </a>
+          </article>
+        </div>
+
+        <!-- Paginasi -->
+        <nav class="mt-12 flex items-center justify-center gap-2" aria-label="Paginasi">
+          <a href="#" class="btn-outline btn-sm" aria-disabled="true">Sebelumnya</a>
+          <a href="#" class="btn-primary btn-sm" aria-current="page">1</a>
+          <a href="#" class="btn-outline btn-sm">2</a>
+          <a href="#" class="btn-outline btn-sm">3</a>
+          <a href="#" class="btn-outline btn-sm">Berikutnya</a>
+        </nav>
+      </div>
+    </section>
+  </main>
+
+  {{> footer }}
+  {{> back-to-top }}
+  {{> scripts }}
+</body>
+</html>
