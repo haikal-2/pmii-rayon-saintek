@@ -20,6 +20,9 @@ const PORT = 4555;
 const BASE = `http://127.0.0.1:${PORT}${PREFIX}`;
 let lolos = 0;
 
+/** Fixture ujian; disimpan di luar main() agar tetap dibersihkan bila uji gagal. */
+let fixtureUjian = null;
+
 async function call(method, path, { body, token } = {}) {
   const response = await fetch(`${BASE}${path}`, {
     method,
@@ -30,6 +33,73 @@ async function call(method, path, { body, token } = {}) {
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
   return { status: response.status, payload: await response.json().catch(() => ({})) };
+}
+
+/**
+ * Siapkan peserta dan paket ujian khusus pengujian.
+ *
+ * Ditulis langsung ke basis data (bukan lewat API) karena endpoint pembuatan
+ * bank soal memang belum ada, dan karena persiapan ini bagian dari *fixture*
+ * pengujian — bukan perilaku yang sedang diuji.
+ *
+ * Biaya bcrypt sengaja rendah (4) agar uji berjalan cepat; produksi memakai 12.
+ */
+function siapkanUjianUji() {
+  const { db } = require('../src/lib/db');
+  const bcrypt = require('bcryptjs');
+
+  const tanda = String(Date.now()).slice(-8);
+  const password = 'ujiasap123';
+  const nomorPeserta = `UJI-${tanda}`;
+
+  const peserta = db
+    .prepare(
+      `INSERT INTO cbt_peserta (nomor_peserta, nama, password_hash, must_change_password)
+       VALUES (?, 'Peserta Uji Asap', ?, 0)`
+    )
+    .run(nomorPeserta, bcrypt.hashSync(password, 4));
+
+  const paket = db
+    .prepare(
+      `INSERT INTO cbt_paket (kode, nama, durasi_menit, jumlah_soal, max_percobaan)
+       VALUES (?, ?, 30, 3, 5)`
+    )
+    .run(`UJI-${tanda}`, `Paket Uji Asap ${tanda}`);
+
+  for (let i = 1; i <= 3; i += 1) {
+    const soal = db
+      .prepare(
+        `INSERT INTO cbt_soal (paket_id, subtes, pertanyaan, pembahasan, urutan)
+         VALUES (?, 'Uji', ?, 'Pembahasan uji.', ?)`
+      )
+      .run(paket.lastInsertRowid, `Soal uji nomor ${i}?`, i);
+
+    // Opsi A selalu benar agar skor yang diharapkan mudah dihitung.
+    ['A', 'B', 'C', 'D'].forEach((label, indeks) => {
+      db.prepare('INSERT INTO cbt_opsi (soal_id, label, teks, is_benar) VALUES (?, ?, ?, ?)').run(
+        soal.lastInsertRowid,
+        label,
+        `Opsi ${label} untuk soal ${i}`,
+        indeks === 0 ? 1 : 0
+      );
+    });
+  }
+
+  return {
+    nomorPeserta,
+    password,
+    pesertaId: peserta.lastInsertRowid,
+    paketId: paket.lastInsertRowid,
+  };
+}
+
+/** Bersihkan fixture agar basis data pengembangan tidak menumpuk data uji. */
+function bersihkanUjianUji(fixture) {
+  if (!fixture) return;
+  const { db } = require('../src/lib/db');
+  // ON DELETE CASCADE ikut menghapus soal, opsi, sesi, dan jawabannya.
+  db.prepare('DELETE FROM cbt_paket WHERE id = ?').run(fixture.paketId);
+  db.prepare('DELETE FROM cbt_peserta WHERE id = ?').run(fixture.pesertaId);
 }
 
 async function uji(nama, fn) {
@@ -164,7 +234,6 @@ async function main() {
     assert.equal(status, 401);
   });
 
-  let token;
   await uji('login CBT yang benar mengembalikan access token', async () => {
     const { status, payload } = await call('POST', '/cbt/auth/login', {
       body: { identitas: 'BIM-2026-0001', password: 'bimtes2026' },
@@ -172,7 +241,6 @@ async function main() {
     assert.equal(status, 200);
     assert.ok(payload.data.accessToken);
     assert.equal(payload.data.peserta.nomorPeserta, 'BIM-2026-0001');
-    token = payload.data.accessToken;
   });
 
   await uji('endpoint ujian menolak permintaan tanpa token (401)', async () => {
@@ -180,20 +248,44 @@ async function main() {
     assert.equal(status, 401);
   });
 
-  let paketId;
+  // Alur ujian dijalankan memakai peserta dan paket khusus uji (lihat
+  // siapkanUjianUji), bukan data contoh. Tanpa itu, jumlah percobaan pada akun
+  // demo akan habis setelah beberapa kali menjalankan uji atau setelah dipakai
+  // pengujian manual di peramban, dan hasil `npm test` menjadi tidak konsisten.
+  const uji_ = siapkanUjianUji();
+  fixtureUjian = uji_;
+
+  let token;
+  await uji('peserta uji dapat login untuk menjalankan alur ujian', async () => {
+    const { status, payload } = await call('POST', '/cbt/auth/login', {
+      body: { identitas: uji_.nomorPeserta, password: uji_.password },
+    });
+    assert.equal(status, 200);
+    token = payload.data.accessToken;
+  });
+
   await uji('daftar ujian memuat paket tryout aktif', async () => {
     const { payload } = await call('GET', '/cbt/ujian', { token });
     assert.ok(payload.data.length >= 1);
-    paketId = payload.data[0].id;
+    const paket = payload.data.find((item) => item.id === uji_.paketId);
+    assert.ok(paket, 'paket uji harus muncul di daftar');
+    assert.equal(paket.status, 'tersedia');
+    assert.equal(paket.jumlahSoal, 3);
   });
 
   let sesiId;
   await uji('sesi ujian dapat dimulai dan menyimpan batas waktu di server', async () => {
-    const { status, payload } = await call('POST', `/cbt/ujian/${paketId}/mulai`, { token });
-    assert.ok([200, 201].includes(status));
+    const { status, payload } = await call('POST', `/cbt/ujian/${uji_.paketId}/mulai`, { token });
+    assert.equal(status, 201);
     assert.ok(payload.data.sesiId);
-    assert.ok(payload.data.deadlineAt || payload.data.dilanjutkan);
+    assert.ok(payload.data.deadlineAt);
     sesiId = payload.data.sesiId;
+  });
+
+  await uji('memulai ulang mengembalikan sesi yang sama, bukan sesi baru', async () => {
+    const { payload } = await call('POST', `/cbt/ujian/${uji_.paketId}/mulai`, { token });
+    assert.equal(payload.data.sesiId, sesiId);
+    assert.equal(payload.data.dilanjutkan, true);
   });
 
   let soal;
@@ -231,6 +323,12 @@ async function main() {
     assert.equal(payload.data.status, 'selesai');
     assert.equal(typeof payload.data.skor, 'number');
     assert.equal(payload.data.benar + payload.data.salah + payload.data.kosong, payload.data.totalSoal);
+    assert.equal(payload.data.totalSoal, 3);
+
+    // Satu soal dijawab (opsi pertama yang tampil, belum tentu kunci) dan dua
+    // dibiarkan kosong, jadi skor tidak mungkin sempurna maupun negatif.
+    assert.ok(payload.data.kosong >= 2, 'dua soal seharusnya kosong');
+    assert.ok(payload.data.skor >= 0 && payload.data.skor <= 1000);
   });
 
   await uji('submit kedua kali ditolak (403)', async () => {
@@ -429,6 +527,7 @@ const server = app.listen(PORT, async () => {
   try {
     await main();
   } finally {
+    bersihkanUjianUji(fixtureUjian);
     server.close();
   }
 });
