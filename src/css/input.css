@@ -24,6 +24,22 @@
     @apply bg-white font-sans text-slate-700 antialiased;
   }
 
+  /*
+   * Atribut `hidden` harus selalu mengalahkan utilitas display.
+   *
+   * Aturan bawaan peramban untuk [hidden] berasal dari UA stylesheet, sehingga
+   * kelas seperti .grid atau .flex — yang berada di layer utilities — selalu
+   * memenangkannya. Akibatnya elemen bertanda `hidden` tetap tampil, dan
+   * `el.hidden = true` dari JavaScript tidak berpengaruh apa-apa.
+   *
+   * Ini menyangkut dialog konfirmasi, layar hasil ujian, dan panel sukses
+   * formulir yang semuanya memakai `display: grid`. Tanpa aturan ini, layar
+   * hasil CBT langsung menutupi ruang ujian begitu halaman dibuka.
+   */
+  [hidden] {
+    display: none !important;
+  }
+
   h1,
   h2,
   h3,
