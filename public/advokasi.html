@@ -234,6 +234,39 @@
           </div>
 
           <div data-form-wrapper>
+            <!-- Jaminan kerahasiaan: ditempatkan SEBELUM formulir agar pelapor
+                 membacanya sebelum memutuskan menulis identitasnya. -->
+            <div class="mb-6 overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50">
+              <div class="flex gap-4 p-6">
+                <span class="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-700">
+                  <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.96 11.96 0 0 1 3.598 6 12 12 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                  </svg>
+                </span>
+                <div>
+                  <h2 class="font-display text-base font-bold text-emerald-900">
+                    Kerahasiaan identitas dan laporan Anda terjamin keamanannya.
+                  </h2>
+                  <p class="mt-2 text-sm leading-relaxed text-emerald-900/80">
+                    Laporan dikirim melalui koneksi terenkripsi dan hanya dapat dibuka oleh pengurus Bidang Advokasi
+                    yang berwenang. Kami tidak akan menghubungi pihak mana pun, termasuk pihak kampus, tanpa
+                    persetujuan Anda terlebih dahulu.
+                  </p>
+                </div>
+              </div>
+              <ul class="grid gap-px border-t border-emerald-200 bg-emerald-200 sm:grid-cols-3">
+                <li class="bg-emerald-50 px-4 py-3 text-center text-xs font-semibold text-emerald-800">
+                  Boleh melapor anonim
+                </li>
+                <li class="bg-emerald-50 px-4 py-3 text-center text-xs font-semibold text-emerald-800">
+                  Tanpa biaya sepeser pun
+                </li>
+                <li class="bg-emerald-50 px-4 py-3 text-center text-xs font-semibold text-emerald-800">
+                  Alamat IP tidak disimpan
+                </li>
+              </ul>
+            </div>
+
             <div class="fieldset-card">
               <h2 class="text-xl sm:text-2xl">Form Pengaduan</h2>
               <p class="mt-2 text-sm leading-relaxed text-slate-600">
@@ -246,20 +279,30 @@
                 <div data-form-alert hidden></div>
 
                 <div>
-                  <label class="label" for="nama">Nama lengkap <span class="text-red-600">*</span></label>
-                  <input class="input" id="nama" name="nama" type="text" required minlength="3" maxlength="100"
-                    autocomplete="name" placeholder="Contoh: Ahmad Fauzi" data-label="Nama lengkap" />
+                  <label class="label" for="nama">
+                    Nama pelapor
+                    <span class="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                      Opsional
+                    </span>
+                  </label>
+                  <input class="input" id="nama" name="nama" type="text" maxlength="100" autocomplete="name"
+                    placeholder="Contoh: Ahmad Fauzi — atau kosongkan untuk melapor anonim"
+                    data-label="Nama pelapor" />
                   <p class="error-text" data-error-for="nama"></p>
-                  <p class="hint">Boleh memakai inisial bila kamu merasa belum aman menuliskan nama lengkap.</p>
+                  <p class="hint">
+                    Boleh dikosongkan, diisi inisial, atau nama samaran. Laporan tanpa nama tetap kami proses dan
+                    dicatat sebagai <strong class="font-semibold text-slate-600">Anonim</strong>.
+                  </p>
                 </div>
 
                 <div class="grid gap-6 sm:grid-cols-2">
                   <div>
-                    <label class="label" for="kontak">Kontak (WhatsApp/Telepon) <span class="text-red-600">*</span></label>
+                    <label class="label" for="kontak">Kontak yang bisa dihubungi <span class="text-red-600">*</span></label>
                     <input class="input" id="kontak" name="kontak" type="tel" required minlength="8" maxlength="20"
                       inputmode="tel" autocomplete="tel" pattern="[0-9+\-\s()]{8,20}" placeholder="0812xxxxxxxx"
                       data-label="Kontak" />
                     <p class="error-text" data-error-for="kontak"></p>
+                    <p class="hint">WhatsApp/telepon. Wajib diisi agar tim dapat memverifikasi laporan.</p>
                   </div>
                   <div>
                     <label class="label" for="email">Email</label>
@@ -286,15 +329,17 @@
                     <label class="label" for="kategori">Kategori masalah <span class="text-red-600">*</span></label>
                     <select class="input" id="kategori" name="kategori" required data-label="Kategori masalah">
                       <option value="">— Pilih kategori —</option>
-                      <option value="ukt">UKT / biaya pendidikan</option>
-                      <option value="akademik">Akademik &amp; layanan kampus</option>
-                      <option value="kekerasan_seksual">Kekerasan seksual</option>
-                      <option value="perundungan">Perundungan / intimidasi</option>
-                      <option value="kebebasan_berpendapat">Kebebasan berpendapat</option>
-                      <option value="ketenagakerjaan">Ketenagakerjaan / magang</option>
+                      <option value="akademik">Akademik</option>
+                      <option value="fasilitas">Fasilitas Kampus</option>
+                      <option value="kekerasan_seksual">Kekerasan / Pelecehan</option>
+                      <option value="ukt">UKT / Biaya Pendidikan</option>
+                      <option value="perundungan">Perundungan / Intimidasi</option>
+                      <option value="kebebasan_berpendapat">Kebebasan Berpendapat</option>
+                      <option value="ketenagakerjaan">Ketenagakerjaan / Magang</option>
                       <option value="lainnya">Lainnya</option>
                     </select>
                     <p class="error-text" data-error-for="kategori"></p>
+                    <p class="hint" data-kategori-hint hidden></p>
                   </div>
                 </div>
 
@@ -340,6 +385,10 @@
                   </label>
                   <p class="error-text" data-error-for="persetujuan"></p>
                 </fieldset>
+
+                <!-- Widget anti-spam. Tersembunyi otomatis bila CAPTCHA dimatikan. -->
+                <div data-captcha hidden></div>
+                <p class="error-text" data-error-for="captchaToken"></p>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <button type="submit" class="btn-primary w-full sm:w-auto" data-submit>
@@ -534,5 +583,30 @@
 <script src="assets/js/main.js" defer></script>
 
   <script src="assets/js/forms.js" defer></script>
+  <script src="assets/js/captcha.js" defer></script>
+  <script>
+    // Beri tahu pelapor bahwa kasus tertentu ditangani dengan protokol khusus,
+    // supaya ia tahu apa yang akan terjadi setelah tombol kirim ditekan.
+    document.addEventListener('DOMContentLoaded', function () {
+      var pilihan = document.getElementById('kategori');
+      var hint = document.querySelector('[data-kategori-hint]');
+      if (!pilihan || !hint) return;
+
+      var pesan = {
+        kekerasan_seksual:
+          'Kasus ini ditandai mendesak dan langsung diteruskan ke pengurus piket. Pendampingan mengikuti prinsip survivor-centered: tidak ada langkah yang diambil tanpa persetujuanmu.',
+        perundungan:
+          'Kasus ini ditandai mendesak dan langsung diteruskan ke pengurus piket.',
+        ukt: 'Sertakan nomor pengajuan banding UKT bila ada, agar verifikasi lebih cepat.',
+        fasilitas: 'Sebutkan gedung/lantai dan sejak kapan masalah terjadi bila memungkinkan.',
+      };
+
+      pilihan.addEventListener('change', function () {
+        var teks = pesan[pilihan.value];
+        hint.textContent = teks || '';
+        hint.hidden = !teks;
+      });
+    });
+  </script>
 </body>
 </html>
