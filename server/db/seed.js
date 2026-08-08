@@ -156,6 +156,14 @@ const seed = db.transaction(() => {
      ON CONFLICT(nomor_peserta) DO UPDATE SET password_hash = excluded.password_hash`
   ).run(pesertaHash);
 
+  // Nomor BIM-2026-0001 di atas dibuat manual, jadi penghitung harus ikut maju.
+  // Tanpa ini, akun peserta pertama yang dibuat panitia akan memakai nomor yang
+  // sama dan ditolak constraint UNIQUE.
+  db.prepare(
+    `INSERT INTO counters (nama, tahun, nilai) VALUES ('cbt', 2026, 1)
+     ON CONFLICT(nama, tahun) DO UPDATE SET nilai = MAX(counters.nilai, excluded.nilai)`
+  ).run();
+
   db.prepare(
     `INSERT INTO cbt_paket (kode, nama, deskripsi, durasi_menit, jumlah_soal, max_percobaan)
      VALUES ('TPS-2026-01', 'Tryout UTBK — Tes Potensi Skolastik',

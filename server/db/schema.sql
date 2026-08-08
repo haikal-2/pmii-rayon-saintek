@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS pengaduan (
   status_pelapor TEXT   NOT NULL
                 CHECK (status_pelapor IN ('mahasiswa','alumni','kader','masyarakat')),
   kategori      TEXT    NOT NULL
-                CHECK (kategori IN ('ukt','akademik','kekerasan_seksual','perundungan',
+                CHECK (kategori IN ('akademik','fasilitas','kekerasan_seksual','ukt','perundungan',
                                     'kebebasan_berpendapat','ketenagakerjaan','lainnya')),
   kronologi     TEXT    NOT NULL,
   lampiran_url  TEXT,
@@ -210,6 +210,7 @@ CREATE TABLE IF NOT EXISTS mapaba_pendaftar (
   nama_lengkap      TEXT    NOT NULL,
   nim               TEXT    NOT NULL,
   angkatan          INTEGER NOT NULL,
+  universitas       TEXT    NOT NULL DEFAULT 'UIN Sunan Gunung Djati Bandung',
   fakultas          TEXT    NOT NULL,
   prodi             TEXT    NOT NULL,
   jenis_kelamin     TEXT    NOT NULL CHECK (jenis_kelamin IN ('L','P')),
@@ -219,6 +220,10 @@ CREATE TABLE IF NOT EXISTS mapaba_pendaftar (
   motivasi          TEXT    NOT NULL,
   riwayat_organisasi TEXT,
   sumber_informasi  TEXT,
+  -- URL berkas hasil unggah (lihat routes/upload.js). Disimpan sebagai URL, bukan
+  -- BLOB, agar berkas dapat dipindah ke object storage tanpa mengubah skema.
+  pas_foto_url      TEXT,
+  ktm_url           TEXT,
   bukti_bayar_url   TEXT,
   status            TEXT    NOT NULL DEFAULT 'menunggu'
                     CHECK (status IN ('menunggu','terverifikasi','hadir','ditolak','batal')),
@@ -353,3 +358,71 @@ CREATE TABLE IF NOT EXISTS settings (
   kunci TEXT PRIMARY KEY,
   nilai TEXT NOT NULL
 );
+
+-- -----------------------------------------------------------------------------
+-- 10. Berkas unggahan & log notifikasi keluar
+-- -----------------------------------------------------------------------------
+
+-- Katalog seluruh berkas yang diunggah (pas foto, KTM, cover artikel, foto galeri).
+-- Tabel ini membuat berkas yatim (tidak dipakai entitas mana pun) mudah ditemukan
+-- dan dibersihkan, serta menyimpan kunci objek asli bila memakai S3/Cloudinary.
+CREATE TABLE IF NOT EXISTS berkas (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  driver      TEXT    NOT NULL DEFAULT 'local' CHECK (driver IN ('local','s3','cloudinary')),
+  kunci       TEXT    NOT NULL,               -- object key / path relatif
+  url         TEXT    NOT NULL,
+  nama_asli   TEXT,
+  mime        TEXT    NOT NULL,
+  ukuran_byte INTEGER NOT NULL,
+  tujuan      TEXT    NOT NULL DEFAULT 'umum' -- mapaba | galeri | artikel | dokumen | umum
+              CHECK (tujuan IN ('mapaba','galeri','artikel','dokumen','umum')),
+  pengunggah  TEXT,                           -- hash IP (publik) atau 'user:<id>' (admin)
+  created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_berkas_tujuan ON berkas(tujuan, created_at DESC);
+
+-- Riwayat notifikasi email/WhatsApp agar kegagalan kirim dapat ditelusuri
+-- dan tidak ada pengaduan darurat yang lolos tanpa pemberitahuan.
+CREATE TABLE IF NOT EXISTS notifikasi_log (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  kanal      TEXT    NOT NULL CHECK (kanal IN ('email','whatsapp')),
+  tujuan     TEXT    NOT NULL,
+  perihal    TEXT,
+  entitas    TEXT,                            -- 'pengaduan' | 'mapaba_pendaftar'
+  entitas_id INTEGER,
+  status     TEXT    NOT NULL DEFAULT 'terkirim' CHECK (status IN ('terkirim','gagal','dilewati')),
+  galat      TEXT,
+  created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+-- -----------------------------------------------------------------------------
+-- 11. View pelaporan
+-- -----------------------------------------------------------------------------
+
+-- Padanan tabel "cbt_scores" yang lazim dipakai: satu baris per hasil ujian.
+-- Dibuat sebagai VIEW, bukan tabel, agar skor tidak pernah kembar dengan
+-- sumber kebenarannya (cbt_sesi) ketika sesi dinilai ulang.
+DROP VIEW IF EXISTS cbt_scores;
+CREATE VIEW cbt_scores AS
+SELECT
+  s.id                AS sesi_id,
+  s.peserta_id,
+  p.nomor_peserta,
+  p.nama              AS nama_peserta,
+  s.paket_id,
+  k.kode              AS kode_paket,
+  k.nama              AS nama_paket,
+  s.percobaan,
+  s.skor,
+  s.jumlah_benar,
+  s.jumlah_salah,
+  s.jumlah_kosong,
+  k.jumlah_soal,
+  s.mulai_at,
+  s.submit_at,
+  s.status
+FROM cbt_sesi s
+JOIN cbt_peserta p ON p.id = s.peserta_id
+JOIN cbt_paket   k ON k.id = s.paket_id
+WHERE s.status IN ('selesai', 'kedaluwarsa');

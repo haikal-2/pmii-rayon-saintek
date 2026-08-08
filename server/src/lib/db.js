@@ -22,10 +22,47 @@ db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 db.pragma('busy_timeout = 5000');
 
+/**
+ * Kolom yang ditambahkan setelah rilis pertama.
+ *
+ * `CREATE TABLE IF NOT EXISTS` tidak menyentuh tabel yang sudah ada, sehingga
+ * basis data lama tidak akan mendapat kolom baru dari schema.sql. Daftar di bawah
+ * menambalnya secara idempoten. Untuk perubahan yang lebih berat (mis. mengubah
+ * CHECK constraint), buat tabel baru lalu salin datanya.
+ */
+const KOLOM_TAMBAHAN = [
+  ['mapaba_pendaftar', 'universitas', "TEXT NOT NULL DEFAULT 'UIN Sunan Gunung Djati Bandung'"],
+  ['mapaba_pendaftar', 'pas_foto_url', 'TEXT'],
+  ['mapaba_pendaftar', 'ktm_url', 'TEXT'],
+];
+
+function ensureColumn(table, column, ddl) {
+  const adaTabel = db
+    .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?")
+    .get(table);
+  if (!adaTabel) return false;
+
+  const kolom = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (kolom.some((item) => item.name === column)) return false;
+
+  db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+  return true;
+}
+
 /** Jalankan skema (idempoten, semua CREATE memakai IF NOT EXISTS). */
 function migrate() {
   const schema = fs.readFileSync(path.join(__dirname, '../../db/schema.sql'), 'utf8');
   db.exec(schema);
+
+  const ditambahkan = KOLOM_TAMBAHAN.filter(([table, column, ddl]) =>
+    ensureColumn(table, column, ddl)
+  );
+  if (ditambahkan.length) {
+    console.log(
+      `Kolom baru ditambahkan: ${ditambahkan.map(([t, c]) => `${t}.${c}`).join(', ')}`
+    );
+  }
+
   return DB_PATH;
 }
 

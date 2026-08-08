@@ -19,14 +19,15 @@
  *   2. Waktu ujian dihitung dari `deadline_at` di basis data, bukan dari klien.
  *   3. Pengacakan soal disimpan di sesi agar konsisten ketika halaman dimuat ulang.
  */
+const crypto = require('crypto');
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const { z } = require('zod');
 
-const { db } = require('../lib/db');
+const { db, nextNumber } = require('../lib/db');
 const { signAccess, signRefresh, verify, hashOpaque } = require('../lib/tokens');
-const { requirePeserta } = require('../middleware/auth');
+const { requirePeserta, requireAdmin } = require('../middleware/auth');
 const {
   ok,
   created,
@@ -42,6 +43,7 @@ const router = express.Router();
 
 const MAX_GAGAL_LOGIN = 5;
 const LOCK_MENIT = 15;
+const BCRYPT_COST = Number(process.env.BCRYPT_COST || 12);
 
 const loginLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -159,6 +161,142 @@ router.get(
       email: req.peserta.email,
     })
   )
+);
+
+/** Ganti kata sandi sendiri (wajib bagi peserta dengan must_change_password). */
+router.post(
+  '/auth/ubah-sandi',
+  requirePeserta,
+  asyncHandler(async (req, res) => {
+    const data = parseOrThrow(
+      z.object({
+        passwordLama: z.string().min(1, 'Kata sandi lama wajib diisi.'),
+        passwordBaru: z.string().min(8, 'Kata sandi baru minimal 8 karakter.').max(200),
+      }),
+      req.body
+    );
+
+    const row = db.prepare('SELECT password_hash FROM cbt_peserta WHERE id = ?').get(req.peserta.id);
+    if (!(await bcrypt.compare(data.passwordLama, row.password_hash))) {
+      throw unauthorized('Kata sandi lama salah.');
+    }
+
+    db.prepare(
+      'UPDATE cbt_peserta SET password_hash = ?, must_change_password = 0 WHERE id = ?'
+    ).run(await bcrypt.hash(data.passwordBaru, BCRYPT_COST), req.peserta.id);
+
+    return ok(res, { diperbarui: true });
+  })
+);
+
+/* ------------------------------------------- Registrasi peserta (oleh panitia) */
+
+/**
+ * Membuat akun peserta CBT.
+ *
+ * Akun diterbitkan panitia setelah pendaftaran BIMTES diverifikasi, bukan lewat
+ * pendaftaran mandiri — supaya jumlah akun sama dengan jumlah peserta yang
+ * benar-benar terdaftar dan tidak ada akun bayangan yang ikut memakan slot ujian.
+ *
+ * Kata sandi awal dibuat acak oleh server dan **hanya dikembalikan satu kali**
+ * pada respons ini; setelahnya hanya hash bcrypt yang tersimpan. Peserta wajib
+ * menggantinya saat login pertama (`must_change_password`).
+ */
+function sandiAcak(panjang = 10) {
+  // Tanpa karakter yang mudah tertukar (0/O, 1/l/I) karena sandi ini dibacakan
+  // atau disalin manual oleh panitia lewat WhatsApp.
+  const abjad = 'abcdefghjkmnpqrstuvwxyz23456789';
+  return Array.from(
+    crypto.randomBytes(panjang),
+    (byte) => abjad[byte % abjad.length]
+  ).join('');
+}
+
+const pesertaSchema = z.object({
+  nama: z.string().trim().min(3, 'Nama minimal 3 karakter.').max(100),
+  email: z.union([z.string().trim().email('Format email tidak valid.'), z.literal('')]).optional(),
+  whatsapp: z.string().trim().max(30).optional(),
+  asalSekolah: z.string().trim().max(150).optional(),
+});
+
+router.post(
+  '/admin/peserta',
+  requireAdmin('panitia_cbt'),
+  asyncHandler(async (req, res) => {
+    const data = parseOrThrow(pesertaSchema, req.body);
+
+    const nomorPeserta = nextNumber('cbt', 'BIM');
+    const passwordAwal = sandiAcak();
+
+    const info = db
+      .prepare(
+        `INSERT INTO cbt_peserta (nomor_peserta, nama, email, whatsapp, asal_sekolah, password_hash)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      )
+      .run(
+        nomorPeserta,
+        data.nama,
+        data.email || null,
+        data.whatsapp || null,
+        data.asalSekolah || null,
+        await bcrypt.hash(passwordAwal, BCRYPT_COST)
+      );
+
+    return created(res, {
+      id: info.lastInsertRowid,
+      nomorPeserta,
+      nama: data.nama,
+      // Satu-satunya kesempatan melihat sandi ini. Catat/sampaikan ke peserta sekarang.
+      passwordAwal,
+    });
+  })
+);
+
+/**
+ * Impor peserta massal (mis. hasil unggah CSV yang sudah di-parse di klien).
+ * Dibungkus satu transaksi: bila satu baris gagal, tidak ada akun setengah jadi.
+ */
+router.post(
+  '/admin/peserta/impor',
+  requireAdmin('panitia_cbt'),
+  asyncHandler(async (req, res) => {
+    const { daftar } = parseOrThrow(
+      z.object({ daftar: z.array(pesertaSchema).min(1).max(500) }),
+      req.body
+    );
+
+    // Hashing bcrypt bersifat asinkron dan lambat, jadi dikerjakan lebih dulu
+    // di luar transaksi; transaksi better-sqlite3 harus sinkron.
+    const disiapkan = [];
+    for (const item of daftar) {
+      const passwordAwal = sandiAcak();
+      disiapkan.push({
+        ...item,
+        passwordAwal,
+        passwordHash: await bcrypt.hash(passwordAwal, BCRYPT_COST),
+      });
+    }
+
+    const simpan = db.transaction((rows) =>
+      rows.map((row) => {
+        const nomorPeserta = nextNumber('cbt', 'BIM');
+        db.prepare(
+          `INSERT INTO cbt_peserta (nomor_peserta, nama, email, whatsapp, asal_sekolah, password_hash)
+           VALUES (?, ?, ?, ?, ?, ?)`
+        ).run(
+          nomorPeserta,
+          row.nama,
+          row.email || null,
+          row.whatsapp || null,
+          row.asalSekolah || null,
+          row.passwordHash
+        );
+        return { nomorPeserta, nama: row.nama, passwordAwal: row.passwordAwal };
+      })
+    );
+
+    return created(res, { jumlah: disiapkan.length, peserta: simpan(disiapkan) });
+  })
 );
 
 /* ------------------------------------------------------------ Daftar ujian */

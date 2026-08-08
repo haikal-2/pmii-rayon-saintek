@@ -58,9 +58,24 @@ async function main() {
       body: { nama: 'Ab', kontak: '08', status: 'mahasiswa', kategori: 'ukt', kronologi: 'pendek' },
     });
     assert.equal(status, 400);
-    assert.ok(payload.errors.nama, 'seharusnya ada galat pada kolom nama');
+    assert.ok(payload.errors.kontak, 'seharusnya ada galat pada kolom kontak');
     assert.ok(payload.errors.kronologi, 'seharusnya ada galat pada kolom kronologi');
     assert.ok(payload.errors.persetujuan, 'seharusnya ada galat pada kolom persetujuan');
+  });
+
+  await uji('pengaduan boleh dikirim tanpa nama (anonim)', async () => {
+    const { status, payload } = await call('POST', '/advokasi/pengaduan', {
+      body: {
+        kontak: '081200000000',
+        status: 'mahasiswa',
+        kategori: 'fasilitas',
+        kronologi:
+          'Lift gedung perkuliahan sudah tiga bulan rusak dan belum ada perbaikan, padahal ada mahasiswa pengguna kursi roda di lantai empat.',
+        persetujuan: true,
+      },
+    });
+    assert.equal(status, 201);
+    assert.match(payload.data.nomorTiket, /^ADV-\d{4}-\d{4}$/);
   });
 
   let nomorTiket;
@@ -261,9 +276,11 @@ async function main() {
   });
 
   await uji('admin dapat mengubah status pengaduan dan tercatat di log', async () => {
-    const daftar = await call('GET', '/advokasi/admin/pengaduan', { token: adminToken });
-    const id = daftar.payload.data[0].id;
-    const { status } = await call('PATCH', `/advokasi/admin/pengaduan/${id}`, {
+    const daftar = await call('GET', '/advokasi/admin/pengaduan?limit=100', { token: adminToken });
+    const target = daftar.payload.data.find((item) => item.nomorTiket === nomorTiket);
+    assert.ok(target, 'pengaduan yang baru dibuat harus muncul di daftar admin');
+
+    const { status } = await call('PATCH', `/advokasi/admin/pengaduan/${target.id}`, {
       token: adminToken,
       body: { status: 'verifikasi', catatanInternal: 'Menghubungi pelapor.' },
     });
@@ -277,6 +294,124 @@ async function main() {
     const { payload } = await call('GET', '/admin/ringkasan', { token: adminToken });
     assert.ok(payload.data.pengaduan.total >= 1);
     assert.ok(payload.data.cbt.paket >= 1);
+  });
+
+  await uji('admin dapat memverifikasi pendaftar MAPABA (Terima)', async () => {
+    const daftar = await call('GET', '/mapaba/admin/pendaftar?status=menunggu', {
+      token: adminToken,
+    });
+    const target = daftar.payload.data[0];
+    const { status } = await call('PATCH', `/mapaba/admin/pendaftar/${target.id}`, {
+      token: adminToken,
+      body: { status: 'terverifikasi', catatanPanitia: 'Berkas lengkap.' },
+    });
+    assert.equal(status, 200);
+
+    const cek = await call('GET', `/mapaba/pendaftaran/${target.nomorRegistrasi}`);
+    assert.equal(cek.payload.data.status, 'terverifikasi');
+  });
+
+  /* -------------------------------------------------- Registrasi & bcrypt */
+
+  let pesertaBaru;
+  await uji('panitia dapat menerbitkan akun peserta CBT dengan sandi acak', async () => {
+    const { status, payload } = await call('POST', '/cbt/admin/peserta', {
+      token: adminToken,
+      body: { nama: 'Peserta Uji', email: `uji${Date.now()}@bimtes.test` },
+    });
+    assert.equal(status, 201);
+    assert.match(payload.data.nomorPeserta, /^BIM-\d{4}-\d{4}$/);
+    assert.ok(payload.data.passwordAwal.length >= 8, 'sandi awal harus dikembalikan sekali');
+    pesertaBaru = payload.data;
+  });
+
+  await uji('peserta baru dapat login dengan sandi awal hasil hash bcrypt', async () => {
+    const { status, payload } = await call('POST', '/cbt/auth/login', {
+      body: { identitas: pesertaBaru.nomorPeserta, password: pesertaBaru.passwordAwal },
+    });
+    assert.equal(status, 200);
+    assert.equal(payload.data.harusUbahSandi, true);
+  });
+
+  await uji('sandi tersimpan sebagai hash bcrypt, bukan teks polos', async () => {
+    const { db } = require('../src/lib/db');
+    const row = db
+      .prepare('SELECT password_hash FROM cbt_peserta WHERE nomor_peserta = ?')
+      .get(pesertaBaru.nomorPeserta);
+    assert.match(row.password_hash, /^\$2[aby]\$\d{2}\$/, 'hash harus berformat bcrypt');
+    assert.notEqual(row.password_hash, pesertaBaru.passwordAwal);
+  });
+
+  await uji('pembuatan akun pengurus menolak sandi lemah', async () => {
+    const { status, payload } = await call('POST', '/admin/users', {
+      token: adminToken,
+      body: { nama: 'Editor Baru', email: `editor${Date.now()}@pmii.test`, password: 'pendek', role: 'editor' },
+    });
+    assert.equal(status, 400);
+    assert.ok(payload.errors.password);
+  });
+
+  /* ------------------------------------------------------------- Unggahan */
+
+  // PNG 1x1 piksel yang sah — dipakai untuk menguji pemeriksaan magic bytes.
+  const PNG_1PX = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64'
+  );
+
+  async function unggah(nama, buffer, tipe) {
+    const form = new FormData();
+    form.append('file', new Blob([buffer], { type: tipe }), nama);
+    const response = await fetch(`${BASE}/upload`, { method: 'POST', body: form });
+    return { status: response.status, payload: await response.json().catch(() => ({})) };
+  }
+
+  let urlPasFoto;
+  await uji('unggah pas foto PNG berhasil dan mengembalikan URL', async () => {
+    const { status, payload } = await unggah('pasfoto.png', PNG_1PX, 'image/png');
+    assert.equal(status, 200);
+    assert.match(payload.data.url, /^https?:\/\//);
+    urlPasFoto = payload.data.url;
+  });
+
+  await uji('unggah berkas yang menyamar sebagai gambar ditolak (400)', async () => {
+    const jahat = Buffer.from('<?php system($_GET["c"]); ?>');
+    const { status, payload } = await unggah('shell.png', jahat, 'image/png');
+    assert.equal(status, 400);
+    assert.ok(payload.errors?.file || payload.message);
+  });
+
+  await uji('unggah tipe berkas terlarang ditolak (400)', async () => {
+    const { status } = await unggah('skrip.svg', Buffer.from('<svg onload="alert(1)"></svg>'), 'image/svg+xml');
+    assert.equal(status, 400);
+  });
+
+  await uji('pendaftaran MAPABA menyimpan URL pas foto dan KTM', async () => {
+    const nim = String(Date.now() + 7).slice(-10);
+    const { status } = await call('POST', '/mapaba/pendaftaran', {
+      body: {
+        namaLengkap: 'Rizky Pratama',
+        nim,
+        angkatan: 2026,
+        universitas: 'UIN Sunan Gunung Djati Bandung',
+        fakultas: 'Ushuluddin',
+        prodi: 'Aqidah dan Filsafat Islam',
+        jenisKelamin: 'L',
+        whatsapp: '081234567892',
+        email: 'rizky@example.com',
+        motivasi: 'Ingin memperdalam tradisi keilmuan dan belajar berorganisasi secara serius.',
+        pasFotoUrl: urlPasFoto,
+        ktmUrl: urlPasFoto,
+        kesediaan: true,
+        persetujuanData: true,
+      },
+    });
+    assert.equal(status, 201);
+
+    const { db } = require('../src/lib/db');
+    const row = db.prepare('SELECT pas_foto_url, ktm_url FROM mapaba_pendaftar WHERE nim = ?').get(nim);
+    assert.equal(row.pas_foto_url, urlPasFoto);
+    assert.ok(row.ktm_url);
   });
 
   console.log(`\n${lolos} pemeriksaan lolos.`);
