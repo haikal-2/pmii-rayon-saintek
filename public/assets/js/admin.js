@@ -84,6 +84,8 @@
   }
 
   /** Notifikasi ringkas di pojok kanan bawah. */
+  let toastTimer = null;
+
   function toast(pesan, jenis = 'sukses') {
     const el = document.querySelector('[data-toast]');
     if (!el) return;
@@ -93,9 +95,10 @@
       jenis === 'sukses' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
     }`;
     el.textContent = pesan;
+    el.setAttribute('role', 'status');
 
-    clearTimeout(el.dataset.timer);
-    el.dataset.timer = setTimeout(() => (el.hidden = true), 4000);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => (el.hidden = true), 4000);
   }
 
   /**

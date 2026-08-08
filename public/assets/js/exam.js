@@ -128,8 +128,13 @@
 
   /* --------------------------------------------------------------- Render */
 
+  /** Menggambar ulang peta nomor soal dan mengembalikan rekap statusnya. */
   function gambarNavigasi() {
-    if (!el.navigasi) return;
+    const terjawab = state.soal.filter((s) => statusSoal(s) === 'terjawab').length;
+    const ragu = state.soal.filter((s) => statusSoal(s) === 'ragu').length;
+    const rekap = { terjawab, ragu, kosong: state.soal.length - terjawab - ragu };
+
+    if (!el.navigasi) return rekap;
 
     el.navigasi.innerHTML = state.soal
       .map((soal, i) => {
@@ -147,18 +152,14 @@
       })
       .join('');
 
-    const terjawab = state.soal.filter((s) => statusSoal(s) === 'terjawab').length;
-    const ragu = state.soal.filter((s) => statusSoal(s) === 'ragu').length;
-    const kosong = state.soal.length - terjawab - ragu;
-
-    q('[data-hitung-terjawab]').textContent = terjawab;
-    q('[data-hitung-ragu]').textContent = ragu;
-    q('[data-hitung-kosong]').textContent = kosong;
+    q('[data-hitung-terjawab]').textContent = rekap.terjawab;
+    q('[data-hitung-ragu]').textContent = rekap.ragu;
+    q('[data-hitung-kosong]').textContent = rekap.kosong;
 
     if (el.progress) {
-      el.progress.style.width = `${Math.round(((terjawab + ragu) / state.soal.length) * 100)}%`;
+      el.progress.style.width = `${Math.round(((rekap.terjawab + rekap.ragu) / state.soal.length) * 100)}%`;
     }
-    return { terjawab, ragu, kosong };
+    return rekap;
   }
 
   function gambarSoal() {
