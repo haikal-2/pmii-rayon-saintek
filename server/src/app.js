@@ -75,7 +75,6 @@ app.use(`${PREFIX}/upload`, require('./routes/upload'));
 app.use(`${PREFIX}/artikel`, require('./routes/artikel'));
 app.use(`${PREFIX}/advokasi`, require('./routes/advokasi'));
 app.use(`${PREFIX}/mapaba`, require('./routes/mapaba'));
-app.use(`${PREFIX}/cbt`, require('./routes/cbt'));
 app.use(`${PREFIX}/admin`, require('./routes/admin'));
 app.use(PREFIX, require('./routes/konten'));
 

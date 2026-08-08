@@ -25,6 +25,9 @@ const {
 
 const router = express.Router();
 
+const MAX_GAGAL_LOGIN = 5;
+const LOCK_MENIT = 15;
+
 const loginLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 15,
@@ -49,13 +52,40 @@ router.post(
       .prepare('SELECT * FROM users WHERE email = ? COLLATE NOCASE')
       .get(data.email);
 
-    if (!user) throw unauthorized('Email atau kata sandi salah.');
+    // Pesan galat sengaja sama untuk akun tidak ada maupun sandi salah, agar
+    // daftar email pengurus tidak dapat ditebak dari respons.
+    const gagal = () => unauthorized('Email atau kata sandi salah.');
+
+    if (!user) throw gagal();
     if (!user.is_active) throw forbidden('Akun dinonaktifkan.');
 
-    const cocok = await bcrypt.compare(data.password, user.password_hash);
-    if (!cocok) throw unauthorized('Email atau kata sandi salah.');
+    if (user.locked_until && new Date(`${user.locked_until}Z`) > new Date()) {
+      throw forbidden(
+        `Akun terkunci sementara karena terlalu banyak percobaan gagal. Coba lagi setelah ${user.locked_until} UTC.`
+      );
+    }
 
-    db.prepare("UPDATE users SET last_login_at = datetime('now') WHERE id = ?").run(user.id);
+    const cocok = await bcrypt.compare(data.password, user.password_hash);
+    if (!cocok) {
+      // Panel admin adalah satu-satunya pintu masuk ke data pengaduan dan data
+      // pribadi pendaftar, jadi penebakan sandi harus dibuat mahal: lima
+      // kegagalan berturut-turut mengunci akun selama 15 menit.
+      const gagalBaru = user.gagal_login + 1;
+      db.prepare(
+        `UPDATE users SET
+           gagal_login  = @gagalBaru,
+           locked_until = CASE WHEN @gagalBaru >= @maks
+                               THEN datetime('now', @durasi) ELSE locked_until END
+         WHERE id = @id`
+      ).run({ id: user.id, gagalBaru, maks: MAX_GAGAL_LOGIN, durasi: `+${LOCK_MENIT} minutes` });
+      throw gagal();
+    }
+
+    db.prepare(
+      `UPDATE users
+       SET gagal_login = 0, locked_until = NULL, last_login_at = datetime('now')
+       WHERE id = ?`
+    ).run(user.id);
 
     return ok(res, {
       accessToken: signAccess({ sub: user.id, role: user.role }, 'admin'),
@@ -101,7 +131,7 @@ router.post(
           .regex(/[a-z]/, 'Kata sandi harus memuat huruf kecil.')
           .regex(/[A-Z]/, 'Kata sandi harus memuat huruf besar.')
           .regex(/[0-9]/, 'Kata sandi harus memuat angka.'),
-        role: z.enum(['superadmin', 'editor', 'advokat', 'panitia_mapaba', 'panitia_cbt']),
+        role: z.enum(['superadmin', 'editor', 'advokat', 'panitia_mapaba']),
       }),
       req.body
     );
@@ -217,15 +247,6 @@ router.get(
              SUM(CASE WHEN status = 'menunggu' THEN 1 ELSE 0 END) AS menunggu,
              SUM(CASE WHEN status = 'terverifikasi' THEN 1 ELSE 0 END) AS terverifikasi
            FROM mapaba_pendaftar`
-        )
-        .get(),
-      cbt: db
-        .prepare(
-          `SELECT
-             (SELECT COUNT(*) FROM cbt_peserta WHERE is_active = 1) AS peserta,
-             (SELECT COUNT(*) FROM cbt_paket WHERE is_aktif = 1) AS paket,
-             (SELECT COUNT(*) FROM cbt_sesi WHERE status = 'berjalan') AS sesiBerjalan,
-             (SELECT COUNT(*) FROM cbt_sesi WHERE status = 'selesai') AS sesiSelesai`
         )
         .get(),
     })

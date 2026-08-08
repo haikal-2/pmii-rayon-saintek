@@ -2,7 +2,7 @@
  * Koneksi basis data (SQLite via better-sqlite3).
  *
  * better-sqlite3 bersifat sinkron sehingga cocok untuk trafik website organisasi
- * dan menghilangkan kompleksitas async pada layer query. Bila trafik CBT
+ * dan menghilangkan kompleksitas async pada layer query. Bila trafik
  * meningkat, ganti implementasi file ini dengan pool MySQL/PostgreSQL —
  * pemanggil hanya memakai `db.prepare(...)`, sehingga perubahan terlokalisasi.
  */
@@ -17,7 +17,7 @@ fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
 const db = new Database(DB_PATH);
 
-// WAL: pembacaan tidak terblokir saat ada penulisan (penting saat ujian CBT).
+// WAL: pembacaan tidak terblokir saat ada penulisan.
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 db.pragma('busy_timeout = 5000');
@@ -31,6 +31,8 @@ db.pragma('busy_timeout = 5000');
  * CHECK constraint), buat tabel baru lalu salin datanya.
  */
 const KOLOM_TAMBAHAN = [
+  ['users', 'gagal_login', 'INTEGER NOT NULL DEFAULT 0'],
+  ['users', 'locked_until', 'TEXT'],
   ['mapaba_pendaftar', 'universitas', "TEXT NOT NULL DEFAULT 'UIN Sunan Gunung Djati Bandung'"],
   ['mapaba_pendaftar', 'pas_foto_url', 'TEXT'],
   ['mapaba_pendaftar', 'ktm_url', 'TEXT'],

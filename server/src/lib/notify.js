@@ -20,7 +20,7 @@ const cfg = () => ({
   smtpPort: Number(process.env.SMTP_PORT || 587),
   smtpUser: process.env.SMTP_USER,
   smtpPass: process.env.SMTP_PASS,
-  mailFrom: process.env.MAIL_FROM || 'PK PMII UIN SGD <no-reply@pmiiuinsgd.site>',
+  mailFrom: process.env.MAIL_FROM || 'PR PMII Saintek <no-reply@pmiiuinsgd.site>',
   advokasiEmail: process.env.ADVOKASI_NOTIFY_EMAIL,
   mapabaEmail: process.env.MAPABA_NOTIFY_EMAIL,
   waApiUrl: process.env.WA_API_URL,
@@ -162,7 +162,7 @@ function layoutEmail(judul, isi) {
   return `<!DOCTYPE html><html lang="id"><body style="margin:0;background:#f1f5f9;padding:24px;font-family:Segoe UI,Helvetica,Arial,sans-serif">
   <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0">
     <div style="background:#0b1a5c;padding:20px 24px">
-      <p style="margin:0;color:#fff;font-size:16px;font-weight:700">PK PMII UIN SGD Cab. Kab. Bandung</p>
+      <p style="margin:0;color:#fff;font-size:16px;font-weight:700">PR PMII Saintek UIN SGD</p>
       <p style="margin:4px 0 0;color:#ffdb4a;font-size:12px;letter-spacing:.12em;text-transform:uppercase">Dzikir, Fikir, Amal Sholeh</p>
     </div>
     <div style="padding:24px">
@@ -264,7 +264,7 @@ function notifikasiPendaftarMapaba(pendaftar) {
       `Pendaftaran MAPABA Raya kamu sudah kami terima.\n` +
       `Nomor registrasi: *${pendaftar.nomorRegistrasi}*\n\n` +
       `Simpan nomor ini. Panitia akan menghubungimu untuk verifikasi berkas dan ` +
-      `mengirimkan tautan grup peserta.\n\n_PK PMII UIN SGD Cab. Kab. Bandung_`,
+      `mengirimkan tautan grup peserta.\n\n_PR PMII Saintek UIN SGD_`,
     entitas: 'mapaba_pendaftar',
     entitasId: pendaftar.id,
   });

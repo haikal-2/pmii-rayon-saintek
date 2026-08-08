@@ -1,10 +1,9 @@
 /**
  * Penerbitan & verifikasi JWT.
  *
- * Dua audiens dipisahkan agar token peserta CBT tidak bisa dipakai di endpoint
- * admin dan sebaliknya:
- *   - audience "cbt"   → peserta ujian (subject = id cbt_peserta)
- *   - audience "admin" → pengurus/panitia (subject = id users)
+ * Audiens token ditetapkan eksplisit sebagai "admin" (subject = id users).
+ * Parameter audience tetap dipertahankan agar penambahan audiens baru di
+ * kemudian hari tidak perlu mengubah pemanggilnya.
  */
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
@@ -32,7 +31,7 @@ const verify = (token, audience) =>
 
 /**
  * Hash satu arah untuk data yang perlu dibandingkan tetapi tidak perlu dibaca,
- * mis. alamat IP pelapor (anti-spam) dan sidik perangkat peserta CBT.
+ * mis. alamat IP pelapor untuk keperluan anti-spam.
  */
 const hashOpaque = (value) =>
   crypto

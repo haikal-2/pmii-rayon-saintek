@@ -2,7 +2,7 @@
   "name": "pk-pmii-uin-sgd-kab-bandung",
   "version": "1.0.0",
   "private": true,
-  "description": "Website resmi PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung — front-end statis (HTML + Tailwind CSS + Vanilla JS) dengan API back-end Express + SQLite.",
+  "description": "Website resmi PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung — front-end statis (HTML + Tailwind CSS + Vanilla JS) dengan API back-end Express + SQLite.",
   "scripts": {
     "dev": "npm-run-all html:build --parallel css:watch html:watch serve",
     "css:watch": "tailwindcss -i ./src/css/input.css -o ./public/assets/css/style.css --watch",

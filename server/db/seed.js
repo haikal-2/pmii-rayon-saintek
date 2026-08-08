@@ -5,8 +5,7 @@
  * Jalankan: `npm run db:seed`
  *
  * Kredensial contoh (HANYA untuk pengembangan — ganti sebelum produksi):
- *   Admin  : admin@pmiiuinbandung.test  / RahasiaAdmin123
- *   Peserta: BIM-2026-0001              / bimtes2026
+ *   Admin: admin@pmiiuinbandung.test / RahasiaAdmin123
  */
 require('dotenv').config();
 
@@ -21,7 +20,7 @@ const seed = db.transaction(() => {
   db.prepare(
     `INSERT INTO users (nama, email, password_hash, role) VALUES (?, ?, ?, 'superadmin')
      ON CONFLICT(email) DO UPDATE SET password_hash = excluded.password_hash`
-  ).run('Admin Komisariat', 'admin@pmiiuinbandung.test', adminHash);
+  ).run('Admin Rayon', 'admin@pmiiuinbandung.test', adminHash);
 
   /* ------------------------------------------------------------- Kategori */
   const kategori = [
@@ -139,105 +138,18 @@ const seed = db.transaction(() => {
     ).run(slug, judul, `Dokumentasi kegiatan ${judul}.`, kat, tanggal);
   }
 
-  /* -------------------------------------------------------- MAPABA & CBT */
+  /* -------------------------------------------------------------- MAPABA */
   db.prepare(
     `INSERT INTO mapaba_gelombang
        (nama, tahun, buka_at, tutup_at, mulai_acara, selesai_acara, lokasi, kuota, biaya, is_aktif)
      SELECT 'MAPABA Raya 2026', 2026, '2026-08-01 00:00:00', '2026-10-10 23:59:59',
             '2026-10-16 07:00:00', '2026-10-18 17:00:00',
-            'Sekretariat PK PMII UIN SGD, Cibiru, Kab. Bandung', 150, 75000, 1
+            'Sekretariat PR PMII Saintek, Cibiru, Kab. Bandung', 150, 75000, 1
      WHERE NOT EXISTS (SELECT 1 FROM mapaba_gelombang WHERE nama = 'MAPABA Raya 2026')`
   ).run();
-
-  const pesertaHash = bcrypt.hashSync('bimtes2026', 10);
-  db.prepare(
-    `INSERT INTO cbt_peserta (nomor_peserta, nama, email, password_hash, must_change_password)
-     VALUES ('BIM-2026-0001', 'Peserta Demo', 'peserta@bimtes.test', ?, 0)
-     ON CONFLICT(nomor_peserta) DO UPDATE SET password_hash = excluded.password_hash`
-  ).run(pesertaHash);
-
-  // Nomor BIM-2026-0001 di atas dibuat manual, jadi penghitung harus ikut maju.
-  // Tanpa ini, akun peserta pertama yang dibuat panitia akan memakai nomor yang
-  // sama dan ditolak constraint UNIQUE.
-  db.prepare(
-    `INSERT INTO counters (nama, tahun, nilai) VALUES ('cbt', 2026, 1)
-     ON CONFLICT(nama, tahun) DO UPDATE SET nilai = MAX(counters.nilai, excluded.nilai)`
-  ).run();
-
-  db.prepare(
-    `INSERT INTO cbt_paket (kode, nama, deskripsi, durasi_menit, jumlah_soal, max_percobaan)
-     VALUES ('TPS-2026-01', 'Tryout UTBK — Tes Potensi Skolastik',
-             'Latihan penalaran umum, pengetahuan kuantitatif, dan pemahaman bacaan.', 30, 3, 2)
-     ON CONFLICT(kode) DO NOTHING`
-  ).run();
-  const paketId = db.prepare("SELECT id FROM cbt_paket WHERE kode = 'TPS-2026-01'").get().id;
-
-  const soalContoh = [
-    {
-      subtes: 'Penalaran Umum',
-      pertanyaan:
-        'Semua kader PMII mengikuti MAPABA. Sebagian peserta MAPABA berasal dari Fakultas Syariah. Kesimpulan yang pasti benar adalah…',
-      pembahasan:
-        'Premis hanya menjamin bahwa kader mengikuti MAPABA, bukan sebaliknya, sehingga kesimpulan yang sah bersifat terbatas.',
-      opsi: [
-        ['A', 'Semua peserta MAPABA adalah kader PMII', 0],
-        ['B', 'Sebagian peserta MAPABA berasal dari Fakultas Syariah', 1],
-        ['C', 'Semua kader PMII berasal dari Fakultas Syariah', 0],
-        ['D', 'Tidak ada kader PMII dari Fakultas Syariah', 0],
-      ],
-    },
-    {
-      subtes: 'Pengetahuan Kuantitatif',
-      pertanyaan: 'Jika 3x + 7 = 25, maka nilai 2x − 4 adalah…',
-      pembahasan: '3x = 18 sehingga x = 6, maka 2(6) − 4 = 8.',
-      opsi: [
-        ['A', '4', 0],
-        ['B', '6', 0],
-        ['C', '8', 1],
-        ['D', '10', 0],
-      ],
-    },
-    {
-      subtes: 'Pemahaman Bacaan',
-      pertanyaan:
-        'Kalimat "Teguh pada prinsip, setia pada proses" paling tepat dimaknai sebagai ajakan untuk…',
-      pembahasan:
-        'Ungkapan tersebut menekankan konsistensi nilai sekaligus kesabaran menjalani tahapan.',
-      opsi: [
-        ['A', 'Mempertahankan nilai sambil menjalani tahapan dengan sabar', 1],
-        ['B', 'Menolak segala bentuk perubahan', 0],
-        ['C', 'Mengutamakan hasil di atas cara', 0],
-        ['D', 'Menunda keputusan selama mungkin', 0],
-      ],
-    },
-  ];
-
-  soalContoh.forEach((item, index) => {
-    const sudahAda = db
-      .prepare('SELECT id FROM cbt_soal WHERE paket_id = ? AND urutan = ?')
-      .get(paketId, index + 1);
-    if (sudahAda) return;
-
-    const info = db
-      .prepare(
-        `INSERT INTO cbt_soal (paket_id, subtes, pertanyaan, pembahasan, urutan)
-         VALUES (?, ?, ?, ?, ?)`
-      )
-      .run(paketId, item.subtes, item.pertanyaan, item.pembahasan, index + 1);
-
-    for (const [label, teks, benar] of item.opsi) {
-      db.prepare('INSERT INTO cbt_opsi (soal_id, label, teks, is_benar) VALUES (?, ?, ?, ?)').run(
-        info.lastInsertRowid,
-        label,
-        teks,
-        benar
-      );
-    }
-  });
 });
 
 seed();
 
 console.log('Data contoh berhasil dimasukkan.');
-console.log('  Admin   : admin@pmiiuinbandung.test / RahasiaAdmin123');
-console.log('  Peserta : BIM-2026-0001 / bimtes2026');
+console.log('  Admin : admin@pmiiuinbandung.test / RahasiaAdmin123');

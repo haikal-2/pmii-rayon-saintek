@@ -11,11 +11,11 @@ Seluruh meta tag dihasilkan dari satu partial, [`src/partials/head.html`](../src
 dengan nilai per halaman diambil dari front-matter. Hasil pada halaman Beranda:
 
 ```html
-<title>PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung</title>
-<meta name="description" content="Website resmi PK PMII UIN Sunan Gunung Djati Cabang
+<title>PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung</title>
+<meta name="description" content="Website resmi PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang
       Kabupaten Bandung. Organisasi ekstra kampus yang berlandaskan Islam Ahlussunnah
       wal Jama'ah dan Pancasila. Dzikir, Fikir, Amal Sholeh." />
-<meta name="keywords" content="PMII UIN Bandung, PMII Kabupaten Bandung, PK PMII UIN SGD, …" />
+<meta name="keywords" content="PMII UIN Bandung, PMII Kabupaten Bandung, PR PMII Saintek, …" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="canonical" href="https://www.pmiiuinsgd.site/" />
 
@@ -64,8 +64,8 @@ informasi organisasi (nama, logo, alamat, media sosial):
 {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung",
-  "alternateName": "PK PMII UIN SGD Cab. Kab. Bandung",
+  "name": "PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung",
+  "alternateName": "PR PMII Saintek UIN SGD",
   "slogan": "Dzikir, Fikir, Amal Sholeh",
   "email": "pmiiuinbandun9@gmail.com",
   "sameAs": ["https://instagram.com/pmii_uinbandung"],
@@ -93,7 +93,7 @@ informasi organisasi (nama, logo, alamat, media sosial):
   "author": { "@type": "Person", "name": "{{penulis}}" },
   "publisher": {
     "@type": "Organization",
-    "name": "PK PMII UIN SGD Cab. Kab. Bandung",
+    "name": "PR PMII Saintek UIN SGD",
     "logo": { "@type": "ImageObject", "url": "https://www.pmiiuinsgd.site/assets/img/logo-pmii.svg" }
   }
 }
@@ -227,6 +227,4 @@ sebagian besar berisi teks, ini keputusan performa terbesar yang bisa diambil.
 
 | Berkas | Isi |
 | --- | --- |
-| `robots.txt` | Mengizinkan perayapan halaman publik, melarang `/admin/`, ruang ujian CBT, dan `/uploads/`; menunjuk ke sitemap |
-| `sitemap.xml` | Delapan halaman publik beserta `lastmod`, `changefreq`, dan `priority`. Halaman admin dan CBT dikecualikan otomatis lewat penanda `noindex` di front-matter |
 | `site.webmanifest` | Manifest PWA agar situs dapat dipasang di layar utama ponsel |

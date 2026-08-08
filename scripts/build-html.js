@@ -27,8 +27,8 @@ const PARTIALS_DIR = path.join(ROOT, 'src/partials');
 const OUT_DIR = path.join(ROOT, 'public');
 
 const SITE = {
-  name: 'PK PMII UIN SGD Cab. Kab. Bandung',
-  longName: 'PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung',
+  name: 'PR PMII Saintek UIN SGD',
+  longName: 'PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung',
   slogan: 'Dzikir, Fikir, Amal Sholeh',
   email: 'pmiiuinbandun9@gmail.com',
   instagram: '@pmii_uinbandung',
@@ -53,13 +53,14 @@ const SITE = {
 const DEFAULT_KEYWORDS = [
   'PMII UIN Bandung',
   'PMII Kabupaten Bandung',
-  'PK PMII UIN SGD',
+  'PR PMII Saintek',
   'PMII UIN Sunan Gunung Djati',
   'Pergerakan Mahasiswa Islam Indonesia',
   'MAPABA UIN Bandung',
   'organisasi mahasiswa UIN Bandung',
   'advokasi mahasiswa Bandung',
-  'CBT BIMTES 2026',
+  'KOPRI PMII',
+  'Rayon Sains dan Teknologi',
 ].join(', ');
 
 function readPartial(name) {
@@ -175,11 +176,9 @@ Allow: /
 
 # Area internal: tidak boleh diindeks maupun ditelusuri
 Disallow: /admin/
-Disallow: /cbt/ujian.html
-Disallow: /cbt/dashboard.html
 Disallow: /uploads/
 
-# Beri jeda pada perayap agresif agar tidak mengganggu sesi ujian CBT
+# Beri jeda pada perayap agresif agar tidak membebani server
 User-agent: AhrefsBot
 Crawl-delay: 10
 
@@ -228,7 +227,7 @@ function tulisSitemap(halaman) {
 function tulisManifest() {
   const manifest = {
     name: SITE.longName,
-    short_name: 'PK PMII UIN SGD',
+    short_name: 'PR PMII Saintek',
     description: `Website resmi ${SITE.longName}. ${SITE.slogan}.`,
     start_url: '/',
     display: 'standalone',

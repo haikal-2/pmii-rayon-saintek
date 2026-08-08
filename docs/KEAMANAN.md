@@ -1,8 +1,7 @@
 # Keamanan & Privasi
 
-Website ini menyimpan tiga jenis data yang tidak boleh bocor: **laporan advokasi**
-(termasuk kasus kekerasan seksual), **data pribadi pendaftar MAPABA** (NIM, KTM, pas foto),
-dan **hasil ujian CBT**. Dokumen ini menjelaskan pengamanan yang sudah terpasang, cara
+Website ini menyimpan dua jenis data yang tidak boleh bocor: **laporan advokasi**
+(termasuk kasus kekerasan seksual) dan **data pribadi pendaftar MAPABA** (NIM, KTM, pas foto). Dokumen ini menjelaskan pengamanan yang sudah terpasang, cara
 kerjanya, dan apa yang masih perlu dilakukan sebelum situs diumumkan.
 
 ---
@@ -30,7 +29,7 @@ router.post('/users', requireAdmin('superadmin'), asyncHandler(async (req, res) 
       .regex(/[a-z]/, 'Kata sandi harus memuat huruf kecil.')
       .regex(/[A-Z]/, 'Kata sandi harus memuat huruf besar.')
       .regex(/[0-9]/, 'Kata sandi harus memuat angka.'),
-    role: z.enum(['superadmin','editor','advokat','panitia_mapaba','panitia_cbt']),
+    role: z.enum(['superadmin','editor','advokat','panitia_mapaba']),
   }), req.body);
 
   if (db.prepare('SELECT 1 FROM users WHERE email = ? COLLATE NOCASE').get(data.email)) {
@@ -49,44 +48,45 @@ router.post('/users', requireAdmin('superadmin'), asyncHandler(async (req, res) 
 
 Tiga keputusan yang perlu diperhatikan:
 
-1. **Tidak ada registrasi mandiri.** Akun admin hanya diterbitkan superadmin, dan akun
-   peserta CBT hanya diterbitkan panitia. Endpoint registrasi terbuka adalah salah satu
-   jalan masuk yang paling sering dieksploitasi pada CMS kecil.
-2. **Kata sandi peserta CBT dibuat server**, acak, dan hanya dikembalikan satu kali pada
-   respons pembuatan akun. Peserta wajib menggantinya saat login pertama
-   (`must_change_password`).
-3. **Abjad sandi acak tidak memuat karakter yang mudah tertukar** (0/O, 1/l/I) karena
-   panitia sering membacakannya lewat WhatsApp.
+1. **Tidak ada registrasi mandiri.** Akun hanya diterbitkan superadmin. Endpoint
+   registrasi terbuka adalah salah satu jalan masuk yang paling sering dieksploitasi
+   pada CMS kecil, dan website rayon tidak membutuhkannya.
+2. **Syarat sandi ditegakkan di server**, bukan hanya di formulir: minimal 10 karakter
+   dengan huruf besar, huruf kecil, dan angka.
+3. **Kata sandi mentah tidak pernah menyentuh basis data maupun log.** Hash dibuat
+   sebelum `INSERT`, dan galat validasi tidak pernah menyertakan nilai kolom sandi.
 
-### Login (server/src/routes/cbt.js)
+### Login (server/src/routes/admin.js)
 
 ```js
-const peserta = db.prepare(
-  'SELECT * FROM cbt_peserta WHERE nomor_peserta = ? COLLATE NOCASE OR email = ? COLLATE NOCASE'
-).get(data.identitas, data.identitas);
+const user = db.prepare('SELECT * FROM users WHERE email = ? COLLATE NOCASE').get(data.email);
 
-// Pesan galat sengaja tidak membedakan "akun tidak ada" dan "sandi salah",
-// supaya nomor peserta yang valid tidak bisa ditebak dari respons.
-const gagal = () => unauthorized('Nomor peserta atau kata sandi salah.');
-if (!peserta) throw gagal();
+// Pesan galat sengaja sama untuk akun tidak ada maupun sandi salah,
+// agar daftar email pengurus tidak dapat ditebak dari respons.
+const gagal = () => unauthorized('Email atau kata sandi salah.');
+if (!user) throw gagal();
+if (!user.is_active) throw forbidden('Akun dinonaktifkan.');
 
-if (peserta.locked_until && new Date(`${peserta.locked_until}Z`) > new Date()) {
+if (user.locked_until && new Date(`${user.locked_until}Z`) > new Date()) {
   throw forbidden('Akun terkunci sementara karena terlalu banyak percobaan gagal.');
 }
 
-const cocok = await bcrypt.compare(data.password, peserta.password_hash);
+const cocok = await bcrypt.compare(data.password, user.password_hash);
 if (!cocok) {
-  // Lima kegagalan berturut-turut mengunci akun 15 menit.
-  db.prepare(`UPDATE cbt_peserta SET
+  // Panel admin adalah satu-satunya pintu masuk ke data pengaduan dan data
+  // pribadi pendaftar, jadi penebakan sandi dibuat mahal: lima kegagalan
+  // berturut-turut mengunci akun selama 15 menit.
+  const gagalBaru = user.gagal_login + 1;
+  db.prepare(`UPDATE users SET
        gagal_login  = @gagalBaru,
        locked_until = CASE WHEN @gagalBaru >= @maks THEN datetime('now', @durasi) ELSE locked_until END
      WHERE id = @id`)
-    .run({ id: peserta.id, gagalBaru: peserta.gagal_login + 1, maks: 5, durasi: '+15 minutes' });
+    .run({ id: user.id, gagalBaru, maks: 5, durasi: '+15 minutes' });
   throw gagal();
 }
 
-db.prepare("UPDATE cbt_peserta SET gagal_login = 0, locked_until = NULL, last_login_at = datetime('now') WHERE id = ?")
-  .run(peserta.id);
+db.prepare("UPDATE users SET gagal_login = 0, locked_until = NULL, last_login_at = datetime('now') WHERE id = ?")
+  .run(user.id);
 ```
 
 `bcrypt.compare` melakukan perbandingan yang tahan *timing attack*; jangan pernah
@@ -96,12 +96,16 @@ menggantinya dengan `===`.
 
 ## 2. Manajemen Sesi: JWT
 
-Dua audiens dipisahkan agar token peserta tidak bisa dipakai di area admin:
+Token diterbitkan dengan audiens dan issuer eksplisit:
 
 | Audiens | Subjek | Middleware | Masa hidup |
 | --- | --- | --- | --- |
-| `cbt` | `cbt_peserta.id` | `requirePeserta` | access 2 jam |
 | `admin` | `users.id` | `requireAdmin(...roles)` | access 2 jam |
+
+Karena `verify` mensyaratkan `audience` dan `issuer`, token yang ditandatangani kunci lain
+atau ditujukan untuk audiens lain langsung ditolak 401 — perilaku ini diuji otomatis di
+`server/test/smoke.js`. Parameter `audience` tetap dipertahankan supaya penambahan audiens
+baru di kemudian hari tidak perlu mengubah pemanggilnya.
 
 ```js
 // server/src/lib/tokens.js
@@ -120,10 +124,10 @@ dari basis data** setiap permintaan. Dengan begitu, akun yang dinonaktifkan lang
 kehilangan akses tanpa perlu menunggu tokennya kedaluwarsa:
 
 ```js
-const peserta = db.prepare('SELECT id, nomor_peserta, nama, email, is_active FROM cbt_peserta WHERE id = ?')
+const user = db.prepare('SELECT id, nama, email, role, is_active FROM users WHERE id = ?')
   .get(payload.sub);
-if (!peserta || !peserta.is_active) return next(unauthorized('Akun peserta tidak aktif.'));
-req.peserta = peserta;
+if (!user || !user.is_active) return next(unauthorized('Akun pengurus tidak aktif.'));
+req.user = user;
 ```
 
 ### JWT atau cookie sesi?
@@ -138,7 +142,7 @@ Pilihan JWT diambil karena front-end statis dapat berada di domain berbeda dari 
 (mis. Vercel + VPS). **Pengetatan yang disarankan sebelum menangani data dalam jumlah
 besar:** simpan access token hanya di memori JavaScript dan pindahkan refresh token ke
 cookie `HttpOnly; Secure; SameSite=Strict`. Perubahannya terbatas pada `forms.js`,
-`cbt.js`, dan `admin.js` di sisi klien, serta penambahan `cookie-parser` di server.
+dan `admin.js` di sisi klien, serta penambahan `cookie-parser` di server.
 
 Saat ini token disimpan di `sessionStorage` — hilang ketika tab ditutup, yang penting
 karena panel admin sering dibuka di komputer sekretariat yang dipakai bergantian.
@@ -154,7 +158,7 @@ Empat lapis dipasang berurutan; sebuah permintaan harus lolos semuanya:
 ```nginx
 limit_req_zone $binary_remote_addr zone=form:10m rate=1r/s;
 
-location ~ ^/api/v1/(advokasi/pengaduan|mapaba/pendaftaran|upload|admin/auth/login|cbt/auth/login)$ {
+location ~ ^/api/v1/(advokasi/pengaduan|mapaba/pendaftaran|upload|admin/auth/login)$ {
     limit_req zone=form burst=5 nodelay;
     proxy_pass http://pmii_api;
 }
@@ -168,7 +172,6 @@ location ~ ^/api/v1/(advokasi/pengaduan|mapaba/pendaftaran|upload|admin/auth/log
 | `POST /advokasi/pengaduan` | 5 / jam / IP |
 | `POST /mapaba/pendaftaran` | 10 / jam / IP |
 | `POST /upload` | 20 / 15 menit / IP |
-| `POST /cbt/auth/login` | 20 / 10 menit / IP |
 | `POST /admin/auth/login` | 15 / 10 menit / IP |
 
 Angka pengaduan sengaja longgar (5/jam) — pelapor sungguhan kadang mengirim ulang karena
@@ -247,7 +250,6 @@ Pas foto dan KTM disimpan **privat** dan diakses lewat URL bertanda tangan berum
 | Identitas pelapor | Nama opsional; laporan tanpa nama dicatat "Anonim" |
 | Isi kronologi | Tidak dikembalikan endpoint pelacakan publik (nomor tiket bukan bukti kepemilikan) |
 | KTM & pas foto | Objek privat, hanya lewat presigned URL |
-| Kunci jawaban CBT | Tidak pernah dikirim selama sesi berjalan |
 | Kata sandi | bcrypt cost 12, tidak pernah dicatat di log |
 | Tindakan pengurus | Tercatat di `audit_log` dan `pengaduan_log` |
 
@@ -269,7 +271,7 @@ risiko tanpa manfaat.
 | Kebocoran galat | Galat 500 hanya masuk log server; klien menerima pesan umum |
 | Enumerasi akun | Pesan login tidak membedakan akun tidak ada vs sandi salah |
 | Payload raksasa | Body JSON dibatasi 256 KB, unggahan 3/10 MB, Nginx 12 MB |
-| Kecurangan CBT | Waktu di server, kunci jawaban ditahan, sesi terikat pemilik, percobaan dibatasi |
+| Penebakan sandi | Batas laju + penguncian akun 15 menit setelah 5 kegagalan |
 
 ---
 

@@ -1,5 +1,5 @@
 -- =============================================================================
---  Skema basis data — Website PK PMII UIN SGD Cab. Kab. Bandung
+--  Skema basis data — Website PR PMII Saintek UIN SGD
 --  Dialek: MySQL 8.0 / MariaDB 10.6+ (versi produksi)
 --
 --  Berkas ini adalah padanan penuh dari server/db/schema.sql (SQLite) yang
@@ -27,20 +27,19 @@ SET time_zone = '+07:00';   -- WIB, agar buka/tutup pendaftaran sesuai waktu lok
 -- -----------------------------------------------------------------------------
 -- 1. Pengguna internal (pengurus/admin CMS)
 --
---    Catatan desain: akun ADMIN (tabel ini) dan akun PESERTA CBT (cbt_peserta)
---    sengaja dipisah. Keduanya punya siklus hidup, kolom, dan tingkat risiko yang
---    berbeda; memisahkannya membuat kebocoran pada satu sisi tidak otomatis
---    memberi jalan masuk ke sisi lain, dan token JWT keduanya memakai audience
---    berbeda sehingga tidak dapat saling dipakai.
+--    Hanya pengurus yang memiliki akun. Tidak ada pendaftaran mandiri: akun
+--    diterbitkan superadmin lewat POST /api/v1/admin/users.
 -- -----------------------------------------------------------------------------
 CREATE TABLE users (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   nama          VARCHAR(100)  NOT NULL,
   email         VARCHAR(150)  NOT NULL,
   password_hash VARCHAR(255)  NOT NULL,          -- bcrypt, selalu 60 karakter
-  role          ENUM('superadmin','editor','advokat','panitia_mapaba','panitia_cbt')
+  role          ENUM('superadmin','editor','advokat','panitia_mapaba')
                               NOT NULL DEFAULT 'editor',
   is_active     TINYINT(1)    NOT NULL DEFAULT 1,
+  gagal_login   SMALLINT      NOT NULL DEFAULT 0,   -- penguncian setelah gagal login
+  locked_until  DATETIME      NULL,
   last_login_at DATETIME      NULL,
   created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -289,129 +288,10 @@ CREATE TABLE mapaba_pendaftar (
 ) ENGINE=InnoDB;
 
 -- -----------------------------------------------------------------------------
--- 8. CBT BIMTES
--- -----------------------------------------------------------------------------
-CREATE TABLE cbt_peserta (
-  id                   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  nomor_peserta        VARCHAR(20)  NOT NULL,   -- BIM-2026-0001, dipakai untuk login
-  nama                 VARCHAR(100) NOT NULL,
-  email                VARCHAR(150) NULL,
-  whatsapp             VARCHAR(30)  NULL,
-  asal_sekolah         VARCHAR(150) NULL,
-  password_hash        VARCHAR(255) NOT NULL,   -- bcrypt
-  must_change_password TINYINT(1)   NOT NULL DEFAULT 1,
-  is_active            TINYINT(1)   NOT NULL DEFAULT 1,
-  gagal_login          SMALLINT     NOT NULL DEFAULT 0,
-  locked_until         DATETIME     NULL,
-  last_login_at        DATETIME     NULL,
-  created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_peserta_nomor (nomor_peserta),
-  UNIQUE KEY uq_peserta_email (email)
-) ENGINE=InnoDB;
-
-CREATE TABLE cbt_paket (
-  id                   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  kode                 VARCHAR(30)  NOT NULL,   -- TPS-2026-01
-  nama                 VARCHAR(150) NOT NULL,
-  deskripsi            TEXT         NULL,
-  durasi_menit         INT          NOT NULL,   -- mis. 90
-  jumlah_soal          INT          NOT NULL,
-  acak_soal            TINYINT(1)   NOT NULL DEFAULT 1,
-  acak_opsi            TINYINT(1)   NOT NULL DEFAULT 1,
-  max_percobaan        INT          NOT NULL DEFAULT 1,
-  tampilkan_pembahasan TINYINT(1)   NOT NULL DEFAULT 1,
-  buka_at              DATETIME     NULL,
-  tutup_at             DATETIME     NULL,
-  is_aktif             TINYINT(1)   NOT NULL DEFAULT 1,
-  created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_paket_kode (kode)
-) ENGINE=InnoDB;
-
--- Soal disimpan satu baris per soal; opsi A–E berada di tabel terpisah
--- (cbt_opsi). Alternatif "kolom opsi_a … opsi_e + kunci CHAR(1)" memang lebih
--- ringkas, tetapi mengunci jumlah opsi menjadi lima, menyulitkan pengacakan
--- urutan opsi, dan membuat analisis butir soal (berapa peserta memilih opsi C)
--- jauh lebih repot. Lihat catatan konversi di akhir berkas bila tetap ingin
--- memakai bentuk kolom.
-CREATE TABLE cbt_soal (
-  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  paket_id   BIGINT UNSIGNED NOT NULL,
-  subtes     VARCHAR(100) NULL,
-  tipe       ENUM('pilihan_ganda','benar_salah','isian_singkat') NOT NULL DEFAULT 'pilihan_ganda',
-  pertanyaan MEDIUMTEXT   NOT NULL,
-  gambar_url VARCHAR(500) NULL,
-  pembahasan MEDIUMTEXT   NULL,
-  bobot      DECIMAL(6,2) NOT NULL DEFAULT 1.00,
-  urutan     INT          NOT NULL DEFAULT 0,
-  PRIMARY KEY (id),
-  KEY idx_soal_paket (paket_id, urutan),
-  CONSTRAINT fk_soal_paket FOREIGN KEY (paket_id)
-    REFERENCES cbt_paket(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
-CREATE TABLE cbt_opsi (
-  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  soal_id    BIGINT UNSIGNED NOT NULL,
-  label      CHAR(1)      NOT NULL,             -- A, B, C, D, E
-  teks       TEXT         NOT NULL,
-  gambar_url VARCHAR(500) NULL,
-  is_benar   TINYINT(1)   NOT NULL DEFAULT 0,   -- JANGAN dikirim ke klien saat ujian
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_opsi_soal_label (soal_id, label),
-  CONSTRAINT fk_opsi_soal FOREIGN KEY (soal_id)
-    REFERENCES cbt_soal(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
-CREATE TABLE cbt_sesi (
-  id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  peserta_id    BIGINT UNSIGNED NOT NULL,
-  paket_id      BIGINT UNSIGNED NOT NULL,
-  percobaan     INT      NOT NULL DEFAULT 1,
-  urutan_soal   JSON     NULL,                  -- hasil pengacakan, agar konsisten saat refresh
-  mulai_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deadline_at   DATETIME NOT NULL,              -- sumber kebenaran waktu ujian
-  submit_at     DATETIME NULL,
-  status        ENUM('berjalan','selesai','kedaluwarsa','diskualifikasi')
-                         NOT NULL DEFAULT 'berjalan',
-  skor          DECIMAL(7,2) NULL,
-  jumlah_benar  INT      NULL,
-  jumlah_salah  INT      NULL,
-  jumlah_kosong INT      NULL,
-  device_hash   CHAR(32) NULL,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_sesi_percobaan (peserta_id, paket_id, percobaan),
-  KEY idx_sesi_peserta (peserta_id, status),
-  KEY idx_sesi_paket_skor (paket_id, skor DESC),
-  CONSTRAINT fk_sesi_peserta FOREIGN KEY (peserta_id)
-    REFERENCES cbt_peserta(id) ON DELETE CASCADE,
-  CONSTRAINT fk_sesi_paket FOREIGN KEY (paket_id)
-    REFERENCES cbt_paket(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
-CREATE TABLE cbt_jawaban (
-  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  sesi_id     BIGINT UNSIGNED NOT NULL,
-  soal_id     BIGINT UNSIGNED NOT NULL,
-  opsi_id     BIGINT UNSIGNED NULL,
-  teks_isian  VARCHAR(500) NULL,
-  ragu        TINYINT(1)   NOT NULL DEFAULT 0,  -- tombol "Ragu-ragu"
-  is_benar    TINYINT(1)   NULL,                -- diisi saat auto-grading
-  answered_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  -- Membuat autosave idempoten: satu baris per (sesi, soal), pakai UPSERT
-  UNIQUE KEY uq_jawaban_sesi_soal (sesi_id, soal_id),
-  CONSTRAINT fk_jawaban_sesi FOREIGN KEY (sesi_id) REFERENCES cbt_sesi(id) ON DELETE CASCADE,
-  CONSTRAINT fk_jawaban_soal FOREIGN KEY (soal_id) REFERENCES cbt_soal(id) ON DELETE CASCADE,
-  CONSTRAINT fk_jawaban_opsi FOREIGN KEY (opsi_id) REFERENCES cbt_opsi(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
-
--- -----------------------------------------------------------------------------
--- 9. Utilitas
+-- 8. Utilitas
 -- -----------------------------------------------------------------------------
 CREATE TABLE counters (
-  nama  VARCHAR(30) NOT NULL,                   -- 'advokasi' | 'mapaba' | 'cbt'
+  nama  VARCHAR(30) NOT NULL,                   -- 'advokasi' | 'mapaba'
   tahun SMALLINT    NOT NULL,
   nilai INT         NOT NULL DEFAULT 0,
   PRIMARY KEY (nama, tahun)
@@ -465,23 +345,6 @@ CREATE TABLE notifikasi_log (
   KEY idx_notif_entitas (entitas, entitas_id)
 ) ENGINE=InnoDB;
 
--- -----------------------------------------------------------------------------
--- 10. View pelaporan: cbt_scores
---     Nilai tryout peserta. Dibuat sebagai VIEW agar tidak pernah tidak sinkron
---     dengan sumber kebenarannya (cbt_sesi).
--- -----------------------------------------------------------------------------
-CREATE OR REPLACE VIEW cbt_scores AS
-SELECT
-  s.id AS sesi_id, s.peserta_id, p.nomor_peserta, p.nama AS nama_peserta,
-  s.paket_id, k.kode AS kode_paket, k.nama AS nama_paket, s.percobaan,
-  s.skor, s.jumlah_benar, s.jumlah_salah, s.jumlah_kosong, k.jumlah_soal,
-  s.mulai_at, s.submit_at, s.status,
-  RANK() OVER (PARTITION BY s.paket_id ORDER BY s.skor DESC) AS peringkat
-FROM cbt_sesi s
-JOIN cbt_peserta p ON p.id = s.peserta_id
-JOIN cbt_paket   k ON k.id = s.paket_id
-WHERE s.status IN ('selesai','kedaluwarsa');
-
 -- =============================================================================
 --  CATATAN KONVERSI
 -- =============================================================================
@@ -496,28 +359,7 @@ WHERE s.status IN ('selesai','kedaluwarsa');
 --     * FULLTEXT KEY                    →  GIN index atas to_tsvector('indonesian', …)
 --     * RANK() OVER (…)                 →  identik, sudah didukung
 --
---  B. Bila tetap ingin bentuk "cbt_questions" dengan opsi sebagai kolom
---     (opsi_a … opsi_e + kunci_jawaban), gunakan definisi berikut sebagai
---     pengganti pasangan cbt_soal + cbt_opsi. Konsekuensinya: pengacakan urutan
---     opsi dan analisis sebaran jawaban harus dikerjakan di sisi aplikasi.
---
---     CREATE TABLE cbt_questions (
---       id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
---       paket_id      BIGINT UNSIGNED NOT NULL,
---       pertanyaan    MEDIUMTEXT NOT NULL,
---       opsi_a        TEXT NOT NULL,
---       opsi_b        TEXT NOT NULL,
---       opsi_c        TEXT NOT NULL,
---       opsi_d        TEXT NOT NULL,
---       opsi_e        TEXT NULL,
---       kunci_jawaban ENUM('A','B','C','D','E') NOT NULL,
---       pembahasan    MEDIUMTEXT NULL,
---       bobot         DECIMAL(6,2) NOT NULL DEFAULT 1.00,
---       PRIMARY KEY (id),
---       CONSTRAINT fk_q_paket FOREIGN KEY (paket_id) REFERENCES cbt_paket(id) ON DELETE CASCADE
---     ) ENGINE=InnoDB;
---
---  C. Pengguna basis data untuk aplikasi sebaiknya TIDAK memakai root:
+--  B. Pengguna basis data untuk aplikasi sebaiknya TIDAK memakai root:
 --     CREATE USER 'pmii_app'@'localhost' IDENTIFIED BY '<sandi-acak-panjang>';
 --     GRANT SELECT, INSERT, UPDATE, DELETE ON pmii_uinsgd.* TO 'pmii_app'@'localhost';
 --     FLUSH PRIVILEGES;

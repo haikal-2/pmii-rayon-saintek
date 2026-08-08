@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   PK PMII UIN SGD Cab. Kab. Bandung — Design System
+   PR PMII Saintek UIN SGD — Design System
    Token warna & font didefinisikan di tailwind.config.js
    Lapisan di bawah ini adalah komponen yang dipakai berulang di semua halaman.
    ========================================================================== */
@@ -32,9 +32,9 @@
    * memenangkannya. Akibatnya elemen bertanda `hidden` tetap tampil, dan
    * `el.hidden = true` dari JavaScript tidak berpengaruh apa-apa.
    *
-   * Ini menyangkut dialog konfirmasi, layar hasil ujian, dan panel sukses
-   * formulir yang semuanya memakai `display: grid`. Tanpa aturan ini, layar
-   * hasil CBT langsung menutupi ruang ujian begitu halaman dibuka.
+   * Ini menyangkut dialog konfirmasi panel admin dan panel sukses formulir
+   * yang semuanya memakai `display: grid`. Tanpa aturan ini, dialog tampil
+   * sendiri begitu halaman dibuka dan tidak bisa ditutup.
    */
   [hidden] {
     display: none !important;
@@ -132,7 +132,7 @@
     @apply grid h-12 w-12 place-items-center rounded-xl bg-pmii-50 text-pmii-700 ring-1 ring-inset ring-pmii-100;
   }
 
-  /* Kartu sorotan (dipakai untuk CBT BIMTES) */
+  /* Kartu sorotan (dipakai untuk KOPRI di panel akses cepat) */
   .card-featured {
     @apply relative flex flex-col overflow-hidden rounded-2xl border border-pmii-800 bg-pmii-900 p-6
            text-pmii-100 shadow-card-hover transition-all duration-300 hover:-translate-y-1;

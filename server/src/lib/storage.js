@@ -11,7 +11,7 @@
  * Mengapa bukan penyimpanan lokal di produksi: berkas ikut hilang setiap kali
  * kontainer/VPS dibuat ulang, tidak terdistribusi bila server ditambah, dan
  * setiap permintaan gambar membebani proses Node yang seharusnya melayani API
- * (terutama saat ratusan peserta CBT mengakses bersamaan).
+ * (terutama saat banyak pengunjung membuka galeri bersamaan).
  *
  * Paket SDK dimuat malas (lazy require) supaya `npm install` dasar tetap ringan;
  * pasang hanya yang dipakai:

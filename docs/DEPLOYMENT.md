@@ -1,12 +1,11 @@
 # Panduan Deployment
 
-Website PK PMII UIN SGD Cab. Kab. Bandung · domain target **www.pmiiuinsgd.site**
+Website PR PMII Saintek UIN SGD · domain target **www.pmiiuinsgd.site**
 
 Dokumen ini memuat dua jalur peluncuran. Pilih salah satu:
 
 | Jalur | Cocok untuk | Biaya per bulan | Kesulitan |
 | --- | --- | --- | --- |
-| **A. VPS tunggal** (rekomendasi) | Ada CBT dengan puluhan–ratusan peserta serentak | Rp60.000–Rp150.000 | Sedang |
 | **B. Front-end di Vercel + API di Render/Railway** | Ingin cepat online tanpa mengurus server | Rp0–Rp100.000 | Mudah |
 
 ---
@@ -23,13 +22,10 @@ Dokumen ini memuat dua jalur peluncuran. Pilih salah satu:
 | **Contabo (Singapura)** | 4 vCPU / 8 GB | ± Rp90.000 | Spesifikasi paling besar per rupiah, latensi ±30 ms |
 | **Hetzner (Jerman)** | 2 vCPU / 4 GB | ± Rp70.000 | Sangat andal, tetapi latensi ±180 ms ke Indonesia |
 
-**Ukuran yang disarankan.** Untuk situs profil saja, 1 GB RAM cukup. Bila CBT dipakai
-**100 peserta serentak**, ambil minimal **2 vCPU / 2 GB**. Beban CBT sebenarnya ringan
 (satu permintaan kecil per klik jawaban), yang menentukan justru jumlah koneksi bersamaan.
 Ambil **4 vCPU / 4 GB** bila menargetkan 300+ peserta serentak.
 
 **Yang tidak disarankan:** shared hosting cPanel murah. Sebagian besar tidak mengizinkan
-proses Node.js berjalan terus-menerus, dan CBT membutuhkan proses yang hidup permanen.
 
 ### Domain
 
@@ -197,7 +193,6 @@ cache aset satu tahun, serta URL bersih tanpa akhiran `.html`.
 
 > **Peringatan besar untuk paket gratis.** Layanan gratis Render/Railway tidur setelah
 > menganggur dan filesystem-nya bersifat sementara. Basis data SQLite di paket gratis
-> **akan hilang**. Untuk CBT yang sesungguhnya, pakai paket berbayar dengan disk
 > permanen — atau pindah ke MySQL/PostgreSQL terkelola dan gunakan
 > `server/db/schema.mysql.sql`.
 
@@ -275,7 +270,6 @@ dicoba dipulihkan belum tentu berfungsi.
 
 ---
 
-## 6. Menghadapi Hari-H CBT
 
 Beberapa jam sebelum ujian serentak:
 
@@ -283,7 +277,6 @@ Beberapa jam sebelum ujian serentak:
    per klik jawaban. Batas bawaan 120 permintaan/menit per IP akan terpicu bila banyak
    peserta berbagi satu jaringan Wi-Fi kampus (mereka terlihat sebagai satu IP). Naikkan
    `max` pada limiter global di `server/src/app.js` menjadi 600, atau kecualikan jalur
-   `/cbt/sesi`.
 2. **Matikan sementara perayap dan pembaruan.** Jangan melakukan `git pull` atau
    `pm2 reload` selama sesi berjalan.
 3. **Pantau log:** `pm2 logs pmii-api` dan `pm2 monit`.
@@ -294,7 +287,7 @@ Beberapa jam sebelum ujian serentak:
 
 ---
 
-## 7. Pemantauan
+## 6. Pemantauan
 
 | Kebutuhan | Alat gratis |
 | --- | --- |
@@ -309,7 +302,7 @@ lalu minta pengindeksan halaman Beranda. Ini langkah tercepat agar pencarian
 
 ---
 
-## 8. Daftar Periksa Sebelum Diumumkan
+## 7. Daftar Periksa Sebelum Diumumkan
 
 - [ ] `useMockWhenOffline: false` pada `public/assets/js/config.js`
 - [ ] `apiBaseUrl` menunjuk ke domain API produksi
@@ -322,4 +315,3 @@ lalu minta pengindeksan halaman Beranda. Ini langkah tercepat agar pencarian
 - [ ] SMTP/WhatsApp terisi, dan uji kirim satu pengaduan percobaan
 - [ ] Cron backup berjalan dan hasilnya sudah dicoba dipulihkan
 - [ ] Sitemap dikirim ke Google Search Console
-- [ ] Uji beban ringan pada CBT (mis. `npx autocannon -c 50 -d 20 <url>/api/v1/health`)

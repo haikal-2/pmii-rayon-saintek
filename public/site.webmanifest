@@ -1,7 +1,7 @@
 {
-  "name": "PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung",
-  "short_name": "PK PMII UIN SGD",
-  "description": "Website resmi PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung. Dzikir, Fikir, Amal Sholeh.",
+  "name": "PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung",
+  "short_name": "PR PMII Saintek",
+  "description": "Website resmi PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung. Dzikir, Fikir, Amal Sholeh.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

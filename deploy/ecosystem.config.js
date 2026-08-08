@@ -1,5 +1,5 @@
 /**
- * Konfigurasi PM2 untuk API PK PMII UIN SGD.
+ * Konfigurasi PM2 untuk API PR PMII Saintek.
  *
  *   pm2 start deploy/ecosystem.config.js
  *   pm2 save && pm2 startup
@@ -41,7 +41,7 @@ module.exports = {
       merge_logs: true,
 
       // Beri waktu permintaan yang sedang berjalan untuk selesai saat reload
-      // — penting agar jawaban peserta CBT tidak terpotong di tengah simpan.
+      // — penting agar pengaduan atau pendaftaran tidak terpotong saat disimpan.
       kill_timeout: 10000,
       listen_timeout: 8000,
       wait_ready: false,
