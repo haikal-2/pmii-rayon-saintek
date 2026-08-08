@@ -1,0 +1,256 @@
+<!--page
+{
+  "out": "cbt/ujian.html",
+  "active": "cbt",
+  "title": "Ruang Ujian — CBT BIMTES 2026",
+  "description": "Ruang pengerjaan soal CBT BIMTES 2026.",
+  "noindex": true
+}
+page-->
+<!DOCTYPE html>
+<html lang="id">
+<head>{{> head }}</head>
+
+<!--
+  Ruang ujian CBT.
+
+  Halaman ini dibuka dengan parameter sesi, mis. /cbt/ujian.html?sesi=12
+  Seluruh data diambil dari API dengan Bearer token peserta:
+    GET  /cbt/sesi/:id              soal + jawaban tersimpan + sisa waktu
+    PUT  /cbt/sesi/:id/jawaban      autosave setiap kali opsi dipilih
+    POST /cbt/sesi/:id/submit       kumpulkan & nilai otomatis
+
+  Tata letak mengikuti pakem CBT nasional agar peserta tidak perlu belajar
+  antarmuka baru: navigasi nomor soal di kiri, soal dan pilihan di tengah,
+  penghitung waktu di kanan atas.
+-->
+<body class="bg-slate-100">
+  <!-- ==================================================================
+       Bilah atas: identitas peserta + penghitung waktu mundur
+       ================================================================== -->
+  <header class="sticky top-0 z-40 border-b border-slate-200 bg-white shadow-sm">
+    <div class="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6">
+      <div class="flex min-w-0 items-center gap-3">
+        <img src="{{base}}assets/img/logo-pmii.svg" alt="" width="30" height="36" class="h-8 w-auto shrink-0" />
+        <div class="min-w-0">
+          <p class="truncate font-display text-sm font-extrabold text-pmii-950" data-paket-nama>Memuat ujian…</p>
+          <p class="truncate text-xs text-slate-500">
+            <span data-peserta-nama>—</span> ·
+            <span class="font-mono" data-peserta-nomor>—</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Penghitung waktu mundur. Warna berubah menjadi merah pada 5 menit terakhir. -->
+        <div
+          data-timer
+          class="flex items-center gap-2 rounded-xl border border-pmii-200 bg-pmii-50 px-3 py-2 sm:px-4"
+          role="timer"
+          aria-live="off">
+          <svg class="h-5 w-5 shrink-0 text-pmii-700" data-timer-icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <div class="leading-none">
+            <p class="text-[0.625rem] font-semibold uppercase tracking-wider text-slate-500">Sisa waktu</p>
+            <p class="mt-0.5 font-display text-lg font-extrabold tabular-nums text-pmii-900" data-timer-teks>--:--:--</p>
+          </div>
+        </div>
+
+        <button type="button" class="btn-accent btn-sm hidden sm:inline-flex" data-buka-submit>
+          Selesai &amp; Kumpulkan
+        </button>
+      </div>
+    </div>
+
+    <!-- Bilah progres pengerjaan -->
+    <div class="h-1 w-full bg-slate-100">
+      <div class="h-full bg-kuning-400 transition-all duration-300" style="width:0%" data-progress></div>
+    </div>
+  </header>
+
+  <main id="konten-utama" class="mx-auto max-w-[1600px] px-4 py-6 sm:px-6">
+    <!-- Status pemuatan / galat -->
+    <div data-status class="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-card">
+      <span class="mx-auto grid h-12 w-12 animate-spin place-items-center rounded-full border-4 border-slate-200 border-t-pmii-600"></span>
+      <p class="mt-4 text-sm text-slate-600">Menyiapkan ruang ujian…</p>
+    </div>
+
+    <div data-ruang hidden class="grid gap-6 lg:grid-cols-[18rem_1fr] xl:grid-cols-[20rem_1fr]">
+      <!-- ============================================================
+           Kiri: navigasi nomor soal
+           ============================================================ -->
+      <aside class="lg:sticky lg:top-[5.5rem] lg:self-start">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
+          <div class="flex items-center justify-between">
+            <h2 class="font-display text-sm font-bold uppercase tracking-wider text-pmii-950">Navigasi Soal</h2>
+            <button type="button" class="text-xs font-semibold text-pmii-700 hover:underline lg:hidden" data-toggle-navigasi>
+              Sembunyikan
+            </button>
+          </div>
+
+          <!-- Tombol nomor soal; kelas warna diatur ulang oleh exam.js -->
+          <div class="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-8 lg:grid-cols-5" data-navigasi role="group" aria-label="Pindah ke nomor soal"></div>
+
+          <dl class="mt-5 space-y-2 border-t border-slate-200 pt-4 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="h-4 w-4 shrink-0 rounded border border-pmii-700 bg-pmii-700"></span>
+              <dt class="text-slate-600">Sudah dijawab</dt>
+              <dd class="ml-auto font-semibold text-pmii-900" data-hitung-terjawab>0</dd>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="h-4 w-4 shrink-0 rounded border border-kuning-500 bg-kuning-400"></span>
+              <dt class="text-slate-600">Ragu-ragu</dt>
+              <dd class="ml-auto font-semibold text-pmii-900" data-hitung-ragu>0</dd>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="h-4 w-4 shrink-0 rounded border border-slate-300 bg-white"></span>
+              <dt class="text-slate-600">Belum dijawab</dt>
+              <dd class="ml-auto font-semibold text-pmii-900" data-hitung-kosong>0</dd>
+            </div>
+          </dl>
+
+          <button type="button" class="btn-accent mt-5 w-full" data-buka-submit>Selesai &amp; Kumpulkan</button>
+        </div>
+
+        <!-- Indikator penyimpanan otomatis -->
+        <p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-500" data-autosave aria-live="polite">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+          Jawaban tersimpan otomatis
+        </p>
+      </aside>
+
+      <!-- ============================================================
+           Tengah: soal dan pilihan jawaban
+           ============================================================ -->
+      <section class="rounded-2xl border border-slate-200 bg-white shadow-card">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-6 py-4">
+          <div class="flex items-center gap-3">
+            <span class="grid h-10 w-10 place-items-center rounded-xl bg-pmii-900 font-display text-base font-extrabold text-white" data-nomor-soal>1</span>
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500" data-subtes>Subtes</p>
+              <p class="text-sm text-slate-600">Soal <span data-posisi>1</span> dari <span data-total>0</span></p>
+            </div>
+          </div>
+
+          <!-- Tombol Ragu-ragu: menandai soal untuk ditinjau ulang -->
+          <button
+            type="button"
+            data-ragu
+            aria-pressed="false"
+            class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-kuning-400 hover:bg-kuning-50">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+            </svg>
+            Ragu-ragu
+          </button>
+        </div>
+
+        <div class="px-6 py-7">
+          <div class="prose-page text-base leading-relaxed text-slate-800" data-pertanyaan></div>
+          <img data-gambar-soal hidden alt="Gambar pendukung soal" class="mt-5 max-h-80 rounded-xl border border-slate-200" />
+
+          <!-- Pilihan jawaban A–E -->
+          <div class="mt-7 space-y-3" data-opsi role="radiogroup" aria-label="Pilihan jawaban"></div>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/70 px-6 py-4">
+          <button type="button" class="btn-outline" data-sebelumnya>
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 0 1 0 1.414L9.414 10l3.293 3.293a1 1 0 0 1-1.414 1.414l-4-4a1 1 0 0 1 0-1.414l4-4a1 1 0 0 1 1.414 0Z" clip-rule="evenodd" />
+            </svg>
+            Sebelumnya
+          </button>
+
+          <button type="button" class="text-sm font-semibold text-slate-500 hover:text-red-600" data-hapus-jawaban>
+            Hapus jawaban
+          </button>
+
+          <button type="button" class="btn-primary" data-selanjutnya>
+            Selanjutnya
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ==================================================================
+       Dialog konfirmasi pengumpulan
+       ================================================================== -->
+  <div data-dialog-submit hidden class="fixed inset-0 z-50 grid place-items-center bg-pmii-950/60 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-2xl bg-white p-7 shadow-card-hover" role="dialog" aria-modal="true" aria-labelledby="judul-submit">
+      <span class="grid h-12 w-12 place-items-center rounded-xl bg-kuning-100 text-kuning-700">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+        </svg>
+      </span>
+      <h2 id="judul-submit" class="mt-4 text-xl">Kumpulkan jawaban?</h2>
+      <p class="mt-2 text-sm leading-relaxed text-slate-600">
+        Setelah dikumpulkan, jawaban tidak dapat diubah lagi dan skor langsung dihitung sistem.
+      </p>
+
+      <dl class="mt-5 grid grid-cols-3 gap-2 text-center">
+        <div class="rounded-xl bg-pmii-50 py-3">
+          <dt class="text-[0.625rem] font-semibold uppercase tracking-wider text-slate-500">Terjawab</dt>
+          <dd class="mt-1 font-display text-xl font-extrabold text-pmii-900" data-ringkas-terjawab>0</dd>
+        </div>
+        <div class="rounded-xl bg-kuning-50 py-3">
+          <dt class="text-[0.625rem] font-semibold uppercase tracking-wider text-slate-500">Ragu</dt>
+          <dd class="mt-1 font-display text-xl font-extrabold text-kuning-700" data-ringkas-ragu>0</dd>
+        </div>
+        <div class="rounded-xl bg-red-50 py-3">
+          <dt class="text-[0.625rem] font-semibold uppercase tracking-wider text-slate-500">Kosong</dt>
+          <dd class="mt-1 font-display text-xl font-extrabold text-red-600" data-ringkas-kosong>0</dd>
+        </div>
+      </dl>
+
+      <p data-peringatan-kosong hidden class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></p>
+
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
+        <button type="button" class="btn-accent w-full sm:w-auto" data-konfirmasi-submit>Ya, Kumpulkan</button>
+        <button type="button" class="btn-outline w-full sm:w-auto" data-tutup-dialog>Periksa Lagi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layar hasil setelah pengumpulan -->
+  <div data-layar-hasil hidden class="fixed inset-0 z-50 grid place-items-center bg-pmii-950 p-4">
+    <div class="w-full max-w-lg rounded-3xl bg-white p-8 text-center shadow-card-hover sm:p-10">
+      <span class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+        <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+        </svg>
+      </span>
+      <h2 class="mt-6 text-2xl">Ujian selesai</h2>
+      <p class="mt-2 text-sm text-slate-600" data-hasil-pesan>Jawaban kamu sudah tersimpan dan dinilai.</p>
+
+      <p class="mt-8 font-display text-6xl font-extrabold text-pmii-900" data-hasil-skor>—</p>
+      <p class="mt-1 text-xs font-semibold uppercase tracking-widest text-slate-500">Skor (skala 0–1000)</p>
+
+      <dl class="mt-8 grid grid-cols-3 gap-3">
+        <div class="rounded-xl border border-slate-200 py-4">
+          <dt class="text-xs text-slate-500">Benar</dt>
+          <dd class="mt-1 font-display text-2xl font-extrabold text-emerald-600" data-hasil-benar>0</dd>
+        </div>
+        <div class="rounded-xl border border-slate-200 py-4">
+          <dt class="text-xs text-slate-500">Salah</dt>
+          <dd class="mt-1 font-display text-2xl font-extrabold text-red-500" data-hasil-salah>0</dd>
+        </div>
+        <div class="rounded-xl border border-slate-200 py-4">
+          <dt class="text-xs text-slate-500">Kosong</dt>
+          <dd class="mt-1 font-display text-2xl font-extrabold text-slate-400" data-hasil-kosong>0</dd>
+        </div>
+      </dl>
+
+      <a href="{{base}}cbt/dashboard.html" class="btn-primary mt-8 w-full">Kembali ke Dashboard</a>
+    </div>
+  </div>
+
+  <script src="{{base}}assets/js/config.js"></script>
+  <script src="{{base}}assets/js/cbt.js" defer></script>
+  <script src="{{base}}assets/js/exam.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!--page
+{
+  "out": "admin/cbt.html",
+  "adminNav": "cbt",
+  "title": "Kelola Soal CBT — Panel Admin",
+  "description": "Kelola paket ujian, bank soal, dan peserta CBT BIMTES.",
+  "noindex": true
+}
+page-->
+<!DOCTYPE html>
+<html lang="id">
+<head>{{> head }}</head>
+
+<body class="bg-slate-100">
+  {{> admin-shell }}
+
+  <main id="konten-utama" class="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <header>
+      <h1 class="text-2xl">Kelola Soal CBT</h1>
+      <p class="mt-1 text-sm text-slate-600">Paket ujian, bank soal, dan akun peserta CBT BIMTES 2026.</p>
+    </header>
+
+    <!-- Statistik CBT -->
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="admin-card p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Paket Aktif</p>
+        <p class="mt-2 font-display text-3xl font-extrabold text-pmii-900" data-ringkas="cbt.paket">—</p>
+      </div>
+      <div class="admin-card p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Peserta Terdaftar</p>
+        <p class="mt-2 font-display text-3xl font-extrabold text-pmii-900" data-ringkas="cbt.peserta">—</p>
+      </div>
+      <div class="admin-card p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Sesi Berjalan</p>
+        <p class="mt-2 font-display text-3xl font-extrabold text-amber-600" data-ringkas="cbt.sesiBerjalan">—</p>
+      </div>
+      <div class="admin-card p-5">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Sesi Selesai</p>
+        <p class="mt-2 font-display text-3xl font-extrabold text-emerald-600" data-ringkas="cbt.sesiSelesai">—</p>
+      </div>
+    </div>
+
+    <!-- Terbitkan akun peserta: satu-satunya aksi CBT yang sudah berfungsi penuh -->
+    <section class="admin-card mt-6 p-6">
+      <h2 class="font-display text-base font-bold text-pmii-950">Terbitkan Akun Peserta</h2>
+      <p class="mt-2 text-sm leading-relaxed text-slate-600">
+        Nomor peserta dan kata sandi awal dibuat server secara acak. Kata sandi
+        <strong class="font-semibold text-pmii-900">hanya ditampilkan satu kali</strong> — salin sekarang, karena
+        setelah ini hanya hash bcrypt yang tersimpan.
+      </p>
+
+      <form data-form-peserta class="mt-5 grid gap-4 sm:grid-cols-2">
+        <div>
+          <label class="label" for="namaPeserta">Nama peserta <span class="text-red-600">*</span></label>
+          <input class="input" id="namaPeserta" name="nama" type="text" required minlength="3" maxlength="100"
+            placeholder="Nama sesuai identitas" />
+        </div>
+        <div>
+          <label class="label" for="emailPeserta">Email</label>
+          <input class="input" id="emailPeserta" name="email" type="email" maxlength="150" placeholder="opsional" />
+        </div>
+        <div>
+          <label class="label" for="waPeserta">WhatsApp</label>
+          <input class="input" id="waPeserta" name="whatsapp" type="tel" maxlength="30" placeholder="0812xxxxxxxx" />
+        </div>
+        <div>
+          <label class="label" for="sekolahPeserta">Asal sekolah</label>
+          <input class="input" id="sekolahPeserta" name="asalSekolah" type="text" maxlength="150" placeholder="opsional" />
+        </div>
+        <div class="sm:col-span-2">
+          <button type="submit" class="btn-primary">Terbitkan Akun</button>
+        </div>
+      </form>
+
+      <div data-hasil-peserta hidden class="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+        <p class="text-sm font-semibold text-emerald-900">Akun berhasil dibuat</p>
+        <dl class="mt-3 grid gap-3 sm:grid-cols-2">
+          <div class="rounded-lg bg-white p-3">
+            <dt class="text-xs uppercase tracking-wider text-slate-500">Nomor peserta</dt>
+            <dd class="mt-1 font-mono text-lg font-bold text-pmii-900" data-hasil-nomor>—</dd>
+          </div>
+          <div class="rounded-lg bg-white p-3">
+            <dt class="text-xs uppercase tracking-wider text-slate-500">Kata sandi awal</dt>
+            <dd class="mt-1 font-mono text-lg font-bold text-kuning-700" data-hasil-sandi>—</dd>
+          </div>
+        </dl>
+        <button type="button" class="btn-outline btn-sm mt-4" data-salin-kredensial>Salin kredensial</button>
+      </div>
+    </section>
+
+    <!-- Kerangka: manajemen bank soal -->
+    <section class="admin-card mt-6 p-6">
+      <h2 class="font-display text-base font-bold text-pmii-950">Bank soal — tahap berikutnya</h2>
+      <p class="mt-2 text-sm leading-relaxed text-slate-600">
+        Antarmuka penyuntingan paket dan soal belum dibangun. Struktur datanya sudah final
+        (<code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs">cbt_paket</code> →
+        <code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs">cbt_soal</code> →
+        <code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs">cbt_opsi</code>), begitu pula
+        alur pengerjaan dan penilaiannya.
+      </p>
+      <p class="mt-3 text-sm leading-relaxed text-slate-600">
+        Yang perlu dibuat: formulir CRUD paket, editor soal dengan pilihan A–E dan penanda kunci jawaban,
+        pengunggah gambar soal, serta impor massal dari CSV/XLSX. Untuk sementara, soal dapat dimasukkan lewat
+        <code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs">server/db/seed.js</code> atau langsung ke basis data.
+      </p>
+      <p class="mt-3 text-sm leading-relaxed text-slate-600">
+        Analisis butir soal dapat dihitung dari tabel
+        <code class="rounded bg-slate-100 px-1.5 py-0.5 text-xs">cbt_jawaban</code>: tingkat kesukaran adalah
+        proporsi jawaban benar per soal, dan daya beda adalah selisih proporsi benar antara kelompok skor
+        atas dan bawah.
+      </p>
+    </section>
+  </main>
+
+  <div data-toast hidden class="fixed bottom-6 right-6 z-50 rounded-xl px-5 py-3 text-sm font-semibold shadow-card-hover"></div>
+
+  <script src="{{base}}assets/js/config.js"></script>
+  <script src="{{base}}assets/js/main.js" defer></script>
+  <script src="{{base}}assets/js/admin.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var A = window.PMII_ADMIN;
+
+      A.api('/admin/ringkasan')
+        .then(function (res) {
+          document.querySelectorAll('[data-ringkas]').forEach(function (el) {
+            var nilai = el.dataset.ringkas.split('.').reduce(function (acc, k) {
+              return acc == null ? acc : acc[k];
+            }, res.data);
+            el.textContent = nilai == null ? 0 : nilai;
+          });
+        })
+        .catch(function () {});
+
+      var form = document.querySelector('[data-form-peserta]');
+      var panel = document.querySelector('[data-hasil-peserta]');
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        var tombol = form.querySelector('button[type="submit"]');
+        tombol.disabled = true;
+        tombol.textContent = 'Memproses…';
+
+        try {
+          var payload = Object.fromEntries(new FormData(form));
+          var res = await A.api('/cbt/admin/peserta', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+          document.querySelector('[data-hasil-nomor]').textContent = res.data.nomorPeserta;
+          document.querySelector('[data-hasil-sandi]').textContent = res.data.passwordAwal;
+          panel.hidden = false;
+          form.reset();
+          A.toast('Akun peserta berhasil dibuat.');
+        } catch (error) {
+          A.toast(error.message, 'galat');
+        } finally {
+          tombol.disabled = false;
+          tombol.textContent = 'Terbitkan Akun';
+        }
+      });
+
+      document.querySelector('[data-salin-kredensial]').addEventListener('click', function () {
+        var teks =
+          'Nomor peserta: ' + document.querySelector('[data-hasil-nomor]').textContent +
+          '\nKata sandi: ' + document.querySelector('[data-hasil-sandi]').textContent;
+        navigator.clipboard.writeText(teks).then(function () {
+          A.toast('Kredensial disalin ke papan klip.');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

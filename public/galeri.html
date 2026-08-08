@@ -2,23 +2,53 @@
 <html lang="id" class="scroll-smooth">
 <head><meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- ===== SEO dasar =====================================================
+     Title: 50–60 karakter, memuat kata kunci utama + nama organisasi.
+     Description: 140–160 karakter, ditulis untuk manusia, bukan mesin —
+     inilah teks yang muncul di bawah judul pada hasil pencarian Google.
+     ==================================================================== -->
 <title>Galeri Kegiatan — PK PMII UIN SGD Cab. Kab. Bandung</title>
 <meta name="description" content="Dokumentasi momen berharga kegiatan PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung: MAPABA, kajian, aksi, dan pengabdian masyarakat." />
-<meta name="theme-color" content="#122a8f" />
-<meta name="author" content="PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+<meta name="keywords" content="PMII UIN Bandung, PMII Kabupaten Bandung, PK PMII UIN SGD, PMII UIN Sunan Gunung Djati, Pergerakan Mahasiswa Islam Indonesia, MAPABA UIN Bandung, organisasi mahasiswa UIN Bandung, advokasi mahasiswa Bandung, CBT BIMTES 2026" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta name="googlebot" content="index, follow, max-image-preview:large" />
+<link rel="canonical" href="https://www.pmiiuinsgd.site/galeri.html" />
 
-<!-- Open Graph / social share -->
+<meta name="author" content="PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+<meta name="publisher" content="PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+<meta name="theme-color" content="#122a8f" />
+<meta name="format-detection" content="telephone=no" />
+
+<!-- Sinyal lokasi: membantu pencarian "PMII Kabupaten Bandung" -->
+<meta name="geo.region" content="ID-JB" />
+<meta name="geo.placename" content="Kabupaten Bandung, Jawa Barat" />
+<meta name="language" content="Indonesian" />
+
+<!-- ===== Open Graph (Facebook, WhatsApp, LinkedIn) ===================== -->
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="PK PMII UIN SGD Cab. Kab. Bandung" />
+<meta property="og:locale" content="id_ID" />
 <meta property="og:title" content="Galeri Kegiatan — PK PMII UIN SGD Cab. Kab. Bandung" />
 <meta property="og:description" content="Dokumentasi momen berharga kegiatan PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung: MAPABA, kajian, aksi, dan pengabdian masyarakat." />
-<meta property="og:image" content="assets/img/logo-pmii.svg" />
+<meta property="og:url" content="https://www.pmiiuinsgd.site/galeri.html" />
+<meta property="og:image" content="https://www.pmiiuinsgd.site/assets/img/og-image.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Lambang PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+
+<!-- ===== Twitter / X =================================================== -->
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Galeri Kegiatan — PK PMII UIN SGD Cab. Kab. Bandung" />
+<meta name="twitter:description" content="Dokumentasi momen berharga kegiatan PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung: MAPABA, kajian, aksi, dan pengabdian masyarakat." />
+<meta name="twitter:image" content="https://www.pmiiuinsgd.site/assets/img/og-image.jpg" />
 
 <link rel="icon" type="image/svg+xml" href="assets/img/logo-pmii.svg" />
 <link rel="apple-touch-icon" href="assets/img/logo-pmii.svg" />
+<link rel="manifest" href="site.webmanifest" />
 
-<!-- Font: Plus Jakarta Sans (body) + Sora (display). Fallback ke system font. -->
+<!-- Font: Plus Jakarta Sans (body) + Sora (display). Fallback ke font sistem.
+     preconnect dipasang agar unduhan font dimulai lebih awal. -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
@@ -222,7 +252,12 @@
 
         <!-- Grid album.
              Produksi: GET /api/v1/galeri/album — setiap album memuat foto (media).
-             Placeholder di bawah memakai gradasi warna sebagai pengganti foto. -->
+             Placeholder di bawah memakai gradasi warna sebagai pengganti foto.
+
+             Saat foto sungguhan dipasang, ganti elemen gradasi dengan tag img
+             yang memakai srcset + sizes + width/height + loading lazy +
+             decoding async. Markup lengkap dan alasan tiap atribut ada di
+             docs/SEO-PERFORMA.md bagian 3. -->
         <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <a href="#" class="reveal group relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-pmii-700 via-pmii-900 to-pmii-950 shadow-card">
             <span aria-hidden="true" class="absolute inset-0 bg-grid-light opacity-20 invert"></span>

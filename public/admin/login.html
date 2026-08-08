@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- ===== SEO dasar =====================================================
+     Title: 50–60 karakter, memuat kata kunci utama + nama organisasi.
+     Description: 140–160 karakter, ditulis untuk manusia, bukan mesin —
+     inilah teks yang muncul di bawah judul pada hasil pencarian Google.
+     ==================================================================== -->
+<title>Masuk Panel Admin — PK PMII UIN SGD</title>
+<meta name="description" content="Halaman masuk panel administrasi website PK PMII UIN SGD Cab. Kab. Bandung." />
+<meta name="keywords" content="PMII UIN Bandung, PMII Kabupaten Bandung, PK PMII UIN SGD, PMII UIN Sunan Gunung Djati, Pergerakan Mahasiswa Islam Indonesia, MAPABA UIN Bandung, organisasi mahasiswa UIN Bandung, advokasi mahasiswa Bandung, CBT BIMTES 2026" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="googlebot" content="noindex, nofollow" />
+<link rel="canonical" href="https://www.pmiiuinsgd.site/admin/login.html" />
+
+<meta name="author" content="PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+<meta name="publisher" content="PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+<meta name="theme-color" content="#122a8f" />
+<meta name="format-detection" content="telephone=no" />
+
+<!-- Sinyal lokasi: membantu pencarian "PMII Kabupaten Bandung" -->
+<meta name="geo.region" content="ID-JB" />
+<meta name="geo.placename" content="Kabupaten Bandung, Jawa Barat" />
+<meta name="language" content="Indonesian" />
+
+<!-- ===== Open Graph (Facebook, WhatsApp, LinkedIn) ===================== -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="PK PMII UIN SGD Cab. Kab. Bandung" />
+<meta property="og:locale" content="id_ID" />
+<meta property="og:title" content="Masuk Panel Admin — PK PMII UIN SGD" />
+<meta property="og:description" content="Halaman masuk panel administrasi website PK PMII UIN SGD Cab. Kab. Bandung." />
+<meta property="og:url" content="https://www.pmiiuinsgd.site/admin/login.html" />
+<meta property="og:image" content="https://www.pmiiuinsgd.site/assets/img/og-image.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Lambang PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+
+<!-- ===== Twitter / X =================================================== -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Masuk Panel Admin — PK PMII UIN SGD" />
+<meta name="twitter:description" content="Halaman masuk panel administrasi website PK PMII UIN SGD Cab. Kab. Bandung." />
+<meta name="twitter:image" content="https://www.pmiiuinsgd.site/assets/img/og-image.jpg" />
+
+<link rel="icon" type="image/svg+xml" href="../assets/img/logo-pmii.svg" />
+<link rel="apple-touch-icon" href="../assets/img/logo-pmii.svg" />
+<link rel="manifest" href="../site.webmanifest" />
+
+<!-- Font: Plus Jakarta Sans (body) + Sora (display). Fallback ke font sistem.
+     preconnect dipasang agar unduhan font dimulai lebih awal. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap"
+  rel="stylesheet" />
+
+<link rel="stylesheet" href="../assets/css/style.css" />
+
+<!-- Animasi masuk dijalankan JavaScript; tanpa JS, tampilkan langsung. -->
+<noscript>
+  <style>
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  </style>
+</noscript>
+</head>
+
+<body class="bg-slate-100">
+  <main id="konten-utama" class="grid min-h-screen place-items-center px-4 py-12">
+    <div class="w-full max-w-md">
+      <div class="mb-8 flex flex-col items-center text-center">
+        <img src="../assets/img/logo-pmii.svg" alt="Logo PMII" width="52" height="62" class="h-14 w-auto" />
+        <h1 class="mt-4 text-xl">Panel Admin</h1>
+        <p class="mt-1 text-sm text-slate-600">PK PMII UIN SGD Cab. Kab. Bandung</p>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-7 shadow-card sm:p-8">
+        <!-- POST /api/v1/admin/auth/login → { accessToken, user } -->
+        <form data-admin-login class="space-y-5">
+          <div data-form-alert hidden></div>
+
+          <div>
+            <label class="label" for="email">Email pengurus <span class="text-red-600">*</span></label>
+            <input class="input" id="email" name="email" type="email" required autocomplete="username"
+              placeholder="nama@pmiiuinsgd.site" data-label="Email" />
+            <p class="error-text" data-error-for="email"></p>
+          </div>
+
+          <div>
+            <label class="label" for="password">Kata sandi <span class="text-red-600">*</span></label>
+            <div class="relative">
+              <input class="input pr-12" id="password" name="password" type="password" required minlength="8"
+                autocomplete="current-password" placeholder="••••••••" data-label="Kata sandi" />
+              <button type="button" data-toggle-password="password" aria-label="Tampilkan kata sandi"
+                class="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                <svg data-eye-open class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.01 1.01 0 0 1 0-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+                <svg data-eye-closed class="hidden h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.5 10.5 0 0 0 1.934 12c1.292 4.338 5.31 7.5 10.066 7.5.993 0 1.953-.138 2.863-.395M6.228 6.228A10.5 10.5 0 0 1 12 4.5c4.756 0 8.774 3.162 10.066 7.5a10.5 10.5 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243" />
+                </svg>
+              </button>
+            </div>
+            <p class="error-text" data-error-for="password"></p>
+          </div>
+
+          <button type="submit" class="btn-primary w-full" data-submit>Masuk</button>
+        </form>
+
+        <p class="mt-6 border-t border-slate-200 pt-5 text-xs leading-relaxed text-slate-500">
+          Akun panel hanya diterbitkan oleh superadmin. Tidak ada pendaftaran mandiri.
+          Bila lupa kata sandi, hubungi superadmin untuk penerbitan ulang.
+        </p>
+      </div>
+
+      <p class="mt-6 text-center text-sm">
+        <a href="../index.html" class="link-arrow"><span aria-hidden="true">←</span> Kembali ke situs utama</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/forms.js" defer></script>
+  <script src="../assets/js/admin.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# robots.txt — PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung
+User-agent: *
+Allow: /
+
+# Area internal: tidak boleh diindeks maupun ditelusuri
+Disallow: /admin/
+Disallow: /cbt/ujian.html
+Disallow: /cbt/dashboard.html
+Disallow: /uploads/
+
+# Beri jeda pada perayap agresif agar tidak mengganggu sesi ujian CBT
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
+
+Sitemap: https://www.pmiiuinsgd.site/sitemap.xml

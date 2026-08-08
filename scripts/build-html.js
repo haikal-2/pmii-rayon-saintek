@@ -35,8 +35,32 @@ const SITE = {
   instagramUrl: 'https://instagram.com/pmii_uinbandung',
   address:
     'Jl. Manisi No. 21B Gang Kramat III RT 01 RW 09, Cibiru, Bandung, Jawa Barat',
+  // Dipakai untuk canonical, og:url, dan sitemap. Ubah lewat SITE_URL saat build
+  // bila situs dipasang di domain lain (mis. saat pratinjau).
+  url: (process.env.SITE_URL || 'https://www.pmiiuinsgd.site').replace(/\/$/, ''),
   year: new Date().getFullYear(),
 };
+
+/**
+ * Kata kunci bawaan.
+ *
+ * Meta keywords sudah lama tidak dipakai Google sebagai faktor peringkat, tetapi
+ * masih dibaca beberapa mesin pencari lokal dan agregator, jadi tetap disertakan
+ * dengan daftar yang relevan dan tidak berlebihan. Yang benar-benar menentukan
+ * peringkat ada pada <title>, meta description, struktur heading, dan data
+ * terstruktur — semuanya sudah diatur per halaman.
+ */
+const DEFAULT_KEYWORDS = [
+  'PMII UIN Bandung',
+  'PMII Kabupaten Bandung',
+  'PK PMII UIN SGD',
+  'PMII UIN Sunan Gunung Djati',
+  'Pergerakan Mahasiswa Islam Indonesia',
+  'MAPABA UIN Bandung',
+  'organisasi mahasiswa UIN Bandung',
+  'advokasi mahasiswa Bandung',
+  'CBT BIMTES 2026',
+].join(', ');
 
 function readPartial(name) {
   const file = path.join(PARTIALS_DIR, `${name}.html`);
@@ -60,14 +84,14 @@ function interpolate(html, vars) {
 }
 
 /**
- * Tandai menu yang sedang aktif. Kelas `nav-link-active` disuntikkan ke elemen
- * yang memiliki atribut data-nav sesuai nilai `active` halaman.
+ * Tandai menu yang sedang aktif dengan menyuntikkan kelas ke elemen yang
+ * atribut penandanya cocok, mis. data-nav="artikel" → kelas nav-link-active.
  */
-function markActiveNav(html, active) {
-  if (!active) return html;
+function markActive(html, attribute, value, className) {
+  if (!value) return html;
   return html.replace(
-    new RegExp(`(<a[^>]*data-nav="${active}"[^>]*class=")`, 'g'),
-    '$1nav-link-active '
+    new RegExp(`(<a[^>]*${attribute}="${value}"[^>]*class=")`, 'g'),
+    `$1${className} `
   );
 }
 
@@ -110,26 +134,112 @@ function build() {
       base,
       title: config.title || SITE.longName,
       description: config.description || '',
-      canonical: out === 'index.html' ? '/' : `/${out}`,
+      keywords: config.keywords || DEFAULT_KEYWORDS,
+      canonical: `${SITE.url}${out === 'index.html' ? '/' : `/${out}`}`,
+      // Halaman panel admin, ruang ujian, dan login tidak boleh masuk indeks.
+      robots: config.noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large',
+      ogImage: `${SITE.url}/assets/img/og-image.jpg`,
       bodyClass: config.bodyClass || '',
       year: SITE.year,
     };
 
     let html = expandPartials(body);
     html = interpolate(html, vars);
-    html = markActiveNav(html, config.active);
+    html = markActive(html, 'data-nav', config.active, 'nav-link-active');
+    html = markActive(html, 'data-admin-nav', config.adminNav, 'admin-link-active');
 
     const target = path.join(OUT_DIR, out);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, html.trimStart());
-    results.push({ out, bytes: Buffer.byteLength(html) });
+    results.push({ out, bytes: Buffer.byteLength(html), noindex: Boolean(config.noindex) });
   }
+
+  tulisRobots();
+  tulisSitemap(results.filter((r) => !r.noindex));
+  tulisManifest();
 
   const pad = Math.max(...results.map((r) => r.out.length));
   console.log(`Build HTML → public/  (${results.length} halaman)`);
   for (const r of results) {
     console.log(`  ✓ ${r.out.padEnd(pad)}  ${(r.bytes / 1024).toFixed(1)} KB`);
   }
+  console.log('  ✓ robots.txt, sitemap.xml, site.webmanifest');
+}
+
+/* -------------------------------------------------------------------- SEO */
+
+function tulisRobots() {
+  const isi = `# robots.txt — ${SITE.longName}
+User-agent: *
+Allow: /
+
+# Area internal: tidak boleh diindeks maupun ditelusuri
+Disallow: /admin/
+Disallow: /cbt/ujian.html
+Disallow: /cbt/dashboard.html
+Disallow: /uploads/
+
+# Beri jeda pada perayap agresif agar tidak mengganggu sesi ujian CBT
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
+
+Sitemap: ${SITE.url}/sitemap.xml
+`;
+  fs.writeFileSync(path.join(OUT_DIR, 'robots.txt'), isi);
+}
+
+/**
+ * Sitemap XML.
+ *
+ * `priority` dan `changefreq` hanyalah petunjuk (Google mengabaikannya),
+ * tetapi `lastmod` tetap dipakai untuk menentukan kapan halaman dirayapi ulang.
+ */
+function tulisSitemap(halaman) {
+  const hariIni = new Date().toISOString().slice(0, 10);
+  const prioritas = (out) => {
+    if (out === 'index.html') return '1.0';
+    if (['artikel.html', 'mapaba.html', 'advokasi.html'].includes(out)) return '0.9';
+    if (out.startsWith('profil/')) return '0.7';
+    return '0.8';
+  };
+
+  const url = halaman
+    .map((item) => {
+      const loc = `${SITE.url}${item.out === 'index.html' ? '/' : `/${item.out}`}`;
+      return `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${hariIni}</lastmod>
+    <changefreq>${item.out === 'artikel.html' ? 'daily' : 'weekly'}</changefreq>
+    <priority>${prioritas(item.out)}</priority>
+  </url>`;
+    })
+    .join('\n');
+
+  fs.writeFileSync(
+    path.join(OUT_DIR, 'sitemap.xml'),
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${url}\n</urlset>\n`
+  );
+}
+
+/** Manifest PWA sederhana agar situs dapat dipasang di layar utama ponsel. */
+function tulisManifest() {
+  const manifest = {
+    name: SITE.longName,
+    short_name: 'PK PMII UIN SGD',
+    description: `Website resmi ${SITE.longName}. ${SITE.slogan}.`,
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#ffffff',
+    theme_color: '#122a8f',
+    lang: 'id',
+    icons: [
+      { src: '/assets/img/logo-pmii.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+    ],
+  };
+  fs.writeFileSync(path.join(OUT_DIR, 'site.webmanifest'), `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
 build();

@@ -2,23 +2,53 @@
 <html lang="id" class="scroll-smooth">
 <head><meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- ===== SEO dasar =====================================================
+     Title: 50–60 karakter, memuat kata kunci utama + nama organisasi.
+     Description: 140–160 karakter, ditulis untuk manusia, bukan mesin —
+     inilah teks yang muncul di bawah judul pada hasil pencarian Google.
+     ==================================================================== -->
 <title>Dashboard Peserta — CBT BIMTES 2026</title>
 <meta name="description" content="Dashboard peserta CBT BIMTES 2026: daftar tryout, riwayat pengerjaan, dan analisis skor." />
-<meta name="theme-color" content="#122a8f" />
-<meta name="author" content="PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+<meta name="keywords" content="PMII UIN Bandung, PMII Kabupaten Bandung, PK PMII UIN SGD, PMII UIN Sunan Gunung Djati, Pergerakan Mahasiswa Islam Indonesia, MAPABA UIN Bandung, organisasi mahasiswa UIN Bandung, advokasi mahasiswa Bandung, CBT BIMTES 2026" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="googlebot" content="noindex, nofollow" />
+<link rel="canonical" href="https://www.pmiiuinsgd.site/cbt/dashboard.html" />
 
-<!-- Open Graph / social share -->
+<meta name="author" content="PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+<meta name="publisher" content="PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+<meta name="theme-color" content="#122a8f" />
+<meta name="format-detection" content="telephone=no" />
+
+<!-- Sinyal lokasi: membantu pencarian "PMII Kabupaten Bandung" -->
+<meta name="geo.region" content="ID-JB" />
+<meta name="geo.placename" content="Kabupaten Bandung, Jawa Barat" />
+<meta name="language" content="Indonesian" />
+
+<!-- ===== Open Graph (Facebook, WhatsApp, LinkedIn) ===================== -->
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="PK PMII UIN SGD Cab. Kab. Bandung" />
+<meta property="og:locale" content="id_ID" />
 <meta property="og:title" content="Dashboard Peserta — CBT BIMTES 2026" />
 <meta property="og:description" content="Dashboard peserta CBT BIMTES 2026: daftar tryout, riwayat pengerjaan, dan analisis skor." />
-<meta property="og:image" content="../assets/img/logo-pmii.svg" />
+<meta property="og:url" content="https://www.pmiiuinsgd.site/cbt/dashboard.html" />
+<meta property="og:image" content="https://www.pmiiuinsgd.site/assets/img/og-image.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Lambang PK PMII UIN Sunan Gunung Djati Cabang Kabupaten Bandung" />
+
+<!-- ===== Twitter / X =================================================== -->
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Dashboard Peserta — CBT BIMTES 2026" />
+<meta name="twitter:description" content="Dashboard peserta CBT BIMTES 2026: daftar tryout, riwayat pengerjaan, dan analisis skor." />
+<meta name="twitter:image" content="https://www.pmiiuinsgd.site/assets/img/og-image.jpg" />
 
 <link rel="icon" type="image/svg+xml" href="../assets/img/logo-pmii.svg" />
 <link rel="apple-touch-icon" href="../assets/img/logo-pmii.svg" />
+<link rel="manifest" href="../site.webmanifest" />
 
-<!-- Font: Plus Jakarta Sans (body) + Sora (display). Fallback ke system font. -->
+<!-- Font: Plus Jakarta Sans (body) + Sora (display). Fallback ke font sistem.
+     preconnect dipasang agar unduhan font dimulai lebih awal. -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
@@ -128,62 +158,33 @@
         <span class="badge-yellow self-start">Tryout Gelombang 1</span>
       </header>
 
-      <!-- Ringkasan -->
+      <!-- Ringkasan. Angka diisi cbt.js dari GET /cbt/ujian dan GET /cbt/hasil. -->
       <div class="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Tryout Tersedia</p>
-          <p class="mt-2 font-display text-3xl font-extrabold text-pmii-900">3</p>
+          <p class="mt-2 font-display text-3xl font-extrabold text-pmii-900" data-stat-tersedia>—</p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Sudah Dikerjakan</p>
-          <p class="mt-2 font-display text-3xl font-extrabold text-pmii-900">1</p>
+          <p class="mt-2 font-display text-3xl font-extrabold text-pmii-900" data-stat-dikerjakan>—</p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Skor Terbaik</p>
-          <p class="mt-2 font-display text-3xl font-extrabold text-kuning-600">642</p>
+          <p class="mt-2 font-display text-3xl font-extrabold text-kuning-600" data-stat-skor>—</p>
         </div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Peringkat</p>
-          <p class="mt-2 font-display text-3xl font-extrabold text-pmii-900">18<span class="text-base font-bold text-slate-400">/214</span></p>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Peringkat Terbaik</p>
+          <p class="mt-2 font-display text-3xl font-extrabold text-pmii-900" data-stat-peringkat>—</p>
         </div>
       </div>
 
       <!-- Daftar ujian -->
       <section id="daftar-ujian" class="mt-10">
         <h2 class="text-xl">Daftar Ujian</h2>
-        <div class="mt-5 space-y-4">
-          <article class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-card sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div class="flex flex-wrap items-center gap-2">
-                <h3 class="font-display text-base font-bold">Tryout UTBK — Tes Potensi Skolastik</h3>
-                <span class="badge bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200">Dibuka</span>
-              </div>
-              <p class="mt-1.5 text-sm text-slate-600">120 soal · 195 menit · Kesempatan tersisa: 1</p>
-            </div>
-            <a href="#" class="btn-accent btn-sm shrink-0">Mulai Ujian</a>
-          </article>
-
-          <article class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-card sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div class="flex flex-wrap items-center gap-2">
-                <h3 class="font-display text-base font-bold">Tryout Literasi Bahasa Indonesia &amp; Inggris</h3>
-                <span class="badge bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">Terjadwal</span>
-              </div>
-              <p class="mt-1.5 text-sm text-slate-600">60 soal · 90 menit · Dibuka 12 Sep 2026, 08.00 WIB</p>
-            </div>
-            <button type="button" class="btn-outline btn-sm shrink-0" disabled>Belum Dibuka</button>
-          </article>
-
-          <article class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-card sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div class="flex flex-wrap items-center gap-2">
-                <h3 class="font-display text-base font-bold">Tryout Penalaran Matematika</h3>
-                <span class="badge bg-pmii-50 text-pmii-700 ring-1 ring-inset ring-pmii-100">Selesai</span>
-              </div>
-              <p class="mt-1.5 text-sm text-slate-600">20 soal · 30 menit · Skor: 642</p>
-            </div>
-            <a href="#" class="btn-outline btn-sm shrink-0">Lihat Pembahasan</a>
-          </article>
+        <div class="mt-5 space-y-4" data-daftar-ujian>
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-card">
+            Memuat daftar ujian…
+          </div>
         </div>
       </section>
 
@@ -191,27 +192,18 @@
       <section id="riwayat" class="mt-10">
         <h2 class="text-xl">Riwayat &amp; Skor</h2>
         <div class="mt-5 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-card">
-          <table class="w-full min-w-[40rem] text-left text-sm">
+          <table class="w-full min-w-[44rem] text-left text-sm">
             <thead class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
               <tr>
                 <th scope="col" class="px-6 py-3 font-semibold">Paket Ujian</th>
                 <th scope="col" class="px-6 py-3 font-semibold">Tanggal</th>
                 <th scope="col" class="px-6 py-3 font-semibold">Benar</th>
                 <th scope="col" class="px-6 py-3 font-semibold">Skor</th>
-                <th scope="col" class="px-6 py-3 font-semibold">Aksi</th>
+                <th scope="col" class="px-6 py-3 font-semibold">Peringkat</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr>
-                <td class="px-6 py-4 font-semibold text-pmii-950">Penalaran Matematika</td>
-                <td class="px-6 py-4 text-slate-600">2 Agu 2026</td>
-                <td class="px-6 py-4 text-slate-600">14/20</td>
-                <td class="px-6 py-4 font-display font-bold text-kuning-600">642</td>
-                <td class="px-6 py-4"><a href="#" class="link-arrow">Pembahasan <span class="arrow" aria-hidden="true">→</span></a></td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4 font-semibold text-slate-400" colspan="5">Belum ada riwayat lain.</td>
-              </tr>
+            <tbody class="divide-y divide-slate-100" data-riwayat>
+              <tr><td class="px-6 py-4 text-slate-500" colspan="5">Memuat riwayat…</td></tr>
             </tbody>
           </table>
         </div>
