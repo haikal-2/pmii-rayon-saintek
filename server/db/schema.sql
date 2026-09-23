@@ -291,7 +291,7 @@ CREATE INDEX IF NOT EXISTS idx_berkas_tujuan ON berkas(tujuan, created_at DESC);
 -- dan tidak ada pengaduan darurat yang lolos tanpa pemberitahuan.
 CREATE TABLE IF NOT EXISTS notifikasi_log (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  kanal      TEXT    NOT NULL CHECK (kanal IN ('email','whatsapp')),
+  kanal      TEXT    NOT NULL CHECK (kanal IN ('email','whatsapp','google_sheets')),
   tujuan     TEXT    NOT NULL,
   perihal    TEXT,
   entitas    TEXT,                            -- 'pengaduan' | 'mapaba_pendaftar'

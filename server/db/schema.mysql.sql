@@ -333,7 +333,7 @@ CREATE TABLE berkas (
 
 CREATE TABLE notifikasi_log (
   id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  kanal      ENUM('email','whatsapp') NOT NULL,
+  kanal      ENUM('email','whatsapp','google_sheets') NOT NULL,
   tujuan     VARCHAR(200) NOT NULL,
   perihal    VARCHAR(200) NULL,
   entitas    VARCHAR(50)  NULL,

@@ -29,12 +29,17 @@ const OUT_DIR = path.join(ROOT, 'public');
 const SITE = {
   name: 'PR PMII Saintek UIN SGD',
   longName: 'PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung',
-  slogan: 'Dzikir, Fikir, Amal Sholeh',
-  email: 'pmiiuinbandun9@gmail.com',
-  instagram: '@pmii_uinbandung',
-  instagramUrl: 'https://instagram.com/pmii_uinbandung',
-  address:
-    'Jl. Manisi No. 21B Gang Kramat III RT 01 RW 09, Cibiru, Bandung, Jawa Barat',
+  slogan: 'Taqwa, Intelektual, Profesional',
+  email: 'pmiirayonsains@gmail.com',
+  instagram: '@pmii_sainskaba',
+  instagramUrl: 'https://instagram.com/pmii_sainskaba',
+  address: 'Jl. Pilar Utara No. 2 (Pager Silver), Cibiru Hilir, Cileunyi, Kab. Bandung, Jawa Barat',
+  contactPerson1Name: 'Sahabat Haikal',
+  contactPerson1Phone: '+6285215540291',
+  contactPerson1Url: 'https://wa.me/6285215540291',
+  contactPerson2Name: 'Sahabat Ramdhan',
+  contactPerson2Phone: '+6285320549926',
+  contactPerson2Url: 'https://wa.me/6285320549926',
   // Dipakai untuk canonical, og:url, dan sitemap. Ubah lewat SITE_URL saat build
   // bila situs dipasang di domain lain (mis. saat pratinjau).
   url: (process.env.SITE_URL || 'https://www.pmiiuinsgd.site').replace(/\/$/, ''),
@@ -201,6 +206,7 @@ function tulisSitemap(halaman) {
   const prioritas = (out) => {
     if (out === 'index.html') return '1.0';
     if (['artikel.html', 'mapaba.html', 'advokasi.html'].includes(out)) return '0.9';
+    if (['mapaba.html', 'advokasi.html'].includes(out)) return '0.9';
     if (out.startsWith('profil/')) return '0.7';
     return '0.8';
   };
@@ -212,6 +218,7 @@ function tulisSitemap(halaman) {
     <loc>${loc}</loc>
     <lastmod>${hariIni}</lastmod>
     <changefreq>${item.out === 'artikel.html' ? 'daily' : 'weekly'}</changefreq>
+    <changefreq>weekly</changefreq>
     <priority>${prioritas(item.out)}</priority>
   </url>`;
     })
@@ -235,7 +242,7 @@ function tulisManifest() {
     theme_color: '#122a8f',
     lang: 'id',
     icons: [
-      { src: '/assets/img/logo-pmii.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+      { src: '/assets/img/logo-pmii.png', sizes: 'any', type: 'image/png', purpose: 'any' },
     ],
   };
   fs.writeFileSync(path.join(OUT_DIR, 'site.webmanifest'), `${JSON.stringify(manifest, null, 2)}\n`);

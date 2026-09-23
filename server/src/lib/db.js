@@ -51,6 +51,33 @@ function ensureColumn(table, column, ddl) {
   return true;
 }
 
+function ensureNotificationChannels() {
+  const table = db
+    .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'notifikasi_log'")
+    .get();
+  if (!table?.sql || table.sql.includes("'google_sheets'")) return false;
+
+  db.exec(`
+    ALTER TABLE notifikasi_log RENAME TO notifikasi_log_lama;
+    CREATE TABLE notifikasi_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      kanal TEXT NOT NULL CHECK (kanal IN ('email','whatsapp','google_sheets')),
+      tujuan TEXT NOT NULL,
+      perihal TEXT,
+      entitas TEXT,
+      entitas_id INTEGER,
+      status TEXT NOT NULL DEFAULT 'terkirim' CHECK (status IN ('terkirim','gagal','dilewati')),
+      galat TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    INSERT INTO notifikasi_log (id, kanal, tujuan, perihal, entitas, entitas_id, status, galat, created_at)
+      SELECT id, kanal, tujuan, perihal, entitas, entitas_id, status, galat, created_at
+      FROM notifikasi_log_lama;
+    DROP TABLE notifikasi_log_lama;
+  `);
+  return true;
+}
+
 /** Jalankan skema (idempoten, semua CREATE memakai IF NOT EXISTS). */
 function migrate() {
   const schema = fs.readFileSync(path.join(__dirname, '../../db/schema.sql'), 'utf8');
@@ -59,6 +86,7 @@ function migrate() {
   const ditambahkan = KOLOM_TAMBAHAN.filter(([table, column, ddl]) =>
     ensureColumn(table, column, ddl)
   );
+  ensureNotificationChannels();
   if (ditambahkan.length) {
     console.log(
       `Kolom baru ditambahkan: ${ditambahkan.map(([t, c]) => `${t}.${c}`).join(', ')}`

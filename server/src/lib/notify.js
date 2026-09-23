@@ -26,6 +26,11 @@ const cfg = () => ({
   waApiUrl: process.env.WA_API_URL,
   waApiToken: process.env.WA_API_TOKEN,
   waAdmin: process.env.WA_ADMIN_NUMBER,
+  googleSheetsAdvokasiUrl:
+    process.env.GOOGLE_SHEETS_ADVOKASI_WEBHOOK_URL ||
+    process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
+    'https://script.google.com/macros/s/AKfycbw4ZJPgT1FhxQOLub1YatgZHbgjVSrmnS4O1Ye8K3ExsJm7vV48a7TpKPTUDqOfnvOa/exec',
+  googleSheetsMapabaUrl: process.env.GOOGLE_SHEETS_MAPABA_WEBHOOK_URL,
   situs: process.env.SITE_URL || 'https://www.pmiiuinsgd.site',
 });
 
@@ -37,6 +42,31 @@ function catat(kanal, tujuan, perihal, entitas, entitasId, status, galat) {
     ).run(kanal, tujuan, perihal ?? null, entitas ?? null, entitasId ?? null, status, galat ?? null);
   } catch (error) {
     console.error('[notify] gagal menulis notifikasi_log:', error.message);
+  }
+}
+
+async function kirimGoogleSheets(form, data, entitasId) {
+  const config = cfg();
+  const tujuan = form === 'mapaba' ? config.googleSheetsMapabaUrl : config.googleSheetsAdvokasiUrl;
+  if (!tujuan || typeof fetch !== 'function') return;
+
+  try {
+    const response = await fetch(tujuan, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ form, ...data }),
+      redirect: 'follow',
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const result = await response.json().catch(() => null);
+    if (result && result.ok === false) {
+      throw new Error(result.message || 'Webhook Google Sheets menolak data.');
+    }
+    catat('google_sheets', tujuan, `Form ${form}`, form, entitasId, 'terkirim');
+  } catch (error) {
+    console.error('[notify] gagal mengirim Google Sheets:', error.message);
+    catat('google_sheets', tujuan, `Form ${form}`, form, entitasId, 'gagal', error.message);
   }
 }
 
@@ -163,7 +193,7 @@ function layoutEmail(judul, isi) {
   <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0">
     <div style="background:#0b1a5c;padding:20px 24px">
       <p style="margin:0;color:#fff;font-size:16px;font-weight:700">PR PMII Saintek UIN SGD</p>
-      <p style="margin:4px 0 0;color:#ffdb4a;font-size:12px;letter-spacing:.12em;text-transform:uppercase">Dzikir, Fikir, Amal Sholeh</p>
+      <p style="margin:4px 0 0;color:#ffdb4a;font-size:12px;letter-spacing:.12em;text-transform:uppercase">Taqwa, Intelektual, Profesional</p>
     </div>
     <div style="padding:24px">
       <h1 style="margin:0 0 16px;font-size:18px;color:#0b1a5c">${escapeHtml(judul)}</h1>
@@ -218,6 +248,8 @@ function notifikasiPengaduanBaru(pengaduan) {
     entitasId: pengaduan.id,
   });
 
+  kirimGoogleSheets('advokasi', pengaduan, pengaduan.id);
+
   if (pengaduan.mendesak) {
     kirimWhatsApp({
       message:
@@ -256,6 +288,8 @@ function notifikasiPendaftarMapaba(pendaftar) {
     entitas: 'mapaba_pendaftar',
     entitasId: pendaftar.id,
   });
+
+  kirimGoogleSheets('mapaba', pendaftar, pendaftar.id);
 
   kirimWhatsApp({
     to: pendaftar.whatsapp,

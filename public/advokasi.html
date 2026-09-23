@@ -43,8 +43,8 @@
 <meta name="twitter:description" content="Form pengaduan Layanan Advokasi PR PMII Saintek UIN SGD. Sampaikan persoalan UKT, kekerasan seksual, atau kebijakan kampus yang merugikan mahasiswa. Gratis dan dijaga kerahasiaannya." />
 <meta name="twitter:image" content="https://www.pmiiuinsgd.site/assets/img/og-image.jpg" />
 
-<link rel="icon" type="image/svg+xml" href="assets/img/logo-pmii.svg" />
-<link rel="apple-touch-icon" href="assets/img/logo-pmii.svg" />
+<link rel="icon" type="image/png" href="assets/img/logo-pmii.png" />
+<link rel="apple-touch-icon" href="assets/img/logo-pmii.png" />
 <link rel="manifest" href="site.webmanifest" />
 
 <!-- Font: Plus Jakarta Sans (body) + Sora (display). Fallback ke font sistem.
@@ -85,30 +85,30 @@
   <nav class="container-page" aria-label="Navigasi utama">
     <div class="flex h-[4.5rem] items-center justify-between gap-4">
       <!-- Kiri: Logo + Nama Organisasi -->
-      <a href="index.html" class="group flex shrink-0 items-center gap-3">
+      <a href="index.html" class="group flex shrink-0 items-center gap-2 xl:gap-3">
         <img
-          src="assets/img/logo-pmii.svg"
+          src="assets/img/logo-pmii.png"
           alt="Logo PMII"
           width="40"
           height="48"
-          class="h-11 w-auto transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105" />
+          class="h-10 w-auto transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105 xl:h-11" />
         <span class="flex flex-col leading-none">
-          <span class="font-display text-[0.9375rem] font-extrabold text-pmii-900 sm:text-base">PR PMII Saintek</span>
-          <span class="mt-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-kuning-600 sm:text-xs">
+          <span class="font-display text-sm font-extrabold text-pmii-900 xl:text-base">PR PMII Saintek</span>
+          <span class="mt-0.5 hidden text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-kuning-600 xl:block xl:text-xs">
             UIN SGD Cab. Kab. Bandung
           </span>
         </span>
       </a>
 
       <!-- Kanan: Menu desktop -->
-      <div class="hidden items-center gap-1 xl:flex">
-        <a href="index.html" data-nav="beranda" class="nav-link">Beranda</a>
+      <div class="ml-auto hidden items-center gap-2 lg:flex xl:gap-3">
+        <a href="index.html" data-nav="beranda" class="nav-link whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm">Beranda</a>
 
         <!-- Dropdown Profil -->
         <div class="relative" data-dropdown>
           <button
             type="button"
-            class="nav-link inline-flex items-center gap-1"
+            class="nav-link inline-flex items-center gap-1 whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm"
             data-nav="profil"
             data-dropdown-trigger
             aria-expanded="false"
@@ -146,14 +146,13 @@
           </div>
         </div>
 
-        <a href="kopri.html" data-nav="kopri" class="nav-link">KOPRI</a>
-        <a href="artikel.html" data-nav="artikel" class="nav-link">Artikel</a>
-        <a href="galeri.html" data-nav="galeri" class="nav-link">Galeri</a>
-        <a href="landasan-hukum.html" data-nav="landasan" class="nav-link">Landasan Hukum</a>
-        <a href="advokasi.html" data-nav="advokasi" class="nav-link-active nav-link">Advokasi</a>
+        <a href="kopri.html" data-nav="kopri" class="nav-link whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm">KOPRI</a>
+        <a href="galeri.html" data-nav="galeri" class="nav-link whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm">Galeri</a>
+        <a href="landasan-hukum.html" data-nav="landasan" class="nav-link whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm">Landasan Hukum</a>
+        <a href="advokasi.html" data-nav="advokasi" class="nav-link-active nav-link whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm">Advokasi</a>
 
-        <a href="mapaba.html" class="btn-accent btn-sm ml-2">
-          MAPABA Raya
+        <a href="mapaba.html" class="btn-accent btn-sm ml-1 whitespace-nowrap px-2 text-[0.6875rem] xl:ml-2 xl:px-3 xl:text-[0.8125rem]">
+          MAPABA SAINTEK Ke-XVII
           <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
           </svg>
@@ -163,7 +162,7 @@
       <!-- Kanan: Tombol hamburger (mobile & tablet) -->
       <button
         type="button"
-        class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-pmii-900 transition-colors hover:bg-pmii-50 xl:hidden"
+        class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-pmii-900 transition-colors hover:bg-pmii-50 lg:hidden"
         data-menu-toggle
         aria-controls="mobile-menu"
         aria-expanded="false">
@@ -178,7 +177,7 @@
     </div>
 
     <!-- Panel menu mobile -->
-    <div id="mobile-menu" data-menu-panel class="hidden pb-5 xl:hidden">
+    <div id="mobile-menu" data-menu-panel class="hidden pb-5 lg:hidden">
       <div class="space-y-1 border-t border-slate-200 pt-4">
         <a href="index.html" data-nav="beranda" class="nav-link-mobile">Beranda</a>
 
@@ -200,13 +199,12 @@
         </div>
 
         <a href="kopri.html" data-nav="kopri" class="nav-link-mobile">KOPRI</a>
-        <a href="artikel.html" data-nav="artikel" class="nav-link-mobile">Artikel</a>
         <a href="galeri.html" data-nav="galeri" class="nav-link-mobile">Galeri</a>
         <a href="landasan-hukum.html" data-nav="landasan" class="nav-link-mobile">Landasan Hukum</a>
         <a href="advokasi.html" data-nav="advokasi" class="nav-link-active nav-link-mobile">Layanan Advokasi</a>
 
         <a href="mapaba.html" class="btn-accent mt-3 w-full">
-          Daftar MAPABA Raya 2026
+          MAPABA SAINTEK Ke-XVII
           <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
           </svg>
@@ -483,7 +481,7 @@
               </li>
               <li class="flex items-start justify-between gap-3">
                 <span class="shrink-0 text-slate-600">Sekretariat</span>
-                <span class="text-right text-slate-700">Jl. Manisi No. 21B Gang Kramat III RT 01 RW 09, Cibiru, Bandung, Jawa Barat</span>
+                <span class="text-right text-slate-700">Jl. Manisi No. 21B Gang Kramat III RT 01 RW 09, Cileunyi, Bandung, Jawa Barat</span>
               </li>
             </ul>
           </div>
@@ -514,7 +512,7 @@
       <!-- Kolom 1: Identitas -->
       <div>
         <div class="flex items-center gap-3">
-          <img src="assets/img/logo-pmii.svg" alt="Logo PMII" width="44" height="53" class="h-12 w-auto" />
+          <img src="assets/img/logo-pmii.png" alt="Logo PMII" width="44" height="53" class="h-12 w-auto" />
           <div>
             <p class="font-display text-base font-extrabold leading-tight text-white">PR PMII Saintek</p>
             <p class="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-kuning-300">UIN SGD Cab. Kab. Bandung</p>
@@ -522,12 +520,6 @@
         </div>
         <p class="mt-5 max-w-sm text-sm leading-relaxed text-pmii-100/75">
           PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung — organisasi ekstra kampus yang berlandaskan Islam Ahlussunnah wal Jama'ah dan Pancasila.
-        </p>
-        <p class="mt-5 inline-flex items-center gap-2 rounded-full border border-kuning-400/30 bg-kuning-400/10 px-4 py-2 font-display text-sm font-bold text-kuning-300">
-          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path d="M10 1.5l2.4 5.1 5.6.72-4.1 3.86 1.03 5.55L10 14.1l-4.93 2.63L6.1 11.18 2 7.32l5.6-.72L10 1.5z" />
-          </svg>
-          Dzikir, Fikir, Amal Sholeh
         </p>
       </div>
 
@@ -539,19 +531,18 @@
           <li><a href="profil/sejarah.html" class="footer-link">Sejarah</a></li>
           <li><a href="profil/struktur.html" class="footer-link">Struktur</a></li>
           <li><a href="kopri.html" class="footer-link">KOPRI</a></li>
-          <li><a href="artikel.html" class="footer-link">Artikel</a></li>
           <li><a href="galeri.html" class="footer-link">Galeri</a></li>
           <li><a href="advokasi.html" class="footer-link">Layanan Advokasi</a></li>
           <li><a href="landasan-hukum.html" class="footer-link">Landasan Hukum</a></li>
-          <li><a href="mapaba.html" class="footer-link font-semibold text-kuning-300 hover:text-kuning-200">MAPABA Raya</a></li>
+          <li><a href="mapaba.html" class="footer-link font-semibold text-kuning-300 hover:text-kuning-200">MAPABA SAINTEK Ke-XVII</a></li>
         </ul>
       </div>
 
       <!-- Kolom 3: Kontak & Sosial Media -->
       <div>
         <h2 class="font-display text-sm font-bold uppercase tracking-[0.18em] text-white">Kontak &amp; Sosial Media</h2>
-        <ul class="mt-5 space-y-4 text-sm">
-          <li class="flex gap-3">
+        <ul class="mt-5 flex flex-col gap-3 text-sm">
+          <li class="order-3 flex gap-3">
             <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/10 text-kuning-300">
               <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
@@ -562,7 +553,7 @@
               <a href="mailto:pmiiuinbandun9@gmail.com" class="footer-link break-all">pmiiuinbandun9@gmail.com</a>
             </span>
           </li>
-          <li class="flex gap-3">
+          <li class="order-4 flex gap-3">
             <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/10 text-kuning-300">
               <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.96.24 2.65.51.71.27 1.31.64 1.9 1.23.59.59.96 1.19 1.23 1.9.27.69.46 1.48.51 2.65.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.24 1.96-.51 2.65-.27.71-.64 1.31-1.23 1.9-.59.59-1.19.96-1.9 1.23-.69.27-1.48.46-2.65.51-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.96-.24-2.65-.51a5.27 5.27 0 0 1-1.9-1.23 5.27 5.27 0 0 1-1.23-1.9c-.27-.69-.46-1.48-.51-2.65C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.24-1.96.51-2.65.27-.71.64-1.31 1.23-1.9.59-.59 1.19-.96 1.9-1.23.69-.27 1.48-.46 2.65-.51C8.42 2.17 8.8 2.16 12 2.16Zm0 1.98c-3.15 0-3.5.01-4.74.07-.95.04-1.47.2-1.81.34-.46.18-.79.39-1.13.74-.35.34-.56.67-.74 1.13-.14.34-.3.86-.34 1.81-.06 1.24-.07 1.59-.07 4.74s.01 3.5.07 4.74c.04.95.2 1.47.34 1.81.18.46.39.79.74 1.13.34.35.67.56 1.13.74.34.14.86.3 1.81.34 1.24.06 1.59.07 4.74.07s3.5-.01 4.74-.07c.95-.04 1.47-.2 1.81-.34.46-.18.79-.39 1.13-.74.35-.34.56-.67.74-1.13.14-.34.3-.86.34-1.81.06-1.24.07-1.59.07-4.74s-.01-3.5-.07-4.74c-.04-.95-.2-1.47-.34-1.81a3.06 3.06 0 0 0-.74-1.13 3.06 3.06 0 0 0-1.13-.74c-.34-.14-.86-.3-1.81-.34-1.24-.06-1.59-.07-4.74-.07Zm0 3.37a5.05 5.05 0 1 1 0 10.1 5.05 5.05 0 0 1 0-10.1Zm0 2a3.05 3.05 0 1 0 0 6.1 3.05 3.05 0 0 0 0-6.1Zm6.42-2.4a1.18 1.18 0 1 1-2.36 0 1.18 1.18 0 0 1 2.36 0Z" />
@@ -573,7 +564,7 @@
               <a href="https://instagram.com/pmii_uinbandung" target="_blank" rel="noopener noreferrer" class="footer-link">@pmii_uinbandung</a>
             </span>
           </li>
-          <li class="flex gap-3">
+          <li class="order-5 flex gap-3">
             <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/10 text-kuning-300">
               <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -582,7 +573,29 @@
             </span>
             <span>
               <span class="block text-xs uppercase tracking-wider text-pmii-100/50">Sekretariat</span>
-              <span class="text-sm leading-relaxed text-pmii-100/80">Jl. Manisi No. 21B Gang Kramat III RT 01 RW 09, Cibiru, Bandung, Jawa Barat</span>
+              <span class="text-sm leading-relaxed text-pmii-100/80">Jl. Manisi No. 21B Gang Kramat III RT 01 RW 09, Cileunyi, Bandung, Jawa Barat</span>
+            </span>
+          </li>
+          <li class="order-1 flex gap-3">
+            <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/10 text-kuning-300">
+              <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.25a9.75 9.75 0 0 0-8.43 14.64L2.25 21.75l5.02-1.3A9.75 9.75 0 1 0 12 2.25Zm0 17.5a7.72 7.72 0 0 1-3.93-1.08l-.28-.17-2.98.77.8-2.9-.19-.3A7.75 7.75 0 1 1 12 19.75Zm4.25-5.72c-.23-.12-1.36-.67-1.57-.74-.21-.08-.36-.12-.51.12-.15.23-.59.74-.72.89-.13.15-.27.17-.5.06-.23-.12-.97-.36-1.85-1.14-.68-.6-1.14-1.34-1.27-1.57-.13-.23-.01-.35.1-.46.1-.1.23-.27.35-.4.12-.13.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.51-1.24-.7-1.7-.18-.44-.37-.38-.51-.39h-.44c-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.93 2.35c.12.15 1.61 2.46 3.9 3.45.54.23.96.37 1.29.47.54.17 1.03.14 1.42.09.43-.06 1.36-.56 1.55-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.16-.44-.28Z" />
+              </svg>
+            </span>
+            <span>
+              <span class="block text-xs uppercase tracking-wider text-pmii-100/50">Contact Person</span>
+              <a href="" target="_blank" rel="noopener noreferrer" class="footer-link whitespace-nowrap"> · </a>
+            </span>
+          </li>
+          <li class="order-2 flex gap-3">
+            <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/10 text-kuning-300">
+              <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.25a9.75 9.75 0 0 0-8.43 14.64L2.25 21.75l5.02-1.3A9.75 9.75 0 1 0 12 2.25Zm0 17.5a7.72 7.72 0 0 1-3.93-1.08l-.28-.17-2.98.77.8-2.9-.19-.3A7.75 7.75 0 1 1 12 19.75Zm4.25-5.72c-.23-.12-1.36-.67-1.57-.74-.21-.08-.36-.12-.51.12-.15.23-.59.74-.72.89-.13.15-.27.17-.5.06-.23-.12-.97-.36-1.85-1.14-.68-.6-1.14-1.34-1.27-1.57-.13-.23-.01-.35.1-.46.1-.1.23-.27.35-.4.12-.13.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.51-1.24-.7-1.7-.18-.44-.37-.38-.51-.39h-.44c-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.93 2.35c.12.15 1.61 2.46 3.9 3.45.54.23.96.37 1.29.47.54.17 1.03.14 1.42.09.43-.06 1.36-.56 1.55-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.16-.44-.28Z" />
+              </svg>
+            </span>
+            <span>
+              <span class="block text-xs uppercase tracking-wider text-pmii-100/50">Contact Person</span>
+              <a href="" target="_blank" rel="noopener noreferrer" class="footer-link whitespace-nowrap"> · </a>
             </span>
           </li>
         </ul>
@@ -593,7 +606,7 @@
     <div class="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 sm:flex-row">
       <p class="text-xs text-pmii-100/60">© 2026 PR PMII Sains dan Teknologi. All rights reserved.</p>
       <p class="text-xs text-pmii-100/60">
-        Dibangun dengan semangat <span class="font-semibold text-kuning-300">Salam Pergerakan!</span>
+        <span class="font-semibold text-kuning-300">#BergerakBerdampak</span>
       </p>
     </div>
   </div>

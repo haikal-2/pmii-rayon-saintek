@@ -261,8 +261,29 @@
     }
   }
 
+  function initRegistrationState(form) {
+    const opensAt = Date.parse(form.dataset.registrationOpens || '');
+    const button = form.querySelector('[data-submit]');
+    const closedBanner = form.closest('[data-form-wrapper]')?.querySelector('[data-registration-closed]');
+    if (!button || Number.isNaN(opensAt)) return;
+
+    const update = () => {
+      const isOpen = Date.now() >= opensAt;
+      button.disabled = !isOpen;
+      button.classList.toggle('cursor-not-allowed', !isOpen);
+      button.classList.toggle('opacity-60', !isOpen);
+      if (closedBanner) closedBanner.hidden = isOpen;
+      if (isOpen) button.textContent = 'Kirim Pendaftaran';
+    };
+
+    update();
+    const timer = setInterval(update, 1000);
+    window.addEventListener('pagehide', () => clearInterval(timer), { once: true });
+  }
+
   function init() {
     document.querySelectorAll('form[data-api-form]').forEach((form) => {
+      initRegistrationState(form);
       form.setAttribute('novalidate', 'novalidate');
       form.addEventListener('submit', (event) => submit(form, event));
       form.querySelectorAll('input[name], select[name], textarea[name]').forEach((field) => {

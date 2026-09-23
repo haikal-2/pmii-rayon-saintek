@@ -19,6 +19,7 @@
       seconds: root.querySelector('[data-countdown-seconds]'),
     };
 
+    let timer = null;
     const pad = (value) => String(value).padStart(2, '0');
 
     const tick = () => {
@@ -26,12 +27,14 @@
 
       if (remaining <= 0) {
         Object.values(slots).forEach((slot) => slot && (slot.textContent = '00'));
-        root.insertAdjacentHTML(
-          'afterend',
-          '<p class="mt-4 rounded-xl bg-white/10 px-4 py-3 text-center text-sm font-semibold text-kuning-300">' +
-            'Pendaftaran telah ditutup. Pantau Instagram kami untuk gelombang berikutnya.</p>'
-        );
-        clearInterval(timer);
+        if (!root.parentElement?.querySelector('[data-countdown-ended]')) {
+          root.insertAdjacentHTML(
+            'afterend',
+            '<p data-countdown-ended class="mt-4 rounded-xl bg-white/10 px-4 py-3 text-center text-sm font-semibold text-kuning-300">' +
+              'Pendaftaran telah ditutup. Pantau Instagram kami untuk gelombang berikutnya.</p>'
+          );
+        }
+        if (timer) clearInterval(timer);
         return;
       }
 
@@ -43,7 +46,7 @@
     };
 
     tick();
-    const timer = setInterval(tick, 1000);
+    timer = setInterval(tick, 1000);
   }
 
   const init = () => document.querySelectorAll('[data-countdown]').forEach(start);

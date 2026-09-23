@@ -1,7 +1,7 @@
 {
   "name": "PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung",
   "short_name": "PR PMII Saintek",
-  "description": "Website resmi PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung. Dzikir, Fikir, Amal Sholeh.",
+  "description": "Website resmi PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung. Taqwa, Intelektual, Profesional.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,9 +9,9 @@
   "lang": "id",
   "icons": [
     {
-      "src": "/assets/img/logo-pmii.svg",
+      "src": "/assets/img/logo-pmii.png",
       "sizes": "any",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     }
   ]

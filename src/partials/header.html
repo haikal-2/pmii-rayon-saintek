@@ -14,30 +14,30 @@
   <nav class="container-page" aria-label="Navigasi utama">
     <div class="flex h-[4.5rem] items-center justify-between gap-4">
       <!-- Kiri: Logo + Nama Organisasi -->
-      <a href="{{base}}index.html" class="group flex shrink-0 items-center gap-3">
+      <a href="{{base}}index.html" class="group flex shrink-0 items-center gap-2 xl:gap-3">
         <img
-          src="{{base}}assets/img/logo-pmii.svg"
+          src="{{base}}assets/img/logo-pmii.png"
           alt="Logo PMII"
           width="40"
           height="48"
-          class="h-11 w-auto transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105" />
+          class="h-10 w-auto transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105 xl:h-11" />
         <span class="flex flex-col leading-none">
-          <span class="font-display text-[0.9375rem] font-extrabold text-pmii-900 sm:text-base">PR PMII Saintek</span>
-          <span class="mt-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-kuning-600 sm:text-xs">
+          <span class="font-display text-sm font-extrabold text-pmii-900 xl:text-base">PR PMII Saintek</span>
+          <span class="mt-0.5 hidden text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-kuning-600 xl:block xl:text-xs">
             UIN SGD Cab. Kab. Bandung
           </span>
         </span>
       </a>
 
       <!-- Kanan: Menu desktop -->
-      <div class="hidden items-center gap-1 xl:flex">
-        <a href="{{base}}index.html" data-nav="beranda" class="nav-link">Beranda</a>
+      <div class="ml-auto hidden items-center gap-2 lg:flex xl:gap-3">
+        <a href="{{base}}index.html" data-nav="beranda" class="nav-link whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm">Beranda</a>
 
         <!-- Dropdown Profil -->
         <div class="relative" data-dropdown>
           <button
             type="button"
-            class="nav-link inline-flex items-center gap-1"
+            class="nav-link inline-flex items-center gap-1 whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm"
             data-nav="profil"
             data-dropdown-trigger
             aria-expanded="false"
@@ -75,14 +75,13 @@
           </div>
         </div>
 
-        <a href="{{base}}kopri.html" data-nav="kopri" class="nav-link">KOPRI</a>
-        <a href="{{base}}artikel.html" data-nav="artikel" class="nav-link">Artikel</a>
-        <a href="{{base}}galeri.html" data-nav="galeri" class="nav-link">Galeri</a>
-        <a href="{{base}}landasan-hukum.html" data-nav="landasan" class="nav-link">Landasan Hukum</a>
-        <a href="{{base}}advokasi.html" data-nav="advokasi" class="nav-link">Advokasi</a>
+        <a href="{{base}}kopri.html" data-nav="kopri" class="nav-link whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm">KOPRI</a>
+        <a href="{{base}}galeri.html" data-nav="galeri" class="nav-link whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm">Galeri</a>
+        <a href="{{base}}landasan-hukum.html" data-nav="landasan" class="nav-link whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm">Landasan Hukum</a>
+        <a href="{{base}}advokasi.html" data-nav="advokasi" class="nav-link whitespace-nowrap lg:px-1 lg:text-[0.6875rem] xl:px-2.5 xl:text-sm">Advokasi</a>
 
-        <a href="{{base}}mapaba.html" class="btn-accent btn-sm ml-2">
-          MAPABA Raya
+        <a href="{{base}}mapaba.html" class="btn-accent btn-sm ml-1 whitespace-nowrap px-2 text-[0.6875rem] xl:ml-2 xl:px-3 xl:text-[0.8125rem]">
+          MAPABA SAINTEK Ke-XVII
           <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
           </svg>
@@ -92,7 +91,7 @@
       <!-- Kanan: Tombol hamburger (mobile & tablet) -->
       <button
         type="button"
-        class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-pmii-900 transition-colors hover:bg-pmii-50 xl:hidden"
+        class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-pmii-900 transition-colors hover:bg-pmii-50 lg:hidden"
         data-menu-toggle
         aria-controls="mobile-menu"
         aria-expanded="false">
@@ -107,7 +106,7 @@
     </div>
 
     <!-- Panel menu mobile -->
-    <div id="mobile-menu" data-menu-panel class="hidden pb-5 xl:hidden">
+    <div id="mobile-menu" data-menu-panel class="hidden pb-5 lg:hidden">
       <div class="space-y-1 border-t border-slate-200 pt-4">
         <a href="{{base}}index.html" data-nav="beranda" class="nav-link-mobile">Beranda</a>
 
@@ -129,13 +128,12 @@
         </div>
 
         <a href="{{base}}kopri.html" data-nav="kopri" class="nav-link-mobile">KOPRI</a>
-        <a href="{{base}}artikel.html" data-nav="artikel" class="nav-link-mobile">Artikel</a>
         <a href="{{base}}galeri.html" data-nav="galeri" class="nav-link-mobile">Galeri</a>
         <a href="{{base}}landasan-hukum.html" data-nav="landasan" class="nav-link-mobile">Landasan Hukum</a>
         <a href="{{base}}advokasi.html" data-nav="advokasi" class="nav-link-mobile">Layanan Advokasi</a>
 
         <a href="{{base}}mapaba.html" class="btn-accent mt-3 w-full">
-          Daftar MAPABA Raya 2026
+          MAPABA SAINTEK Ke-XVII
           <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
           </svg>

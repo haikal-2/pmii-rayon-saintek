@@ -107,6 +107,14 @@ async function main() {
 
   /* --------------------------------------------------------------- MAPABA */
 
+  const { db } = require('../src/lib/db');
+  db.prepare(
+    `UPDATE mapaba_gelombang
+     SET buka_at = datetime('now', '-1 day'),
+         tutup_at = datetime('now', '+40 day')
+     WHERE is_aktif = 1`
+  ).run();
+
   const nimAcak = String(Date.now()).slice(-10);
   let nomorRegistrasi;
   await uji('pendaftaran MAPABA valid menerbitkan nomor registrasi', async () => {
@@ -117,6 +125,7 @@ async function main() {
         angkatan: 2026,
         fakultas: 'Sains dan Teknologi',
         prodi: 'Teknik Informatika',
+        prodi: 'Informatika',
         jenisKelamin: 'P',
         whatsapp: '081234567891',
         email: 'siti@example.com',
@@ -138,6 +147,7 @@ async function main() {
         angkatan: 2026,
         fakultas: 'Sains dan Teknologi',
         prodi: 'Teknik Informatika',
+        prodi: 'Informatika',
         jenisKelamin: 'P',
         whatsapp: '081234567891',
         email: 'siti@example.com',

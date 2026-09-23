@@ -144,8 +144,11 @@ const seed = db.transaction(() => {
        (nama, tahun, buka_at, tutup_at, mulai_acara, selesai_acara, lokasi, kuota, biaya, is_aktif)
      SELECT 'MAPABA Raya 2026', 2026, '2026-08-01 00:00:00', '2026-10-10 23:59:59',
             '2026-10-16 07:00:00', '2026-10-18 17:00:00',
+     SELECT 'MAPABA SAINTEK Ke-XVII', 2026, '2026-10-01 00:00:00', '2026-10-28 23:59:59',
+            '2026-10-31 07:00:00', '2026-11-02 17:00:00',
             'Sekretariat PR PMII Saintek, Cibiru, Kab. Bandung', 150, 75000, 1
      WHERE NOT EXISTS (SELECT 1 FROM mapaba_gelombang WHERE nama = 'MAPABA Raya 2026')`
+     WHERE NOT EXISTS (SELECT 1 FROM mapaba_gelombang WHERE nama = 'MAPABA SAINTEK Ke-XVII')`
   ).run();
 });
 

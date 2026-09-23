@@ -2,10 +2,10 @@
 {
   "out": "mapaba.html",
   "active": "mapaba",
-  "title": "MAPABA Raya 2026 — Pendaftaran Anggota Baru PR PMII Saintek",
-  "description": "Landing page dan formulir pendaftaran MAPABA Raya 2026 PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung. Masa Penerimaan Anggota Baru: gerbang pertama menjadi kader pergerakan.",
+  "title": "MAPABA SAINTEK Ke-XVII — Pendaftaran Anggota Baru PR PMII Saintek",
+  "description": "Landing page dan formulir pendaftaran MAPABA SAINTEK Ke-XVII PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Bandung. Masa Penerimaan Anggota Baru: gerbang pertama menjadi kader pergerakan.",
   "pageEyebrow": "Kaderisasi",
-  "pageTitle": "MAPABA Raya 2026",
+  "pageTitle": "MAPABA SAINTEK Ke-XVII",
   "pageLead": "Masa Penerimaan Anggota Baru — gerbang pertama menjadi kader Pergerakan Mahasiswa Islam Indonesia."
 }
 page-->
@@ -30,19 +30,21 @@ page-->
               <li><a href="{{base}}index.html" class="hover:text-kuning-300">Beranda</a></li>
               <li aria-hidden="true">/</li>
               <li class="font-semibold text-kuning-300" aria-current="page">MAPABA Raya</li>
+              <li class="font-semibold text-kuning-300" aria-current="page">MAPABA SAINTEK Ke-XVII</li>
             </ol>
           </nav>
 
-          <p class="inline-flex items-center gap-2 rounded-full border border-kuning-400/30 bg-kuning-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-kuning-300">
+          <p class="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber-300">
             <span class="relative flex h-2 w-2">
-              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-kuning-400 opacity-75"></span>
-              <span class="relative inline-flex h-2 w-2 rounded-full bg-kuning-400"></span>
+              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+              <span class="relative inline-flex h-2 w-2 rounded-full bg-amber-400"></span>
             </span>
-            Pendaftaran Dibuka
+            Pendaftaran Dibuka 1 Oktober 2026
           </p>
 
           <h1 class="mt-6 text-[2rem] leading-tight text-white sm:text-4xl lg:text-[3rem] lg:leading-[1.08]">
             MAPABA Raya <span class="text-kuning-300">2026</span>
+            MAPABA SAINTEK <span class="text-kuning-300">Ke-XVII</span>
           </h1>
           <p class="mt-5 max-w-2xl text-base leading-relaxed text-pmii-100/80 sm:text-lg">
             Tiga hari untuk mengenal diri, tradisi, dan arah gerak. Bukan sekadar pelatihan — MAPABA adalah pintu masuk
@@ -52,11 +54,11 @@ page-->
           <dl class="mt-10 grid max-w-2xl grid-cols-2 gap-6 border-t border-white/10 pt-8 sm:grid-cols-4">
             <div>
               <dt class="text-xs uppercase tracking-wider text-pmii-100/50">Tanggal</dt>
-              <dd class="mt-1 font-display text-base font-bold text-white">16–18 Okt 2026</dd>
+              <dd class="mt-1 font-display text-base font-bold text-white">31 Okt – 2 Nov</dd>
             </div>
             <div>
               <dt class="text-xs uppercase tracking-wider text-pmii-100/50">Lokasi</dt>
-              <dd class="mt-1 font-display text-base font-bold text-white">Cibiru, Kab. Bandung</dd>
+              <dd class="mt-1 font-display text-base font-bold text-white">Cileunyi, Kab. Bandung</dd>
             </div>
             <div>
               <dt class="text-xs uppercase tracking-wider text-pmii-100/50">Kuota</dt>
@@ -82,8 +84,8 @@ page-->
         <!-- Kartu hitung mundur -->
         <div class="lg:col-span-5">
           <div class="rounded-3xl border border-white/15 bg-white/5 p-7 backdrop-blur">
-            <p class="text-xs font-semibold uppercase tracking-widest text-kuning-300">Pendaftaran ditutup dalam</p>
-            <div class="mt-5 grid grid-cols-4 gap-3 text-center" data-countdown="2026-10-10T23:59:59+07:00">
+            <p class="text-xs font-semibold uppercase tracking-widest text-kuning-300">Pendaftaran dibuka dalam</p>
+            <div class="mt-5 grid grid-cols-4 gap-3 text-center" data-countdown="2026-10-01T00:00:00+07:00">
               <div class="rounded-xl bg-white/10 py-4">
                 <p class="font-display text-2xl font-extrabold text-white" data-countdown-days>--</p>
                 <p class="mt-1 text-[0.625rem] uppercase tracking-wider text-pmii-100/60">Hari</p>
@@ -190,6 +192,23 @@ page-->
           </div>
 
           <div data-form-wrapper>
+            <!-- Banner status pendaftaran ditutup -->
+            <div data-registration-closed class="mb-6 rounded-2xl border border-amber-300 bg-amber-50/90 p-6 text-amber-950 shadow-sm">
+              <div class="flex items-start gap-4">
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-200/80 text-amber-800">
+                  <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </span>
+                <div>
+                  <h3 class="font-display text-base font-bold text-amber-950">Pendaftaran Belum Dibuka</h3>
+                  <p class="mt-1 text-sm leading-relaxed text-amber-900/85">
+                    Sistem pendaftaran <strong>MAPABA SAINTEK Ke-XVII</strong> saat ini masih ditutup dan akan dibuka secara resmi pada <strong>1 Oktober 2026</strong>. Batas akhir pendaftaran adalah <strong>28 Oktober 2026</strong> (H-3 sebelum pelaksanaan kegiatan pada <strong>31 Oktober 2026</strong>).
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div class="fieldset-card">
               <h2 class="text-xl sm:text-2xl">Formulir Registrasi Peserta</h2>
               <p class="mt-2 text-sm leading-relaxed text-slate-600">
@@ -198,7 +217,7 @@ page-->
               </p>
 
               <!-- POST /api/v1/mapaba/pendaftaran -->
-              <form data-api-form="/mapaba/pendaftaran" class="mt-8 space-y-6">
+              <form data-api-form="/mapaba/pendaftaran" data-registration-opens="2026-10-01T00:00:00+07:00" class="mt-8 space-y-6">
                 <div data-form-alert hidden></div>
 
                 <div class="grid gap-6 sm:grid-cols-2">
@@ -237,26 +256,26 @@ page-->
                   </div>
 
                   <div>
-                    <label class="label" for="fakultas">Fakultas <span class="text-red-600">*</span></label>
-                    <select class="input" id="fakultas" name="fakultas" required data-label="Fakultas">
-                      <option value="">— Pilih fakultas —</option>
-                      <option>Ushuluddin</option>
-                      <option>Tarbiyah dan Keguruan</option>
-                      <option>Syariah dan Hukum</option>
-                      <option>Dakwah dan Komunikasi</option>
-                      <option>Adab dan Humaniora</option>
-                      <option>Psikologi</option>
-                      <option>Sains dan Teknologi</option>
-                      <option>Ilmu Sosial dan Ilmu Politik</option>
-                      <option>Ekonomi dan Bisnis Islam</option>
-                    </select>
-                    <p class="error-text" data-error-for="fakultas"></p>
+                    <label class="label" for="fakultasTampil">Fakultas <span class="text-red-600">*</span></label>
+                    <input class="input cursor-not-allowed bg-slate-100 font-medium text-slate-700" id="fakultasTampil"
+                      type="text" value="Fakultas Sains dan Teknologi" readonly disabled />
+                    <input type="hidden" name="fakultas" value="Sains dan Teknologi" />
+                    <p class="hint">Fakultas tetap: Sains dan Teknologi (SAINTEK).</p>
                   </div>
 
                   <div>
                     <label class="label" for="prodi">Program studi <span class="text-red-600">*</span></label>
-                    <input class="input" id="prodi" name="prodi" type="text" required maxlength="80"
-                      placeholder="Contoh: Teknik Informatika" data-label="Program studi" />
+                    <select class="input" id="prodi" name="prodi" required data-label="Program studi">
+                      <option value="">— Pilih program studi —</option>
+                      <option value="Informatika">Informatika</option>
+                      <option value="Matematika">Matematika</option>
+                      <option value="Kimia">Kimia</option>
+                      <option value="Agroteknologi">Agroteknologi</option>
+                      <option value="Teknik Elektro">Teknik Elektro</option>
+                      <option value="Biologi">Biologi</option>
+                      <option value="Fisika">Fisika</option>
+                      <option value="Teknik Lingkungan">Teknik Lingkungan</option>
+                    </select>
                     <p class="error-text" data-error-for="prodi"></p>
                   </div>
 
@@ -402,10 +421,11 @@ page-->
                 <div data-captcha hidden></div>
                 <p class="error-text" data-error-for="captchaToken"></p>
 
-                <button type="submit" class="btn-accent w-full sm:w-auto" data-submit>
-                  Kirim Pendaftaran
+                <button type="submit" class="btn-accent w-full cursor-not-allowed opacity-60 sm:w-auto" data-submit disabled>
+                  Pendaftaran Dibuka 1 Oktober 2026
                   <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 0 1 0-1.414L10.586 10 7.293 6.707a1 1 0 1 1 1.414-1.414l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414 0Z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd" />
                   </svg>
                 </button>
               </form>
