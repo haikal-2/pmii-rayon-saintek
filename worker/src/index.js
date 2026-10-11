@@ -1,4 +1,5 @@
 import { ApiError, errorResponse, jsonResponse } from './lib/http.js';
+import { handleMapabaPublic } from './routes/mapaba.js';
 import { handleUpload } from './routes/upload.js';
 
 const ALLOWED_METHODS = ['GET', 'POST', 'PATCH', 'OPTIONS'];
@@ -45,7 +46,7 @@ function isAllowedPreflight(request) {
   return requestedHeaders.every((header) => ALLOWED_HEADERS.includes(header));
 }
 
-async function routeRequest(request, env) {
+async function routeRequest(request, env, ctx) {
   const url = new URL(request.url);
 
   if (request.method === 'GET' && url.pathname === '/api/v1/health') {
@@ -54,12 +55,16 @@ async function routeRequest(request, env) {
   if (request.method === 'POST' && url.pathname === '/api/v1/upload') {
     return handleUpload(request, env);
   }
+  if (url.pathname.startsWith('/api/v1/mapaba/')) {
+    const response = await handleMapabaPublic(request, env, ctx);
+    if (response) return response;
+  }
 
   return errorResponse(404, `Endpoint ${request.method} ${url.pathname} tidak ditemukan.`);
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin');
     const allowedOrigin = origin && configuredOrigins(env).includes(origin) ? origin : null;
 
@@ -76,7 +81,7 @@ export default {
         return addCorsHeaders(new Response(null, { status: 204 }), allowedOrigin, true);
       }
 
-      return addCorsHeaders(await routeRequest(request, env), allowedOrigin);
+      return addCorsHeaders(await routeRequest(request, env, ctx), allowedOrigin);
     } catch (error) {
       if (error instanceof ApiError) {
         return addCorsHeaders(errorResponse(error.status, error.message, error.errors), allowedOrigin);

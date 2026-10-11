@@ -12,7 +12,7 @@ function mapPublicRegistration(row) {
     fakultas: row.fakultas,
     prodi: row.prodi,
     status: row.status,
-    createdAt: row.createdAt,
+    dibuatPada: row.dibuatPada,
   };
 }
 
@@ -90,7 +90,7 @@ export async function getRegistrationByNumber(db, nomor) {
               fakultas,
               prodi,
               status,
-              created_at AS createdAt
+              created_at AS dibuatPada
        FROM mapaba_pendaftar
        WHERE nomor_registrasi = ?`
     )
@@ -98,6 +98,141 @@ export async function getRegistrationByNumber(db, nomor) {
     .first();
 
   return mapPublicRegistration(row);
+}
+
+export async function createRegistration(db, wave, data, now = new Date()) {
+  const nowIso = now.toISOString();
+  const claimToken = crypto.randomUUID();
+  const pasFotoId = data.pasFotoUrl?.split('/').at(-1) || null;
+  const ktmId = data.ktmUrl?.split('/').at(-1) || null;
+  const uploadIds = [pasFotoId, ktmId].filter(Boolean);
+  const statements = [
+    db
+      .prepare(
+        `INSERT INTO counters (nama, tahun, nilai)
+         VALUES ('mapaba', ?, 0)
+         ON CONFLICT(nama, tahun) DO NOTHING`
+      )
+      .bind(wave.tahun),
+  ];
+
+  if (uploadIds.length) {
+    const placeholders = uploadIds.map(() => '?').join(', ');
+    statements.push(
+      db
+        .prepare(
+          `UPDATE mapaba_uploads
+           SET claimed_at = ?
+           WHERE id IN (${placeholders})
+             AND claimed_at IS NULL
+             AND (
+               SELECT COUNT(*) FROM mapaba_uploads
+               WHERE id IN (${placeholders}) AND claimed_at IS NULL
+             ) = ?
+             AND EXISTS (
+               SELECT 1 FROM mapaba_gelombang g
+               WHERE g.id = ? AND g.is_aktif = 1
+                 AND julianday(?) BETWEEN julianday(g.buka_at) AND julianday(g.tutup_at)
+                 AND (
+                   SELECT COUNT(*) FROM mapaba_pendaftar p
+                   WHERE p.gelombang_id = g.id AND p.status <> 'batal'
+                 ) < g.kuota
+             )
+             AND NOT EXISTS (
+               SELECT 1 FROM mapaba_pendaftar
+               WHERE gelombang_id = ? AND nim = ?
+             )`
+        )
+        .bind(
+          claimToken,
+          ...uploadIds,
+          ...uploadIds,
+          uploadIds.length,
+          wave.id,
+          nowIso,
+          wave.id,
+          data.nim
+        )
+    );
+  }
+
+  const insertIndex = statements.length;
+  statements.push(
+    db
+      .prepare(
+        `INSERT INTO mapaba_pendaftar
+           (nomor_registrasi, gelombang_id, nama_lengkap, nim, angkatan, universitas,
+            fakultas, prodi, jenis_kelamin, whatsapp, email, asal_daerah, motivasi,
+            riwayat_organisasi, sumber_informasi, pas_foto_id, ktm_id, kesediaan,
+            persetujuan_data, status, created_at, updated_at)
+         SELECT
+           'MPB-' || printf('%04d', ?) || '-' || printf('%04d', c.nilai + 1),
+           g.id, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 'menunggu', ?, ?
+         FROM counters c
+         JOIN mapaba_gelombang g ON g.id = ?
+         WHERE c.nama = 'mapaba' AND c.tahun = ? AND c.nilai < 9999
+           AND g.is_aktif = 1
+           AND julianday(?) BETWEEN julianday(g.buka_at) AND julianday(g.tutup_at)
+           AND (
+             SELECT COUNT(*) FROM mapaba_pendaftar p
+             WHERE p.gelombang_id = g.id AND p.status <> 'batal'
+           ) < g.kuota
+           AND NOT EXISTS (
+             SELECT 1 FROM mapaba_pendaftar
+             WHERE gelombang_id = g.id AND nim = ?
+           )
+           AND (? IS NULL OR EXISTS (
+             SELECT 1 FROM mapaba_uploads
+             WHERE id = ? AND claimed_at = ?
+           ))
+           AND (? IS NULL OR EXISTS (
+             SELECT 1 FROM mapaba_uploads
+             WHERE id = ? AND claimed_at = ?
+           ))
+         RETURNING id, nomor_registrasi AS nomorRegistrasi, status, created_at AS dibuatPada`
+      )
+      .bind(
+        wave.tahun,
+        data.namaLengkap,
+        data.nim,
+        data.angkatan,
+        data.universitas,
+        data.fakultas,
+        data.prodi,
+        data.jenisKelamin,
+        data.whatsapp,
+        data.email,
+        data.asalDaerah || null,
+        data.motivasi,
+        data.riwayatOrganisasi || null,
+        data.sumberInformasi || null,
+        pasFotoId,
+        ktmId,
+        nowIso,
+        nowIso,
+        wave.id,
+        wave.tahun,
+        nowIso,
+        data.nim,
+        pasFotoId,
+        pasFotoId,
+        claimToken,
+        ktmId,
+        ktmId,
+        claimToken
+      )
+  );
+  statements.push(
+    db
+      .prepare(
+        `UPDATE counters SET nilai = nilai + 1
+         WHERE nama = 'mapaba' AND tahun = ? AND changes() = 1`
+      )
+      .bind(wave.tahun)
+  );
+
+  const result = await db.batch(statements);
+  return result[insertIndex]?.results?.[0] || null;
 }
 
 export async function getUpload(db, id) {

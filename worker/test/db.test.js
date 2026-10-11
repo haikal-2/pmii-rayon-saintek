@@ -77,7 +77,7 @@ describe('MAPABA D1 repository', () => {
       prodi: 'Informatika',
       status: 'menunggu',
     });
-    expect(row).toHaveProperty('createdAt');
+    expect(row).toHaveProperty('dibuatPada');
     expect(row).not.toHaveProperty('nim');
     expect(row).not.toHaveProperty('email');
     expect(row).not.toHaveProperty('whatsapp');

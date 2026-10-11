@@ -11,48 +11,58 @@ const fileReference = z
     message: 'Berkas harus berasal dari unggahan Worker.',
   });
 
-const registrationSchema = z.object({
-  namaLengkap: z.string().trim().min(3, 'Nama lengkap minimal 3 karakter.').max(100),
-  nim: z.string().trim().regex(/^[0-9]{8,15}$/, 'NIM harus berupa 8–15 angka.'),
-  angkatan: z.coerce
-    .number()
-    .int()
-    .min(2015, 'Tahun angkatan tidak valid.')
-    .max(new Date().getFullYear()),
-  universitas: z
-    .string()
-    .trim()
-    .max(150)
-    .optional()
-    .transform((value) => value || 'UIN Sunan Gunung Djati Bandung'),
-  fakultas: z.string().trim().min(3, 'Fakultas wajib dipilih.').max(80),
-  prodi: z.string().trim().min(2, 'Program studi wajib diisi.').max(80),
-  jenisKelamin: z.enum(['L', 'P'], {
-    errorMap: () => ({ message: 'Pilih jenis kelamin.' }),
-  }),
-  whatsapp: z
-    .string()
-    .trim()
-    .min(8, 'Nomor WhatsApp minimal 8 digit.')
-    .max(20)
-    .regex(/^[0-9+\-\s()]+$/, 'Nomor WhatsApp hanya boleh berisi angka dan tanda + - ( ).'),
-  email: z.string().trim().email('Format email tidak valid.').max(120),
-  asalDaerah: z.string().trim().max(100).optional(),
-  motivasi: z.string().trim().min(30, 'Motivasi minimal 30 karakter.').max(1000),
-  riwayatOrganisasi: z.string().trim().max(200).optional(),
-  sumberInformasi: z
-    .enum(['instagram', 'teman', 'website', 'poster', 'lainnya'])
-    .optional()
-    .or(z.literal('')),
-  pasFotoUrl: fileReference.optional(),
-  ktmUrl: fileReference.optional(),
-  kesediaan: z.literal(true, {
-    errorMap: () => ({ message: 'Kesediaan mengikuti seluruh rangkaian wajib dicentang.' }),
-  }),
-  persetujuanData: z.literal(true, {
-    errorMap: () => ({ message: 'Persetujuan pengolahan data wajib dicentang.' }),
-  }),
-});
+const registrationSchema = z
+  .object({
+    namaLengkap: z.string().trim().min(3, 'Nama lengkap minimal 3 karakter.').max(100),
+    nim: z.string().trim().regex(/^[0-9]{8,15}$/, 'NIM harus berupa 8–15 angka.'),
+    angkatan: z.coerce
+      .number()
+      .int()
+      .min(2015, 'Tahun angkatan tidak valid.')
+      .max(new Date().getFullYear()),
+    universitas: z
+      .string()
+      .trim()
+      .max(150)
+      .optional()
+      .transform((value) => value || 'UIN Sunan Gunung Djati Bandung'),
+    fakultas: z.string().trim().min(3, 'Fakultas wajib dipilih.').max(80),
+    prodi: z.string().trim().min(2, 'Program studi wajib diisi.').max(80),
+    jenisKelamin: z.enum(['L', 'P'], {
+      errorMap: () => ({ message: 'Pilih jenis kelamin.' }),
+    }),
+    whatsapp: z
+      .string()
+      .trim()
+      .min(8, 'Nomor WhatsApp minimal 8 digit.')
+      .max(20)
+      .regex(/^[0-9+\-\s()]+$/, 'Nomor WhatsApp hanya boleh berisi angka dan tanda + - ( ).'),
+    email: z.string().trim().email('Format email tidak valid.').max(120),
+    asalDaerah: z.string().trim().max(100).optional(),
+    motivasi: z.string().trim().min(30, 'Motivasi minimal 30 karakter.').max(1000),
+    riwayatOrganisasi: z.string().trim().max(200).optional(),
+    sumberInformasi: z
+      .enum(['instagram', 'teman', 'website', 'poster', 'lainnya'])
+      .optional()
+      .or(z.literal('')),
+    pasFotoUrl: fileReference.optional(),
+    ktmUrl: fileReference.optional(),
+    kesediaan: z.literal(true, {
+      errorMap: () => ({ message: 'Kesediaan mengikuti seluruh rangkaian wajib dicentang.' }),
+    }),
+    persetujuanData: z.literal(true, {
+      errorMap: () => ({ message: 'Persetujuan pengolahan data wajib dicentang.' }),
+    }),
+  })
+  .superRefine((value, context) => {
+    if (value.pasFotoUrl && value.pasFotoUrl === value.ktmUrl) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['ktmUrl'],
+        message: 'Pas foto dan KTM harus berasal dari unggahan yang berbeda.',
+      });
+    }
+  });
 
 const adminQuerySchema = z.object({
   gelombangId: z.coerce.number().int().positive().optional(),
