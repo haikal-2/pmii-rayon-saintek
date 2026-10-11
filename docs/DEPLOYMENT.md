@@ -239,7 +239,8 @@ lokal, bukan data produksi.
 Untuk menguji cutover lokal, set `mapabaApiBaseUrl: 'http://localhost:8787'`
 pada `public/assets/js/config.js`, lalu jalankan `npm run build`. Pertahankan
 `apiBaseUrl` untuk Express. Jika `mapabaApiBaseUrl` kosong, endpoint formulir
-MAPABA masih memakai backend Express.
+MAPABA dan panel admin MAPABA memakai backend Express. Panel admin Worker hanya
+menggunakan token Worker ketika origin Worker dikonfigurasi.
 
 ### Buat dan migrasikan D1 produksi
 
@@ -263,6 +264,11 @@ Perintah tersebut hanya membuat schema; ia tidak mengimpor SQLite. **Jangan**
 menjalankan `db:seed:local` untuk database remote. Buat gelombang pertama secara
 terencana setelah migration selesai, lalu periksa endpoint gelombang aktif
 sebelum mengalihkan form.
+
+Migration `0002_mapaba_tracking_token.sql` menambahkan hash kredensial pelacakan
+secara aditif; jangan mengubah atau menghapus migration yang sudah diterapkan.
+Kode pelacakan ditampilkan sekali setelah pendaftaran berhasil, jadi migrasi
+tidak dapat memberikan kode bagi pendaftaran lama.
 
 ### Worker secrets dan vars
 
@@ -328,6 +334,11 @@ kemudian bangun dan deploy front-end. Jangan ubah `apiBaseUrl`: endpoint selain
 MAPABA tetap dilayani Express. Admin MAPABA memerlukan sesi login panel lama
 serta token Worker yang dimasukkan pada halaman admin; logout membersihkan
 keduanya.
+
+Saat memakai admin Express (origin Worker kosong), URL berkas lama hanya dibuka
+jika berasal dari endpoint `/uploads/mapaba/` pada origin API, Cloudinary,
+Amazon S3, atau origin CDN kustom yang eksplisit dicantumkan pada
+`mapabaFileOrigins` di `public/assets/js/config.js`.
 
 Perubahan ini tidak menjalankan deploy, membuat D1 remote, menerapkan migrasi
 remote, mengisi data produksi, atau mengubah URL produksi.

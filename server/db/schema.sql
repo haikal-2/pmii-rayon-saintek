@@ -231,6 +231,7 @@ CREATE TABLE IF NOT EXISTS mapaba_pendaftar (
   status            TEXT    NOT NULL DEFAULT 'menunggu'
                     CHECK (status IN ('menunggu','terverifikasi','hadir','ditolak','batal')),
   catatan_panitia   TEXT,
+  tracking_token_hash TEXT,
   created_at        TEXT    NOT NULL DEFAULT (datetime('now')),
   updated_at        TEXT    NOT NULL DEFAULT (datetime('now')),
   -- Satu NIM hanya boleh mendaftar sekali per gelombang
@@ -300,4 +301,3 @@ CREATE TABLE IF NOT EXISTS notifikasi_log (
   galat      TEXT,
   created_at TEXT    NOT NULL DEFAULT (datetime('now'))
 );
-

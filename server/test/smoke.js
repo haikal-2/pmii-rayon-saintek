@@ -117,6 +117,7 @@ async function main() {
 
   const nimAcak = String(Date.now()).slice(-10);
   let nomorRegistrasi;
+  let kodePelacakan;
   await uji('pendaftaran MAPABA valid menerbitkan nomor registrasi', async () => {
     const { status, payload } = await call('POST', '/mapaba/pendaftaran', {
       body: {
@@ -137,6 +138,13 @@ async function main() {
     assert.equal(status, 201);
     assert.match(payload.data.nomorRegistrasi, /^MPB-\d{4}-\d{4}$/);
     nomorRegistrasi = payload.data.nomorRegistrasi;
+    assert.match(payload.data.kodePelacakan, /^[0-9a-f-]{36}$/);
+    kodePelacakan = payload.data.kodePelacakan;
+    const stored = db
+      .prepare('SELECT tracking_token_hash FROM mapaba_pendaftar WHERE nomor_registrasi = ?')
+      .get(nomorRegistrasi);
+    assert.match(stored.tracking_token_hash, /^[a-f0-9]{64}$/);
+    assert.notEqual(stored.tracking_token_hash, kodePelacakan);
   });
 
   await uji('NIM ganda pada gelombang yang sama ditolak (409)', async () => {
@@ -160,9 +168,20 @@ async function main() {
     assert.ok(payload.errors?.nim);
   });
 
-  await uji('status pendaftaran dapat dicek publik', async () => {
-    const { payload } = await call('GET', `/mapaba/pendaftaran/${nomorRegistrasi}`);
-    assert.equal(payload.data.status, 'menunggu');
+  await uji('status pendaftaran hanya dapat dicek dengan kode pelacakan rahasia', async () => {
+    const byNumber = await call('GET', `/mapaba/pendaftaran/${nomorRegistrasi}`);
+    const missingCode = await call('POST', '/mapaba/pelacakan');
+    const invalidCode = await call('POST', '/mapaba/pelacakan', {
+      token: require('node:crypto').randomUUID(),
+    });
+    const { status, payload } = await call('POST', '/mapaba/pelacakan', {
+      token: kodePelacakan,
+    });
+    assert.equal(byNumber.status, 404);
+    assert.equal(missingCode.status, 401);
+    assert.equal(invalidCode.status, 404);
+    assert.equal(status, 200);
+    assert.deepEqual(payload.data, { status: 'menunggu' });
   });
 
   /* ---------------------------------------------------------------- Admin */
@@ -222,18 +241,22 @@ async function main() {
   });
 
   await uji('admin dapat memverifikasi pendaftar MAPABA (Terima)', async () => {
-    const daftar = await call('GET', '/mapaba/admin/pendaftar?status=menunggu', {
-      token: adminToken,
-    });
-    const target = daftar.payload.data[0];
+    const daftar = await call(
+      'GET',
+      `/mapaba/admin/pendaftar?status=menunggu&q=${encodeURIComponent(nomorRegistrasi)}`,
+      { token: adminToken }
+    );
+    const target = daftar.payload.data.find((item) => item.nomorRegistrasi === nomorRegistrasi);
     const { status } = await call('PATCH', `/mapaba/admin/pendaftar/${target.id}`, {
       token: adminToken,
       body: { status: 'terverifikasi', catatanPanitia: 'Berkas lengkap.' },
     });
     assert.equal(status, 200);
 
-    const cek = await call('GET', `/mapaba/pendaftaran/${target.nomorRegistrasi}`);
-    assert.equal(cek.payload.data.status, 'terverifikasi');
+    const cek = db
+      .prepare('SELECT status FROM mapaba_pendaftar WHERE nomor_registrasi = ?')
+      .get(nomorRegistrasi);
+    assert.equal(cek.status, 'terverifikasi');
   });
 
   /* -------------------------------------------------- Registrasi & bcrypt */

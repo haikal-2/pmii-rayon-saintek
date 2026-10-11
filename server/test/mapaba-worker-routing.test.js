@@ -6,11 +6,23 @@ const vm = require('node:vm');
 
 const root = path.join(__dirname, '..', '..');
 
-async function runFormSubmission(endpoint, config) {
+async function runFormSubmission(endpoint, config, responsePayload = { ok: true, data: {} }) {
   let submitHandler;
   let requestUrl;
   const alert = { hidden: true, textContent: '', setAttribute() {} };
   const button = { disabled: false, innerHTML: 'Kirim', dataset: {} };
+  const ticket = { textContent: '' };
+  const trackingCode = { textContent: '' };
+  const wrapper = { classList: { add() {} }, querySelector: () => null };
+  const panel = {
+    hidden: true,
+    querySelector(selector) {
+      if (selector === '[data-ticket]') return ticket;
+      if (selector === '[data-tracking-code]') return trackingCode;
+      return null;
+    },
+    scrollIntoView() {},
+  };
   const form = {
     dataset: { apiForm: endpoint },
     querySelector: (selector) => {
@@ -19,7 +31,7 @@ async function runFormSubmission(endpoint, config) {
       return null;
     },
     querySelectorAll: () => [],
-    closest: () => null,
+    closest: () => wrapper,
     addEventListener(type, listener) {
       if (type === 'submit') submitHandler = listener;
     },
@@ -32,12 +44,12 @@ async function runFormSubmission(endpoint, config) {
     },
     document: {
       readyState: 'complete',
-      querySelector: () => null,
+      querySelector: (selector) => (selector === '[data-form-success]' ? panel : null),
       querySelectorAll: (selector) => (selector === 'form[data-api-form]' ? [form] : []),
     },
     fetch: async (url) => {
       requestUrl = url;
-      return { ok: true, json: async () => ({ ok: true, data: {} }) };
+      return { ok: true, json: async () => responsePayload };
     },
     window: { PMII_CONFIG: config, addEventListener() {} },
     setInterval: () => 1,
@@ -46,7 +58,7 @@ async function runFormSubmission(endpoint, config) {
 
   vm.runInNewContext(fs.readFileSync(path.join(root, 'public/assets/js/forms.js'), 'utf8'), context);
   await submitHandler({ preventDefault() {} });
-  return requestUrl;
+  return { requestUrl, ticket: ticket.textContent, trackingCode: trackingCode.textContent };
 }
 
 function runUploaderEndpoints(config) {
@@ -115,10 +127,17 @@ function runUploaderEndpoints(config) {
   return endpoints;
 }
 
-async function runAdminMapaba(config, token, { failure, filePath, storedToken = false } = {}) {
+async function runAdminMapaba(
+  config,
+  token,
+  { failure, filePath, storedToken = false, statusId, confirmStatus = false } = {}
+) {
   const requests = [];
+  const apiCalls = [];
   let tableClickHandler;
   let objectUrl;
+  let openedCount = 0;
+  const toastMessages = [];
   const tab = { location: { href: '' }, close() {} };
   const selectors = [
     '[data-tabel]',
@@ -165,15 +184,33 @@ async function runAdminMapaba(config, token, { failure, filePath, storedToken = 
       querySelectorAll: () => [],
     },
     window: {
+      location: { origin: 'https://site.example' },
       PMII_CONFIG: config,
       PMII_ADMIN: {
         escapeHtml: String,
         tanggal: () => '',
-        toast() {},
-        konfirmasi: async () => null,
+        toast: (message) => toastMessages.push(message),
+        konfirmasi: async () => (confirmStatus ? { catatan: 'Catatan uji.' } : null),
         unduhCsv() {},
+        api: async (apiPath, options) => {
+          apiCalls.push({ path: apiPath, options });
+          if (apiPath === '/admin/ringkasan') {
+            return {
+              data: {
+                mapaba: { total: 0, menunggu: 0, terverifikasi: 0 },
+              },
+            };
+          }
+          if (apiPath === '/mapaba/gelombang-aktif') {
+            return { data: { sisaKuota: 4 } };
+          }
+          return { data: [], meta: { page: 1, limit: 20, total: 0, totalPage: 0 } };
+        },
       },
-      open: () => tab,
+      open: () => {
+        openedCount += 1;
+        return tab;
+      },
     },
     sessionStorage: {
       getItem: (key) => storage.get(key) ?? null,
@@ -198,13 +235,13 @@ async function runAdminMapaba(config, token, { failure, filePath, storedToken = 
         : { ok: true, data: [], meta: { page: 1, limit: 20, total: 0, totalPage: 0 } };
       return { ok: true, status: 200, json: async () => payload };
     },
-    URL: {
+    URL: Object.assign(class extends URL {}, {
       createObjectURL: (blob) => {
         objectUrl = `blob:${blob.type}`;
         return objectUrl;
       },
       revokeObjectURL() {},
-    },
+    }),
     URLSearchParams,
     Date,
     setTimeout: () => 1,
@@ -228,13 +265,25 @@ async function runAdminMapaba(config, token, { failure, filePath, storedToken = 
     tableClickHandler({ target: fileButton });
     await new Promise(setImmediate);
   }
+  if (statusId) {
+    const statusButton = {
+      dataset: { terima: statusId },
+      closest: (selector) => (selector === '[data-terima]' ? statusButton : null),
+    };
+    tableClickHandler({ target: statusButton });
+    await new Promise(setImmediate);
+    await new Promise(setImmediate);
+  }
   return {
     requests,
+    apiCalls,
     token: storage.get('pmii_worker_admin_token'),
     kuota: elements.get('[data-stat-kuota]').textContent,
     error: elements.get('[data-worker-admin-error]').textContent,
     openedUrl: tab.location.href,
     objectUrl,
+    openedCount,
+    toastMessages,
   };
 }
 
@@ -269,13 +318,26 @@ const config = {
 
 test('routes only MAPABA form submissions to the configured Worker', async () => {
   assert.equal(
-    await runFormSubmission('/mapaba/pendaftaran', config),
+    (await runFormSubmission('/mapaba/pendaftaran', config)).requestUrl,
     'https://mapaba.example/api/v1/mapaba/pendaftaran'
   );
   assert.equal(
-    await runFormSubmission('/advokasi/pengaduan', config),
+    (await runFormSubmission('/advokasi/pengaduan', config)).requestUrl,
     'https://express.example/api/v1/advokasi/pengaduan'
   );
+});
+
+test('shows the one-time MAPABA tracking code in the registration success panel', async () => {
+  const result = await runFormSubmission('/mapaba/pendaftaran', config, {
+    ok: true,
+    data: {
+      nomorRegistrasi: 'MPB-2026-0001',
+      kodePelacakan: 'aebdf482-709b-4b42-98aa-c23184a739ca',
+    },
+  });
+
+  assert.equal(result.ticket, 'MPB-2026-0001');
+  assert.equal(result.trackingCode, 'aebdf482-709b-4b42-98aa-c23184a739ca');
 });
 
 test('uses the Worker upload endpoint only for MAPABA-marked uploaders', () => {
@@ -293,6 +355,69 @@ test('loads MAPABA admin data with its Worker token and displays absent quota as
   assert.ok(result.requests.every(({ headers }) => headers.Authorization === 'Bearer worker-test-token'));
   assert.equal(result.token, 'worker-test-token');
   assert.equal(result.kuota, '—');
+});
+
+test('uses the Express admin API and direct file URL when the Worker origin is empty', async () => {
+  const expressConfig = { ...config, mapabaApiBaseUrl: '' };
+  const fileUrl =
+    'https://res.cloudinary.com/demo/image/authenticated/v1/pmii-uinsgd/mapaba/2026-10-11/id.jpg';
+  const result = await runAdminMapaba(expressConfig, 'worker-secret-token', {
+    filePath: fileUrl,
+    storedToken: true,
+    statusId: '17',
+    confirmStatus: true,
+  });
+
+  assert.ok(result.apiCalls.some(({ path }) => path.startsWith('/mapaba/admin/pendaftar?')));
+  assert.ok(result.apiCalls.some(({ path }) => path === '/admin/ringkasan'));
+  assert.ok(result.apiCalls.some(({ path }) => path === '/mapaba/gelombang-aktif'));
+  assert.equal(result.requests.length, 0);
+  assert.ok(
+    result.apiCalls.every(
+      ({ options }) => !options?.headers?.Authorization
+    )
+  );
+  assert.ok(
+    result.apiCalls.some(
+      ({ path, options }) =>
+        path === '/mapaba/admin/pendaftar/17' && options?.method === 'PATCH'
+    )
+  );
+  assert.equal(result.openedUrl, fileUrl);
+  assert.equal(result.kuota, 4);
+});
+
+test('rejects unsafe legacy file URLs instead of opening them in the admin origin', async () => {
+  const expressConfig = { ...config, mapabaApiBaseUrl: '' };
+  const result = await runAdminMapaba(expressConfig, '', {
+    filePath: 'javascript:alert(document.domain)',
+  });
+
+  assert.equal(result.openedCount, 0);
+  assert.equal(result.openedUrl, '');
+  assert.ok(result.toastMessages.includes('Referensi berkas tidak valid.'));
+});
+
+test('rejects an unconfigured external origin for legacy MAPABA files', async () => {
+  const expressConfig = { ...config, mapabaApiBaseUrl: '' };
+  const result = await runAdminMapaba(expressConfig, '', {
+    filePath: 'https://attacker.example/mapaba/private.jpg',
+  });
+
+  assert.equal(result.openedCount, 0);
+  assert.equal(result.openedUrl, '');
+});
+
+test('opens legacy MAPABA files from an explicitly configured CDN origin', async () => {
+  const expressConfig = {
+    ...config,
+    mapabaApiBaseUrl: '',
+    mapabaFileOrigins: ['https://cdn.example'],
+  };
+  const fileUrl = 'https://cdn.example/mapaba/2026-10-11/id.jpg';
+  const result = await runAdminMapaba(expressConfig, '', { filePath: fileUrl });
+
+  assert.equal(result.openedUrl, fileUrl);
 });
 
 test('keeps invalid or unreachable Worker credentials out of session storage and reports the failure', async () => {

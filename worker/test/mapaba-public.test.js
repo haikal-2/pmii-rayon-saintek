@@ -73,10 +73,14 @@ function registrationRequest(body, ip = '192.0.2.10') {
   });
 }
 
-function trackingRequest(number) {
-  return new Request(
-    `https://worker.example/api/v1/mapaba/pendaftaran/${encodeURIComponent(number)}`
-  );
+function trackingRequest(kodePelacakan) {
+  return new Request('https://worker.example/api/v1/mapaba/pelacakan', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${kodePelacakan}`,
+      'CF-Connecting-IP': '192.0.2.99',
+    },
+  });
 }
 
 function waitUntilContext() {
@@ -141,7 +145,7 @@ describe('public MAPABA endpoints', () => {
     expect(postResponse.status).toBe(400);
   });
 
-  it('creates a registration with the established response and a private tracking projection', async () => {
+  it('returns a private random tracking code and only reveals status when that code is presented', async () => {
     const wave = await insertWave({ fee: 65000 });
     const payload = registration();
     const response = await callWorker(registrationRequest(payload));
@@ -153,22 +157,50 @@ describe('public MAPABA endpoints', () => {
       data: {
         nomorRegistrasi: new RegExp(`^MPB-${wave.year}-\\d{4}$`),
         status: 'menunggu',
+        kodePelacakan: expect.stringMatching(/^[0-9a-f-]{36}$/),
         biaya: 65000,
         pesan: expect.any(String),
       },
     });
 
-    const tracking = await worker.fetch(trackingRequest(result.data.nomorRegistrasi), testEnv());
+    const stored = await env.DB.prepare(
+      'SELECT tracking_token_hash FROM mapaba_pendaftar WHERE nomor_registrasi = ?'
+    )
+      .bind(result.data.nomorRegistrasi)
+      .first();
+    expect(stored.tracking_token_hash).toMatch(/^[a-f0-9]{64}$/);
+    expect(stored.tracking_token_hash).not.toBe(result.data.kodePelacakan);
+
+    const tracking = await worker.fetch(trackingRequest(result.data.kodePelacakan), testEnv());
     const publicData = (await tracking.json()).data;
     expect(tracking.status).toBe(200);
-    expect(publicData).toMatchObject({
-      nomorRegistrasi: result.data.nomorRegistrasi,
-      namaLengkap: payload.namaLengkap,
-      status: 'menunggu',
-    });
-    for (const field of ['nim', 'email', 'whatsapp', 'motivasi', 'pasFotoId', 'ktmId']) {
-      expect(publicData).not.toHaveProperty(field);
-    }
+    expect(publicData).toEqual({ status: 'menunggu' });
+    expect(JSON.stringify(publicData)).not.toContain(payload.namaLengkap);
+  });
+
+  it('does not reveal tracking status using a sequential registration number or an invalid code', async () => {
+    await insertWave();
+    const response = await callWorker(registrationRequest(registration()));
+    const created = (await response.json()).data;
+
+    const numberLookup = await worker.fetch(
+      new Request(
+        `https://worker.example/api/v1/mapaba/pendaftaran/${encodeURIComponent(created.nomorRegistrasi)}`
+      ),
+      testEnv()
+    );
+    const invalidCode = await worker.fetch(trackingRequest(crypto.randomUUID()), testEnv());
+    const missingCode = await worker.fetch(
+      new Request('https://worker.example/api/v1/mapaba/pelacakan', {
+        method: 'POST',
+        headers: { 'CF-Connecting-IP': '192.0.2.99' },
+      }),
+      testEnv()
+    );
+
+    expect(numberLookup.status).toBe(404);
+    expect(invalidCode.status).toBe(404);
+    expect(missingCode.status).toBe(401);
   });
 
   it('rejects registration before the opening time and after the closing time', async () => {

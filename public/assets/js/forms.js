@@ -195,6 +195,13 @@
       ticket.textContent = payload.data.nomorTiket || payload.data.nomorRegistrasi || '—';
     }
 
+    const trackingCode = panel.querySelector('[data-tracking-code]');
+    const trackingCodeWrap = panel.querySelector('[data-tracking-code-wrap]');
+    if (trackingCode && payload?.data?.kodePelacakan) {
+      trackingCode.textContent = payload.data.kodePelacakan;
+      if (trackingCodeWrap) trackingCodeWrap.hidden = false;
+    }
+
     form.closest('[data-form-wrapper]')?.classList.add('hidden');
     panel.hidden = false;
     panel.scrollIntoView({ behavior: 'smooth', block: 'center' });

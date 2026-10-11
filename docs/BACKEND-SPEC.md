@@ -229,7 +229,7 @@ pengaturan lokal, dan endpoint lengkap dijelaskan pada bagian
 | --- | --- | --- |
 | GET | `/mapaba/gelombang-aktif` | publik |
 | POST | `/mapaba/pendaftaran` | publik (maks. 10 per IP per jam) |
-| GET | `/mapaba/pendaftaran/:nomor` | publik |
+| POST | `/mapaba/pelacakan` | publik (kode rahasia, maks. 30 per IP per jam) |
 | GET | `/mapaba/admin/pendaftar` | panitia_mapaba / superadmin |
 | PATCH | `/mapaba/admin/pendaftar/:id` | panitia_mapaba / superadmin |
 
@@ -255,7 +255,14 @@ POST /api/v1/mapaba/pendaftaran
 }
 ```
 
-**Respons 201** → `{ "nomorRegistrasi": "MPB-2026-0001", "status": "menunggu", "biaya": 75000 }`
+**Respons 201** menyertakan `nomorRegistrasi`, `status`, `biaya`, `pesan`, dan
+`kodePelacakan`. Kode acak rahasia ditampilkan hanya pada respons pendaftaran
+berhasil; server menyimpan hash-nya. Simpan kode tersebut karena tidak dapat
+dipulihkan kemudian.
+
+Untuk memeriksa status, kirim `POST /api/v1/mapaba/pelacakan` dengan
+`Authorization: Bearer <kodePelacakan>`. Respons hanya berisi `{ "status":
+"menunggu" }`; nomor registrasi saja tidak dapat dipakai untuk pelacakan.
 
 **Aturan bisnis**
 
@@ -444,7 +451,7 @@ Prefix semua endpoint adalah `/api/v1`:
 | GET | `/health` | Publik | Health check Worker |
 | GET | `/mapaba/gelombang-aktif` | Publik | Gelombang aktif dan kuota |
 | POST | `/mapaba/pendaftaran` | Publik | Pendaftaran, maksimal 10 permintaan/IP/jam |
-| GET | `/mapaba/pendaftaran/:nomor` | Publik | Pelacakan dengan data minimum |
+| POST | `/mapaba/pelacakan` | Publik | Status saja; wajib kode rahasia di Bearer header, maks. 30/IP/jam |
 | POST | `/upload` | Publik terbatas | Upload JPEG/PNG/WebP, maksimal 3 MiB |
 | GET | `/mapaba/admin/ringkasan` | Bearer `ADMIN_TOKEN` | Total, status, dan sisa kuota D1 |
 | GET | `/mapaba/admin/pendaftar` | Bearer `ADMIN_TOKEN` | Filter `gelombangId`, `status`, `q`, `page`, `limit` |
@@ -456,6 +463,12 @@ MAPABA masih berada di panel admin lama, kemudian meminta token Worker; token
 Worker hanya disimpan di `sessionStorage`, dikirim sebagai
 `Authorization: Bearer`, dan dihapus saat logout. Jangan masukkan token ke
 `config.js`, URL, HTML, atau Git.
+
+Jika `mapabaApiBaseUrl` kosong, halaman admin MAPABA memakai API Express dan
+sesi JWT panel yang sudah ada, termasuk membuka URL berkas lama secara langsung.
+Token Worker tidak dikirim ke backend Express. URL berkas hanya diterima dari
+endpoint `/uploads/mapaba/` pada origin API, Cloudinary, Amazon S3, atau origin
+CDN kustom eksplisit pada `mapabaFileOrigins` di konfigurasi frontend.
 
 ### Pengembangan lokal
 

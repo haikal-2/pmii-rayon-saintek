@@ -20,11 +20,12 @@
   const workerForm = q('[data-worker-admin-form]');
   const workerTokenInput = q('[data-worker-admin-token]');
   const workerError = q('[data-worker-admin-error]');
-  let workerToken = sessionStorage.getItem(WORKER_TOKEN_KEY) || '';
+  let workerToken = WORKER_ORIGIN ? sessionStorage.getItem(WORKER_TOKEN_KEY) || '' : '';
 
   const state = { status: '', q: '', page: 1, limit: 20, total: 0, totalPage: 1, baris: [] };
 
   async function workerApi(path, options = {}) {
+    if (!WORKER_ORIGIN) return A.api(path, options);
     if (!workerToken) throw new Error('Masukkan token akses MAPABA Worker.');
 
     let response;
@@ -142,9 +143,36 @@
       </tr>`;
   }
 
+  function isLegacyMapabaFileUrl(value) {
+    let url;
+    try {
+      url = new URL(value);
+    } catch {
+      return false;
+    }
+    if (url.username || url.password) return false;
+
+    const apiOrigin = new URL(
+      CONFIG.apiBaseUrl || window.location.origin,
+      window.location.origin
+    ).origin;
+    if (url.origin === apiOrigin && url.pathname.startsWith('/uploads/mapaba/')) return true;
+    if (url.protocol !== 'https:' || !url.pathname.includes('/mapaba/')) return false;
+
+    if (
+      url.hostname === 'res.cloudinary.com' ||
+      /(?:^|\.)s3(?:[.-][a-z0-9-]+)?\.amazonaws\.com$/i.test(url.hostname)
+    ) {
+      return true;
+    }
+
+    return Array.isArray(CONFIG.mapabaFileOrigins) &&
+      CONFIG.mapabaFileOrigins.includes(url.origin);
+  }
+
   async function muat() {
     tabel.innerHTML = '<tr><td class="admin-td text-slate-500" colspan="7">Memuat data pendaftar…</td></tr>';
-    if (!workerToken) {
+    if (WORKER_ORIGIN && !workerToken) {
       tabel.innerHTML = '<tr><td class="admin-td text-slate-500" colspan="7">Masukkan token Worker untuk memuat data.</td></tr>';
       return false;
     }
@@ -174,7 +202,7 @@
       return true;
     } catch (error) {
       if (error.status === 401) clearWorkerToken();
-      showWorkerError(error.message);
+      if (WORKER_ORIGIN) showWorkerError(error.message);
       tabel.innerHTML = `<tr><td class="admin-td text-red-600" colspan="7">${A.escapeHtml(error.message)}</td></tr>`;
       return false;
     }
@@ -182,19 +210,27 @@
 
   async function muatRingkasan() {
     try {
-      const { data: ringkasan } = await workerApi('/mapaba/admin/ringkasan');
+      const { data } = await workerApi(
+        WORKER_ORIGIN ? '/mapaba/admin/ringkasan' : '/admin/ringkasan'
+      );
+      const ringkasan = WORKER_ORIGIN ? data : data.mapaba;
       q('[data-stat-total]').textContent = ringkasan.total ?? 0;
       q('[data-stat-menunggu]').textContent = ringkasan.menunggu ?? 0;
       q('[data-stat-diterima]').textContent = ringkasan.terverifikasi ?? 0;
-      q('[data-stat-kuota]').textContent = ringkasan.sisaKuota ?? '—';
+      const sisaKuota = WORKER_ORIGIN
+        ? ringkasan.sisaKuota
+        : (await A.api('/mapaba/gelombang-aktif')).data.sisaKuota;
+      q('[data-stat-kuota]').textContent = sisaKuota ?? '—';
     } catch (error) {
       if (error.status === 401) clearWorkerToken();
-      showWorkerError(error.message);
+      if (WORKER_ORIGIN) showWorkerError(error.message);
+      else A.toast(error.message, 'galat');
     }
   }
 
   async function hubungkanWorker(event) {
     event.preventDefault();
+    if (!WORKER_ORIGIN) return;
     workerToken = workerTokenInput?.value.trim() || '';
     showWorkerError('');
     if (!workerToken) {
@@ -287,6 +323,21 @@
   }
 
   async function bukaBerkas(path) {
+    if (!WORKER_ORIGIN) {
+      if (!isLegacyMapabaFileUrl(path)) {
+        A.toast('Referensi berkas tidak valid.', 'galat');
+        return;
+      }
+      const tab = window.open('about:blank', '_blank');
+      if (!tab) {
+        A.toast('Izinkan tab baru untuk membuka berkas.', 'galat');
+        return;
+      }
+      tab.opener = null;
+      tab.location.href = path;
+      return;
+    }
+
     if (!/^\/api\/v1\/mapaba\/admin\/files\/[A-Fa-f0-9-]{36}$/.test(path)) {
       A.toast('Referensi berkas tidak valid.', 'galat');
       return;
@@ -383,7 +434,12 @@
   }
 
   pasangPeristiwa();
-  if (workerToken) {
+  if (WORKER_ORIGIN && workerToken) {
+    if (workerForm) workerForm.hidden = true;
+    muat().then((loaded) => {
+      if (loaded) muatRingkasan();
+    });
+  } else if (!WORKER_ORIGIN) {
     if (workerForm) workerForm.hidden = true;
     muat().then((loaded) => {
       if (loaded) muatRingkasan();

@@ -1,7 +1,7 @@
 import {
   createRegistration,
   getActiveWave,
-  getRegistrationByNumber,
+  getRegistrationByTrackingToken,
   getUpload,
 } from '../lib/db.js';
 import { ApiError, errorResponse, jsonResponse } from '../lib/http.js';
@@ -26,6 +26,17 @@ function tooManyResponse(retryAfter) {
   );
   response.headers.set('Retry-After', String(retryAfter));
   return response;
+}
+
+function trackingTooManyResponse(retryAfter) {
+  const response = errorResponse(429, 'Terlalu banyak percobaan pelacakan. Coba lagi nanti.');
+  response.headers.set('Retry-After', String(retryAfter));
+  return response;
+}
+
+async function hashTrackingToken(token) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 function openingError(wave, now) {
@@ -104,7 +115,9 @@ async function submitRegistration(request, env, ctx) {
   if (wave.sisaKuota <= 0) return conflictResponse('Kuota peserta sudah terpenuhi.');
 
   try {
-    const created = await createRegistration(env.DB, wave, data, now);
+    const kodePelacakan = crypto.randomUUID();
+    const trackingTokenHash = await hashTrackingToken(kodePelacakan);
+    const created = await createRegistration(env.DB, wave, data, trackingTokenHash, now);
     if (!created) return failedRegistrationResponse(env.DB, wave, data, now);
 
     const notificationData = {
@@ -118,6 +131,7 @@ async function submitRegistration(request, env, ctx) {
       {
         nomorRegistrasi: created.nomorRegistrasi,
         status: created.status,
+        kodePelacakan,
         biaya: wave.biaya,
         pesan:
           'Pendaftaran diterima. Panitia akan menghubungi kamu melalui WhatsApp untuk verifikasi ' +
@@ -158,15 +172,23 @@ export async function handleMapabaPublic(request, env, ctx) {
     return submitRegistration(request, env, ctx);
   }
 
-  const match = /^\/api\/v1\/mapaba\/pendaftaran\/([^/]+)$/.exec(url.pathname);
-  if (request.method === 'GET' && match) {
-    let number;
-    try {
-      number = decodeURIComponent(match[1]);
-    } catch {
-      return errorResponse(400, 'Nomor registrasi tidak valid.');
-    }
-    const registration = await getRegistrationByNumber(env.DB, number);
+  if (request.method === 'POST' && url.pathname === '/api/v1/mapaba/pelacakan') {
+    const rateLimit = await checkRateLimit(
+      env,
+      'mapaba-tracking',
+      request.headers.get('CF-Connecting-IP'),
+      30,
+      60 * 60
+    );
+    if (!rateLimit.allowed) return trackingTooManyResponse(rateLimit.retryAfter);
+
+    const match = /^Bearer\s+(\S+)$/i.exec(request.headers.get('Authorization') || '');
+    if (!match) return errorResponse(401, 'Kode pelacakan wajib disertakan.');
+
+    const registration = await getRegistrationByTrackingToken(
+      env.DB,
+      await hashTrackingToken(match[1])
+    );
     if (!registration) return errorResponse(404, 'Nomor registrasi tidak ditemukan.');
     return jsonResponse(registration);
   }

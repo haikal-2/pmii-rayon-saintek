@@ -3,19 +3,6 @@ const REGISTRATION_FIELDS = {
   catatanAdmin: 'catatan_admin',
 };
 
-function mapPublicRegistration(row) {
-  if (!row) return null;
-
-  return {
-    nomorRegistrasi: row.nomorRegistrasi,
-    namaLengkap: row.namaLengkap,
-    fakultas: row.fakultas,
-    prodi: row.prodi,
-    status: row.status,
-    dibuatPada: row.dibuatPada,
-  };
-}
-
 function mapAdminRegistration(row) {
   return {
     id: row.id,
@@ -82,25 +69,20 @@ export async function getActiveWave(db, now = new Date()) {
   };
 }
 
-export async function getRegistrationByNumber(db, nomor) {
+export async function getRegistrationByTrackingToken(db, tokenHash) {
   const row = await db
     .prepare(
-      `SELECT nomor_registrasi AS nomorRegistrasi,
-              nama_lengkap AS namaLengkap,
-              fakultas,
-              prodi,
-              status,
-              created_at AS dibuatPada
+      `SELECT status
        FROM mapaba_pendaftar
-       WHERE nomor_registrasi = ?`
+       WHERE tracking_token_hash = ?`
     )
-    .bind(nomor)
+    .bind(tokenHash)
     .first();
 
-  return mapPublicRegistration(row);
+  return row || null;
 }
 
-export async function createRegistration(db, wave, data, now = new Date()) {
+export async function createRegistration(db, wave, data, trackingTokenHash, now = new Date()) {
   const nowIso = now.toISOString();
   const claimToken = crypto.randomUUID();
   const pasFotoId = data.pasFotoUrl?.split('/').at(-1) || null;
@@ -164,10 +146,10 @@ export async function createRegistration(db, wave, data, now = new Date()) {
            (nomor_registrasi, gelombang_id, nama_lengkap, nim, angkatan, universitas,
             fakultas, prodi, jenis_kelamin, whatsapp, email, asal_daerah, motivasi,
             riwayat_organisasi, sumber_informasi, pas_foto_id, ktm_id, kesediaan,
-            persetujuan_data, status, created_at, updated_at)
+            persetujuan_data, status, created_at, updated_at, tracking_token_hash)
          SELECT
            'MPB-' || printf('%04d', ?) || '-' || printf('%04d', c.nilai + 1),
-           g.id, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 'menunggu', ?, ?
+           g.id, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 'menunggu', ?, ?, ?
          FROM counters c
          JOIN mapaba_gelombang g ON g.id = ?
          WHERE c.nama = 'mapaba' AND c.tahun = ? AND c.nilai < 9999
@@ -210,6 +192,7 @@ export async function createRegistration(db, wave, data, now = new Date()) {
         ktmId,
         nowIso,
         nowIso,
+        trackingTokenHash,
         wave.id,
         wave.tahun,
         nowIso,

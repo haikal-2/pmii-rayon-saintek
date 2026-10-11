@@ -2,7 +2,7 @@ import { env } from 'cloudflare:test';
 import { describe, expect, it } from 'vitest';
 import {
   getActiveWave,
-  getRegistrationByNumber,
+  getRegistrationByTrackingToken,
   getUpload,
   listRegistrations,
   updateRegistration,
@@ -25,6 +25,7 @@ async function insertFixtureRegistration(overrides = {}) {
     nim: String(Date.now() + sequence),
     name: `Peserta ${suffix}`,
     status: 'menunggu',
+    trackingTokenHash: `tracking-hash-${sequence}`,
     ...overrides,
   };
 
@@ -33,18 +34,19 @@ async function insertFixtureRegistration(overrides = {}) {
        (nomor_registrasi, gelombang_id, nama_lengkap, nim, angkatan, universitas,
         fakultas, prodi, jenis_kelamin, whatsapp, email, asal_daerah, motivasi,
         riwayat_organisasi, sumber_informasi, pas_foto_id, ktm_id, kesediaan,
-        persetujuan_data, status, catatan_admin)
+        persetujuan_data, status, catatan_admin, tracking_token_hash)
      VALUES (?, ?, ?, ?, 2099, 'UIN Sunan Gunung Djati Bandung', 'Sains dan Teknologi',
              'Informatika', 'P', '08123456789', 'private@example.test', NULL,
              'Motivasi fixture yang cukup panjang untuk melewati validasi.', NULL, NULL,
-             NULL, NULL, 1, 1, ?, NULL)`
+             NULL, NULL, 1, 1, ?, NULL, ?)`
   )
     .bind(
       registration.number,
       waveId,
       registration.name,
       registration.nim,
-      registration.status
+      registration.status,
+      registration.trackingTokenHash
     )
     .run();
 
@@ -66,22 +68,14 @@ describe('MAPABA D1 repository', () => {
     });
   });
 
-  it('stores registrations but exposes only the public tracking projection', async () => {
+  it('looks up registrations by their tracking credential and reveals only status', async () => {
     const fixture = await insertFixtureRegistration();
-    const row = await getRegistrationByNumber(env.DB, fixture.number);
-
-    expect(row).toMatchObject({
-      nomorRegistrasi: fixture.number,
-      namaLengkap: fixture.name,
-      fakultas: 'Sains dan Teknologi',
-      prodi: 'Informatika',
-      status: 'menunggu',
-    });
-    expect(row).toHaveProperty('dibuatPada');
-    expect(row).not.toHaveProperty('nim');
-    expect(row).not.toHaveProperty('email');
-    expect(row).not.toHaveProperty('whatsapp');
-    expect(row).not.toHaveProperty('motivasi');
+    await expect(
+      getRegistrationByTrackingToken(env.DB, fixture.trackingTokenHash)
+    ).resolves.toEqual({ status: 'menunggu' });
+    await expect(
+      getRegistrationByTrackingToken(env.DB, 'invalid-tracking-hash')
+    ).resolves.toBeNull();
   });
 
   it('rejects a duplicate NIM within the same wave', async () => {

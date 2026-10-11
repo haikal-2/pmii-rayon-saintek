@@ -68,7 +68,7 @@ digunakan frontend.
 | `GET` | `/health` | Publik | Pemeriksaan kesiapan Worker dan D1 |
 | `GET` | `/mapaba/gelombang-aktif` | Publik | Detail gelombang aktif dan sisa kuota |
 | `POST` | `/mapaba/pendaftaran` | Publik | Validasi dan pembuatan pendaftaran |
-| `GET` | `/mapaba/pendaftaran/:nomor` | Publik | Status pendaftaran tanpa membuka data pribadi |
+| `POST` | `/mapaba/pelacakan` | Publik | Status saja; memerlukan kode pelacakan rahasia pada Bearer header |
 | `POST` | `/upload` | Publik terbatas | Unggah pas foto/KTM ke Cloudinary privat |
 | `GET` | `/mapaba/admin/ringkasan` | Token Worker | Ringkasan total/status/kuota yang dihitung dari D1 |
 | `GET` | `/mapaba/admin/pendaftar` | Token Worker | Daftar pendaftar dengan filter dan paginasi |
@@ -87,10 +87,12 @@ Kontrak JSON pendaftaran tetap memakai field yang sudah ada, termasuk
 `persetujuanData`, dan `captchaToken`.
 
 Respons validasi memakai `{ ok: false, message, errors }` dengan nama field
-frontend sebagai kunci `errors`. Respons pendaftaran sukses tetap
-mengembalikan `nomorRegistrasi`, `status`, `biaya`, dan `pesan`. Endpoint
-pelacakan publik hanya mengembalikan informasi minimum yang diperlukan untuk
-mengecek status.
+frontend sebagai kunci `errors`. Respons pendaftaran sukses mengembalikan
+`nomorRegistrasi`, `status`, `biaya`, `pesan`, dan sebuah kode pelacakan acak
+yang hanya ditampilkan sekali. D1 hanya menyimpan hash kode. Pelacakan memakai
+`POST /mapaba/pelacakan` dengan `Authorization: Bearer <kodePelacakan>` dan
+hanya mengembalikan status; nomor registrasi berurutan tidak bisa digunakan
+untuk menebak atau mengambil informasi pendaftar.
 
 ### D1 dan konsistensi pendaftaran
 
