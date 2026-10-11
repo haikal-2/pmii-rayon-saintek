@@ -114,6 +114,23 @@ export async function getUpload(db, id) {
   return row || null;
 }
 
+export async function createUpload(db, upload) {
+  return db
+    .prepare(
+      `INSERT INTO mapaba_uploads
+         (id, cloudinary_public_id, format, mime, ukuran_byte)
+       VALUES (?, ?, ?, ?, ?)`
+    )
+    .bind(
+      upload.id,
+      upload.cloudinaryPublicId,
+      upload.format,
+      upload.mime,
+      upload.sizeBytes
+    )
+    .run();
+}
+
 export async function listRegistrations(db, filters = {}) {
   const conditions = [];
   const values = [];
