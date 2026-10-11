@@ -1,4 +1,5 @@
 import { ApiError, errorResponse, jsonResponse } from './lib/http.js';
+import { handleMapabaAdmin } from './routes/mapaba-admin.js';
 import { handleMapabaPublic } from './routes/mapaba.js';
 import { handleUpload } from './routes/upload.js';
 
@@ -54,6 +55,9 @@ async function routeRequest(request, env, ctx) {
   }
   if (request.method === 'POST' && url.pathname === '/api/v1/upload') {
     return handleUpload(request, env);
+  }
+  if (url.pathname === '/api/v1/mapaba/admin' || url.pathname.startsWith('/api/v1/mapaba/admin/')) {
+    return handleMapabaAdmin(request, env, ctx);
   }
   if (url.pathname.startsWith('/api/v1/mapaba/')) {
     const response = await handleMapabaPublic(request, env, ctx);

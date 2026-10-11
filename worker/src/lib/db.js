@@ -267,28 +267,7 @@ export async function createUpload(db, upload) {
 }
 
 export async function listRegistrations(db, filters = {}) {
-  const conditions = [];
-  const values = [];
-
-  if (filters.gelombangId !== undefined) {
-    conditions.push('gelombang_id = ?');
-    values.push(filters.gelombangId);
-  }
-  if (filters.status) {
-    conditions.push('status = ?');
-    values.push(filters.status);
-  }
-
-  const search = String(filters.q ?? filters.search ?? '').trim();
-  if (search) {
-    conditions.push(
-      '(nomor_registrasi LIKE ? OR nama_lengkap LIKE ? OR nim LIKE ? OR email LIKE ?)'
-    );
-    const pattern = `%${search}%`;
-    values.push(pattern, pattern, pattern, pattern);
-  }
-
-  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const { where, values } = registrationFilters(filters);
   const limit = Number.isFinite(Number(filters.limit))
     ? Math.min(200, Math.max(1, Math.trunc(Number(filters.limit))))
     : 50;
@@ -331,6 +310,124 @@ export async function listRegistrations(db, filters = {}) {
   return (result.results || []).map(mapAdminRegistration);
 }
 
+function registrationFilters(filters = {}) {
+  const conditions = [];
+  const values = [];
+
+  if (filters.gelombangId !== undefined) {
+    conditions.push('gelombang_id = ?');
+    values.push(filters.gelombangId);
+  }
+  if (filters.status) {
+    conditions.push('status = ?');
+    values.push(filters.status);
+  }
+
+  const search = String(filters.q ?? filters.search ?? '').trim();
+  if (search) {
+    conditions.push(
+      '(nomor_registrasi LIKE ? OR nama_lengkap LIKE ? OR nim LIKE ? OR email LIKE ?)'
+    );
+    const pattern = `%${search}%`;
+    values.push(pattern, pattern, pattern, pattern);
+  }
+
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  return { where, values };
+}
+
+export async function countRegistrations(db, filters = {}) {
+  const { where, values } = registrationFilters(filters);
+  const result = await db
+    .prepare(`SELECT COUNT(*) AS total FROM mapaba_pendaftar ${where}`)
+    .bind(...values)
+    .first();
+
+  return Number(result?.total || 0);
+}
+
+export async function getMapabaAdminSummary(db) {
+  const totals = await db
+    .prepare(
+      `SELECT COUNT(*) AS total,
+              COALESCE(SUM(CASE WHEN status = 'menunggu' THEN 1 ELSE 0 END), 0) AS menunggu,
+              COALESCE(SUM(CASE WHEN status = 'terverifikasi' THEN 1 ELSE 0 END), 0)
+                AS terverifikasi
+       FROM mapaba_pendaftar`
+    )
+    .first();
+  const activeWave = await db
+    .prepare(
+      `SELECT MAX(0, g.kuota - COUNT(CASE WHEN p.status <> 'batal' THEN p.id END))
+                AS sisaKuota
+       FROM mapaba_gelombang g
+       LEFT JOIN mapaba_pendaftar p ON p.gelombang_id = g.id
+       WHERE g.is_aktif = 1
+       GROUP BY g.id
+       ORDER BY g.tahun DESC, g.id DESC
+       LIMIT 1`
+    )
+    .first();
+
+  return {
+    total: Number(totals?.total || 0),
+    menunggu: Number(totals?.menunggu || 0),
+    terverifikasi: Number(totals?.terverifikasi || 0),
+    sisaKuota: activeWave ? Number(activeWave.sisaKuota) : null,
+  };
+}
+
+export async function getAdminRegistration(db, id) {
+  const result = await db
+    .prepare(
+      `SELECT id,
+              nomor_registrasi AS nomorRegistrasi,
+              gelombang_id AS gelombangId,
+              nama_lengkap AS namaLengkap,
+              nim,
+              angkatan,
+              universitas,
+              fakultas,
+              prodi,
+              jenis_kelamin AS jenisKelamin,
+              whatsapp,
+              email,
+              asal_daerah AS asalDaerah,
+              motivasi,
+              riwayat_organisasi AS riwayatOrganisasi,
+              sumber_informasi AS sumberInformasi,
+              pas_foto_id AS pasFotoId,
+              ktm_id AS ktmId,
+              status,
+              catatan_admin AS catatanAdmin,
+              created_at AS createdAt,
+              updated_at AS updatedAt
+       FROM mapaba_pendaftar
+       WHERE id = ?`
+    )
+    .bind(id)
+    .first();
+
+  return mapAdminRegistration(result);
+}
+
+export async function isMapabaUploadAttached(db, id) {
+  const result = await db
+    .prepare(
+      `SELECT 1 AS attached
+       FROM mapaba_uploads u
+       WHERE u.id = ?
+         AND EXISTS (
+           SELECT 1 FROM mapaba_pendaftar p
+           WHERE p.pas_foto_id = u.id OR p.ktm_id = u.id
+         )`
+    )
+    .bind(id)
+    .first();
+
+  return Boolean(result);
+}
+
 export async function updateRegistration(db, id, changes, actor) {
   const entries = Object.entries(changes || {}).filter(([field]) =>
     Object.hasOwn(REGISTRATION_FIELDS, field)
@@ -355,7 +452,13 @@ export async function updateRegistration(db, id, changes, actor) {
        WHERE EXISTS (SELECT 1 FROM mapaba_pendaftar WHERE id = ?)`
     )
     .bind(safeActor, String(id), metadata, id);
-  const [result] = await db.batch([update, audit]);
+  const previousStatus = db
+    .prepare('SELECT status FROM mapaba_pendaftar WHERE id = ?')
+    .bind(id);
+  const [previous, result] = await db.batch([previousStatus, update, audit]);
 
-  return { changes: Number(result.meta?.changes || 0) };
+  return {
+    changes: Number(result.meta?.changes || 0),
+    previousStatus: previous.results?.[0]?.status || null,
+  };
 }
