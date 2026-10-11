@@ -70,9 +70,15 @@ digunakan frontend.
 | `POST` | `/mapaba/pendaftaran` | Publik | Validasi dan pembuatan pendaftaran |
 | `GET` | `/mapaba/pendaftaran/:nomor` | Publik | Status pendaftaran tanpa membuka data pribadi |
 | `POST` | `/upload` | Publik terbatas | Unggah pas foto/KTM ke Cloudinary privat |
+| `GET` | `/mapaba/admin/ringkasan` | Token Worker | Ringkasan total/status/kuota yang dihitung dari D1 |
 | `GET` | `/mapaba/admin/pendaftar` | Token Worker | Daftar pendaftar dengan filter dan paginasi |
 | `PATCH` | `/mapaba/admin/pendaftar/:id` | Token Worker | Ubah status/catatan dan tulis audit |
 | `GET` | `/mapaba/admin/files/:id` | Token Worker | Proxy berkas privat ke admin terautentikasi |
+
+Respons ringkasan admin mengembalikan `total`, `menunggu`, `terverifikasi`, dan
+`sisaKuota` dari D1. Kartu statistik pada halaman admin MAPABA harus
+menggunakan ringkasan ini, bukan ringkasan Express, agar jumlah sesuai dengan
+daftar pendaftar yang sedang dikelola Worker.
 
 Kontrak JSON pendaftaran tetap memakai field yang sudah ada, termasuk
 `namaLengkap`, `nim`, `angkatan`, `universitas`, `fakultas`, `prodi`,
