@@ -1,4 +1,4 @@
-import { errorResponse, jsonResponse } from './lib/http.js';
+import { ApiError, errorResponse, jsonResponse } from './lib/http.js';
 
 const ALLOWED_METHODS = ['GET', 'POST', 'PATCH', 'OPTIONS'];
 const ALLOWED_HEADERS = ['authorization', 'content-type'];
@@ -63,14 +63,23 @@ export default {
       return errorResponse(403, 'Origin tidak diizinkan.');
     }
 
-    if (request.method === 'OPTIONS') {
-      if (!isAllowedPreflight(request)) {
-        return addCorsHeaders(errorResponse(403, 'Preflight tidak diizinkan.'), allowedOrigin);
+    try {
+      if (request.method === 'OPTIONS') {
+        if (!isAllowedPreflight(request)) {
+          return addCorsHeaders(errorResponse(403, 'Preflight tidak diizinkan.'), allowedOrigin);
+        }
+
+        return addCorsHeaders(new Response(null, { status: 204 }), allowedOrigin, true);
       }
 
-      return addCorsHeaders(new Response(null, { status: 204 }), allowedOrigin, true);
-    }
+      return addCorsHeaders(await routeRequest(request), allowedOrigin);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return addCorsHeaders(errorResponse(error.status, error.message, error.errors), allowedOrigin);
+      }
 
-    return addCorsHeaders(await routeRequest(request), allowedOrigin);
+      console.error('[worker] unhandled request failure:', error?.name || 'Error');
+      return addCorsHeaders(errorResponse(500, 'Terjadi kesalahan internal.'), allowedOrigin);
+    }
   },
 };

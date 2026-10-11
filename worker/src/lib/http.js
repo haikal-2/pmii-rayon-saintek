@@ -1,3 +1,12 @@
+export class ApiError extends Error {
+  constructor(status, message, errors) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.errors = errors;
+  }
+}
+
 export function jsonResponse(data, status = 200, meta) {
   const body = { ok: true, data };
   if (meta !== undefined) body.meta = meta;
