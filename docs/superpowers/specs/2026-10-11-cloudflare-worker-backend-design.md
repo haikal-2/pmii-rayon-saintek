@@ -109,6 +109,8 @@ Tahap pertama menggunakan secret `ADMIN_TOKEN` pada Worker. Admin mengisi token
 di halaman MAPABA admin; token hanya disimpan di `sessionStorage` dan dikirim
 melalui header `Authorization: Bearer`. Worker membandingkan token dengan cara
 constant-time dan hanya membuka endpoint admin MAPABA bagi token yang sah.
+Logout dari panel admin menghapus token Express dan token Worker dari
+`sessionStorage`.
 
 Login Express berbasis email/kata sandi dan token JWT tetap dipakai layanan
 Express lain selama migrasi. Halaman MAPABA admin untuk sementara memakai token
@@ -191,6 +193,8 @@ batas tanggung jawab dan kontrak pada desain ini tetap dipenuhi.
   MAPABA ke Worker, tanpa mengalihkan upload admin Express yang belum dipindah.
 - `public/assets/js/admin-mapaba.js` dan `src/pages/admin-mapaba.html` — token
   Worker transisi, endpoint daftar/status, dan akses berkas privat.
+- `public/assets/js/admin.js` — hapus token Worker saat logout bersama token
+  Express yang sudah dibersihkan.
 - `docs/BACKEND-SPEC.md` dan `docs/DEPLOYMENT.md` — menjelaskan kedua backend,
   setup lokal, konfigurasi Cloudflare/Cloudinary, migrasi D1, dan urutan cutover.
 
@@ -210,9 +214,10 @@ database produksi dan tidak ada deploy produksi.
    motivasi, atau URL berkas privat.
 5. Tes memastikan hanya admin Worker yang dapat mengunduh berkas privat; URL
    Cloudinary dan secret provider tidak muncul pada respons maupun frontend.
-6. `npm test` tetap lulus untuk backend Express yang dipertahankan.
-7. `npm run build` tetap menghasilkan frontend statis yang valid.
-8. Petunjuk deploy menjelaskan binding dan secrets yang dibutuhkan tanpa
+6. Logout panel admin menghapus token Worker dari `sessionStorage`.
+7. `npm test` tetap lulus untuk backend Express yang dipertahankan.
+8. `npm run build` tetap menghasilkan frontend statis yang valid.
+9. Petunjuk deploy menjelaskan binding dan secrets yang dibutuhkan tanpa
    menyertakan nilai secret.
 
 Tidak ada data lama yang dianggap berhasil dimigrasikan. D1 harus berisi
