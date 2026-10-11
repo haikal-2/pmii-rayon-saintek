@@ -209,7 +209,132 @@ window.PMII_CONFIG = {
 
 ---
 
-## 4. Penyimpanan Berkas
+## 4. Cloudflare Worker MAPABA
+
+Worker memindahkan layanan MAPABA secara bertahap; Express tetap berjalan untuk
+Advokasi dan layanan lainnya. Langkah ini terpisah dari deployment Vercel/Render
+di atas. Jangan menjalankannya sebelum akun Cloudflare dan kredensial provider
+disiapkan. `worker/wrangler.jsonc` saat ini memuat ID D1 placeholder nol; ganti
+dengan ID database yang dibuat untuk akun Anda sebelum perintah remote.
+
+### Uji lokal
+
+Jalankan dari root repo:
+
+```bash
+cd worker
+npm ci
+cp .dev.vars.example .dev.vars
+npm run db:migrate:local
+npm run db:seed:local
+npm test
+npm run dev
+```
+
+Wrangler menyajikan Worker pada `http://localhost:8787`. Front-end lokal di
+`http://localhost:4321` diizinkan oleh konfigurasi lokal. Isi `.dev.vars` dengan
+nilai lokal; berkas ini diabaikan Git. Seed hanya membuat gelombang pengujian
+lokal, bukan data produksi.
+
+Untuk menguji cutover lokal, set `mapabaApiBaseUrl: 'http://localhost:8787'`
+pada `public/assets/js/config.js`, lalu jalankan `npm run build`. Pertahankan
+`apiBaseUrl` untuk Express. Jika `mapabaApiBaseUrl` kosong, endpoint formulir
+MAPABA masih memakai backend Express.
+
+### Buat dan migrasikan D1 produksi
+
+Langkah berikut **belum dijalankan** pada repository ini. Jalankan hanya setelah
+memilih akun Cloudflare, region, domain, dan database produksi yang benar:
+
+```bash
+cd worker
+npx wrangler d1 create pmii-rayon-saintek
+```
+
+Salin `database_id` yang dikembalikan ke binding `DB` pada
+`worker/wrangler.jsonc`; jangan gunakan ID nol atau ID contoh. Setelah
+memastikan akun dan database sasaran:
+
+```bash
+npx wrangler d1 migrations apply pmii-rayon-saintek --remote
+```
+
+Perintah tersebut hanya membuat schema; ia tidak mengimpor SQLite. **Jangan**
+menjalankan `db:seed:local` untuk database remote. Buat gelombang pertama secara
+terencana setelah migration selesai, lalu periksa endpoint gelombang aktif
+sebelum mengalihkan form.
+
+### Worker secrets dan vars
+
+Jangan menaruh secret di `wrangler.jsonc`, `public/assets/js/config.js`, HTML,
+atau Git. Isi secrets melalui Cloudflare Dashboard atau perintah Wrangler
+interaktif berikut dari `worker/`:
+
+```bash
+npx wrangler secret put ADMIN_TOKEN
+npx wrangler secret put RATE_LIMIT_SECRET
+npx wrangler secret put CLOUDINARY_CLOUD_NAME
+npx wrangler secret put CLOUDINARY_API_KEY
+npx wrangler secret put CLOUDINARY_API_SECRET
+npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put CAPTCHA_SECRET_KEY
+npx wrangler secret put WA_API_TOKEN
+npx wrangler secret put GOOGLE_SHEETS_MAPABA_WEBHOOK_URL
+```
+
+`ADMIN_TOKEN`, `RATE_LIMIT_SECRET`, dan kredensial Cloudinary dibutuhkan untuk
+fitur inti. Resend, CAPTCHA, WhatsApp, dan Google Sheets dapat tidak
+dikonfigurasi bila integrasinya tidak digunakan; provider CAPTCHA yang aktif
+memerlukan `CAPTCHA_SECRET_KEY`. Gunakan token admin acak yang berbeda dari
+token lokal dan simpan bersama pengelola yang berwenang. Token tersebut tidak
+berasal dari login Express.
+
+Isi vars non-rahasia pada `vars` di `worker/wrangler.jsonc` untuk environment
+yang akan dipakai:
+
+```jsonc
+"vars": {
+  "CORS_ORIGINS": "https://www.pmiiuinsgd.site",
+  "CAPTCHA_PROVIDER": "turnstile",
+  "CAPTCHA_MIN_SCORE": "0.5",
+  "CAPTCHA_FAIL_OPEN": "false",
+  "MAPABA_NOTIFY_EMAIL": "panitia@example.org",
+  "MAIL_FROM": "MAPABA <noreply@example.org>",
+  "WA_API_URL": "https://<penyedia-wa-anda>/send",
+  "SITE_URL": "https://www.pmiiuinsgd.site"
+}
+```
+
+Sesuaikan origin CORS dengan origin frontend aktual; jangan gunakan wildcard.
+Alamat pengirim Resend harus diverifikasi provider. Contoh host email/WhatsApp di
+atas adalah placeholder, bukan endpoint aktif. Bila CAPTCHA tidak disiapkan,
+gunakan `CAPTCHA_PROVIDER: "none"` hanya untuk pengembangan; jangan cutover
+pendaftaran produksi tanpa keputusan perlindungan spam.
+
+### Deploy dan cutover manual
+
+Setelah ID D1, vars, secrets, domain CORS, serta gelombang produksi diverifikasi:
+
+```bash
+cd worker
+npx wrangler deploy
+```
+
+Periksa `https://<worker-subdomain>.workers.dev/api/v1/health` dan
+`/api/v1/mapaba/gelombang-aktif`. Atur `mapabaApiBaseUrl` pada
+`public/assets/js/config.js` ke **origin Worker saja** (contoh
+`https://<worker-subdomain>.workers.dev`, tanpa `/api/v1` atau slash akhir),
+kemudian bangun dan deploy front-end. Jangan ubah `apiBaseUrl`: endpoint selain
+MAPABA tetap dilayani Express. Admin MAPABA memerlukan sesi login panel lama
+serta token Worker yang dimasukkan pada halaman admin; logout membersihkan
+keduanya.
+
+Perubahan ini tidak menjalankan deploy, membuat D1 remote, menerapkan migrasi
+remote, mengisi data produksi, atau mengubah URL produksi.
+
+---
+
+## 5. Penyimpanan Berkas
 
 Penyimpanan lokal (`STORAGE_DRIVER=local`) hanya untuk pengembangan. Untuk produksi:
 
@@ -247,7 +372,7 @@ URL bertanda tangan berumur pendek — keduanya dokumen identitas, bukan aset pu
 
 ---
 
-## 5. Backup
+## 6. Backup
 
 SQLite hanya satu berkas, jadi backup ringkas. Pasang sebagai cron harian:
 
@@ -287,7 +412,7 @@ Beberapa jam sebelum ujian serentak:
 
 ---
 
-## 6. Pemantauan
+## 7. Pemantauan
 
 | Kebutuhan | Alat gratis |
 | --- | --- |
@@ -302,10 +427,13 @@ lalu minta pengindeksan halaman Beranda. Ini langkah tercepat agar pencarian
 
 ---
 
-## 7. Daftar Periksa Sebelum Diumumkan
+## 8. Daftar Periksa Sebelum Diumumkan
 
 - [ ] `useMockWhenOffline: false` pada `public/assets/js/config.js`
 - [ ] `apiBaseUrl` menunjuk ke domain API produksi
+- [ ] `mapabaApiBaseUrl` menunjuk ke origin Worker produksi setelah D1/gelombang diverifikasi
+- [ ] `DB` binding memakai database ID D1 produksi yang benar, bukan placeholder
+- [ ] Worker secrets diset melalui Cloudflare dan tidak ada secret di source frontend
 - [ ] `JWT_SECRET` acak dan berbeda dari contoh
 - [ ] Akun contoh dari seeder (`admin@pmiiuinbandung.test`, `BIM-2026-0001`) sudah dihapus
 - [ ] `CORS_ORIGINS` hanya berisi domain produksi
