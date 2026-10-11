@@ -41,6 +41,17 @@ page-->
       </button>
     </header>
 
+    <form class="admin-card mt-6 flex flex-col gap-3 p-4 sm:flex-row sm:items-center"
+      data-worker-admin-form>
+      <div class="min-w-0 flex-1">
+        <label class="label" for="workerAdminToken">Token akses MAPABA Worker</label>
+        <input class="input" id="workerAdminToken" type="password" autocomplete="current-password"
+          required data-worker-admin-token />
+        <p class="mt-2 text-sm text-red-600" role="alert" hidden data-worker-admin-error></p>
+      </div>
+      <button type="submit" class="btn-primary btn-sm">Hubungkan</button>
+    </form>
+
     <!-- Ringkasan status -->
     <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <div class="admin-card p-5">

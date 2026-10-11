@@ -7,6 +7,8 @@
  */
 window.PMII_CONFIG = {
   apiBaseUrl: 'http://localhost:4000',
+  /** Origin Worker MAPABA terpisah; kosong memakai endpoint lama untuk formulir publik. */
+  mapabaApiBaseUrl: '',
   /** Prefix versi API. */
   apiPrefix: '/api/v1',
   /** Jangan tampilkan sukses tiruan saat API tidak tersedia. */

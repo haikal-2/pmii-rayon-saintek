@@ -18,7 +18,15 @@
   'use strict';
 
   const CONFIG = window.PMII_CONFIG || {};
-  const API_BASE = `${CONFIG.apiBaseUrl || ''}${CONFIG.apiPrefix || '/api/v1'}`;
+  const API_PREFIX = CONFIG.apiPrefix || '/api/v1';
+
+  function apiBaseFor(endpoint) {
+    const base =
+      endpoint.startsWith('/mapaba/') && CONFIG.mapabaApiBaseUrl
+        ? CONFIG.mapabaApiBaseUrl
+        : CONFIG.apiBaseUrl || '';
+    return `${base}${API_PREFIX}`;
+  }
 
   const MESSAGES = {
     required: (label) => `${label} wajib diisi.`,
@@ -228,7 +236,7 @@
     setLoading(form, true);
 
     try {
-      const response = await fetch(`${API_BASE}${endpoint}`, {
+      const response = await fetch(`${apiBaseFor(endpoint)}${endpoint}`, {
         method: form.dataset.method || 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify(collect(form)),
