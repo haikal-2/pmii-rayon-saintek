@@ -9,8 +9,8 @@ window.PMII_CONFIG = {
   apiBaseUrl: 'http://localhost:4000',
   /** Prefix versi API. */
   apiPrefix: '/api/v1',
-  /** Tampilkan respons dummy bila API belum tersedia (untuk demo/preview). */
-  useMockWhenOffline: true,
+  /** Jangan tampilkan sukses tiruan saat API tidak tersedia. */
+  useMockWhenOffline: false,
 
   /**
    * Anti-spam pada formulir publik (Advokasi & MAPABA).

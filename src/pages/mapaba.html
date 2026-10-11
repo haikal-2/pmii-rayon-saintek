@@ -201,9 +201,9 @@ page-->
                   </svg>
                 </span>
                 <div>
-                  <h3 class="font-display text-base font-bold text-amber-950">Pendaftaran Belum Dibuka</h3>
-                  <p class="mt-1 text-sm leading-relaxed text-amber-900/85">
-                    Sistem pendaftaran <strong>MAPABA SAINTEK Ke-XVII</strong> saat ini masih ditutup dan akan dibuka secara resmi pada <strong>1 Oktober 2026</strong>. Batas akhir pendaftaran adalah <strong>28 Oktober 2026</strong> (H-3 sebelum pelaksanaan kegiatan pada <strong>31 Oktober 2026</strong>).
+                  <h3 data-registration-title class="font-display text-base font-bold text-amber-950">Pendaftaran Belum Dibuka</h3>
+                  <p data-registration-message class="mt-1 text-sm leading-relaxed text-amber-900/85">
+                    Pendaftaran MAPABA SAINTEK Ke-XVII akan dibuka pada 1 Oktober 2026 dan ditutup pada 28 Oktober 2026.
                   </p>
                 </div>
               </div>
@@ -217,7 +217,7 @@ page-->
               </p>
 
               <!-- POST /api/v1/mapaba/pendaftaran -->
-              <form data-api-form="/mapaba/pendaftaran" data-registration-opens="2026-10-01T00:00:00+07:00" class="mt-8 space-y-6">
+              <form data-api-form="/mapaba/pendaftaran" data-registration-opens="2026-10-01T00:00:00+07:00" data-registration-closes="2026-10-28T23:59:59+07:00" data-registration-opens-label="1 Oktober 2026" data-registration-closes-label="28 Oktober 2026" class="mt-8 space-y-6">
                 <div data-form-alert hidden></div>
 
                 <div class="grid gap-6 sm:grid-cols-2">

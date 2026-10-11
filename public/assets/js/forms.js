@@ -263,17 +263,36 @@
 
   function initRegistrationState(form) {
     const opensAt = Date.parse(form.dataset.registrationOpens || '');
+    const closesAt = Date.parse(form.dataset.registrationCloses || '');
     const button = form.querySelector('[data-submit]');
     const closedBanner = form.closest('[data-form-wrapper]')?.querySelector('[data-registration-closed]');
-    if (!button || Number.isNaN(opensAt)) return;
+    const statusTitle = closedBanner?.querySelector('[data-registration-title]');
+    const statusMessage = closedBanner?.querySelector('[data-registration-message]');
+    if (!button || Number.isNaN(opensAt) || Number.isNaN(closesAt)) return;
 
     const update = () => {
-      const isOpen = Date.now() >= opensAt;
+      const now = Date.now();
+      const isBeforeOpen = now < opensAt;
+      const isOpen = !isBeforeOpen && now <= closesAt;
       button.disabled = !isOpen;
       button.classList.toggle('cursor-not-allowed', !isOpen);
       button.classList.toggle('opacity-60', !isOpen);
       if (closedBanner) closedBanner.hidden = isOpen;
-      if (isOpen) button.textContent = 'Kirim Pendaftaran';
+      if (statusTitle) {
+        statusTitle.textContent = isBeforeOpen ? 'Pendaftaran Belum Dibuka' : 'Pendaftaran Ditutup';
+      }
+      if (statusMessage) {
+        const opensLabel = form.dataset.registrationOpensLabel || 'tanggal pembukaan';
+        const closesLabel = form.dataset.registrationClosesLabel || 'tanggal penutupan';
+        statusMessage.textContent = isBeforeOpen
+          ? `Pendaftaran MAPABA SAINTEK Ke-XVII akan dibuka pada ${opensLabel} dan ditutup pada ${closesLabel}.`
+          : `Pendaftaran MAPABA SAINTEK Ke-XVII telah ditutup pada ${closesLabel}.`;
+      }
+      button.textContent = isOpen
+        ? 'Kirim Pendaftaran'
+        : isBeforeOpen
+          ? `Pendaftaran Dibuka ${form.dataset.registrationOpensLabel || ''}`.trim()
+          : 'Pendaftaran Ditutup';
     };
 
     update();
