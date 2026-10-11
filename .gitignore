@@ -3,6 +3,8 @@ node_modules/
 .env.local
 *.log
 npm-debug.log*
+worker/.dev.vars
+worker/.wrangler/
 
 # Database SQLite lokal
 server/db/*.sqlite

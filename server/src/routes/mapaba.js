@@ -4,7 +4,7 @@
  * Publik:
  *   GET  /api/v1/mapaba/gelombang-aktif           info gelombang & sisa kuota
  *   POST /api/v1/mapaba/pendaftaran               kirim formulir registrasi
- *   GET  /api/v1/mapaba/pendaftaran/:nomor        cek status pendaftaran
+ *   POST /api/v1/mapaba/pelacakan                cek status dengan kode rahasia
  *
  * Internal (role: panitia_mapaba / superadmin):
  *   GET   /api/v1/mapaba/admin/pendaftar          daftar peserta + filter
@@ -12,6 +12,7 @@
  */
 const express = require('express');
 const rateLimit = require('express-rate-limit');
+const crypto = require('node:crypto');
 const { z } = require('zod');
 
 const { db, nextNumber } = require('../lib/db');
@@ -19,6 +20,7 @@ const { notifikasiPendaftarMapaba, notifikasiStatusMapaba } = require('../lib/no
 const { verifyCaptcha } = require('../middleware/captcha');
 const { requireAdmin } = require('../middleware/auth');
 const {
+  ApiError,
   ok,
   created,
   notFound,
@@ -91,6 +93,14 @@ const limiter = rateLimit({
   },
 });
 
+const pelacakanLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, message: 'Terlalu banyak percobaan pelacakan. Coba lagi nanti.' },
+});
+
 /** Ambil gelombang aktif beserta jumlah pendaftar terverifikasi. */
 function gelombangAktif() {
   return db
@@ -158,16 +168,18 @@ router.post(
     }
 
     const nomorRegistrasi = nextNumber('mapaba', 'MPB');
+    const kodePelacakan = crypto.randomUUID();
+    const trackingTokenHash = crypto.createHash('sha256').update(kodePelacakan).digest('hex');
 
     const info = db
       .prepare(
         `INSERT INTO mapaba_pendaftar
            (nomor_registrasi, gelombang_id, nama_lengkap, nim, angkatan, universitas, fakultas, prodi,
             jenis_kelamin, whatsapp, email, asal_daerah, motivasi, riwayat_organisasi, sumber_informasi,
-            pas_foto_url, ktm_url)
+            pas_foto_url, ktm_url, tracking_token_hash)
          VALUES (@nomorRegistrasi, @gelombangId, @namaLengkap, @nim, @angkatan, @universitas, @fakultas, @prodi,
                  @jenisKelamin, @whatsapp, @email, @asalDaerah, @motivasi, @riwayatOrganisasi, @sumberInformasi,
-                 @pasFotoUrl, @ktmUrl)`
+                 @pasFotoUrl, @ktmUrl, @trackingTokenHash)`
       )
       .run({
         nomorRegistrasi,
@@ -187,6 +199,7 @@ router.post(
         sumberInformasi: data.sumberInformasi || null,
         pasFotoUrl: data.pasFotoUrl || null,
         ktmUrl: data.ktmUrl || null,
+        trackingTokenHash,
       });
 
     notifikasiPendaftarMapaba({ id: info.lastInsertRowid, nomorRegistrasi, ...data });
@@ -194,6 +207,7 @@ router.post(
     return created(res, {
       nomorRegistrasi,
       status: 'menunggu',
+      kodePelacakan,
       biaya: g.biaya,
       pesan:
         'Pendaftaran diterima. Panitia akan menghubungi kamu melalui WhatsApp untuk verifikasi ' +
@@ -202,16 +216,17 @@ router.post(
   })
 );
 
-router.get(
-  '/pendaftaran/:nomor',
+router.post(
+  '/pelacakan',
+  pelacakanLimiter,
   asyncHandler((req, res) => {
+    const match = /^Bearer\s+(\S+)$/i.exec(req.get('Authorization') || '');
+    if (!match) throw new ApiError(401, 'Kode pelacakan wajib disertakan.');
+
+    const trackingTokenHash = crypto.createHash('sha256').update(match[1]).digest('hex');
     const row = db
-      .prepare(
-        `SELECT nomor_registrasi AS nomorRegistrasi, nama_lengkap AS namaLengkap,
-                fakultas, prodi, status, created_at AS dibuatPada
-         FROM mapaba_pendaftar WHERE nomor_registrasi = ?`
-      )
-      .get(req.params.nomor);
+      .prepare('SELECT status FROM mapaba_pendaftar WHERE tracking_token_hash = ?')
+      .get(trackingTokenHash);
 
     if (!row) throw notFound('Nomor registrasi tidak ditemukan.');
     return ok(res, row);

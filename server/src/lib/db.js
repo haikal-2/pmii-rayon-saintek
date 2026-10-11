@@ -36,6 +36,7 @@ const KOLOM_TAMBAHAN = [
   ['mapaba_pendaftar', 'universitas', "TEXT NOT NULL DEFAULT 'UIN Sunan Gunung Djati Bandung'"],
   ['mapaba_pendaftar', 'pas_foto_url', 'TEXT'],
   ['mapaba_pendaftar', 'ktm_url', 'TEXT'],
+  ['mapaba_pendaftar', 'tracking_token_hash', 'TEXT'],
 ];
 
 function ensureColumn(table, column, ddl) {
@@ -85,6 +86,11 @@ function migrate() {
 
   const ditambahkan = KOLOM_TAMBAHAN.filter(([table, column, ddl]) =>
     ensureColumn(table, column, ddl)
+  );
+  db.exec(
+    `CREATE UNIQUE INDEX IF NOT EXISTS idx_mapaba_tracking_token_hash
+       ON mapaba_pendaftar(tracking_token_hash)
+       WHERE tracking_token_hash IS NOT NULL`
   );
   ensureNotificationChannels();
   if (ditambahkan.length) {

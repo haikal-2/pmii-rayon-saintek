@@ -21,7 +21,15 @@
   'use strict';
 
   const CONFIG = window.PMII_CONFIG || {};
-  const ENDPOINT = `${CONFIG.apiBaseUrl || ''}${CONFIG.apiPrefix || '/api/v1'}/upload`;
+  const API_PREFIX = CONFIG.apiPrefix || '/api/v1';
+
+  function endpointFor(wadah) {
+    const base =
+      wadah.dataset.uploaderApiBase === 'mapaba'
+        ? CONFIG.mapabaApiBaseUrl || CONFIG.apiBaseUrl || ''
+        : CONFIG.apiBaseUrl || '';
+    return `${base}${API_PREFIX}/upload`;
+  }
 
   const MAKS_BYTE = 3 * 1024 * 1024;
   const TIPE_DIIZINKAN = ['image/jpeg', 'image/png', 'image/webp'];
@@ -96,7 +104,7 @@
     data.append('file', file);
 
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', ENDPOINT);
+    xhr.open('POST', endpointFor(wadah));
 
     xhr.upload.addEventListener('progress', (event) => {
       if (!event.lengthComputable) return;

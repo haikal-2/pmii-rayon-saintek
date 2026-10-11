@@ -10,11 +10,66 @@
   const A = window.PMII_ADMIN;
   if (!A) return;
 
+  const CONFIG = window.PMII_CONFIG || {};
+  const WORKER_ORIGIN = CONFIG.mapabaApiBaseUrl || '';
+  const WORKER_BASE = `${WORKER_ORIGIN}${CONFIG.apiPrefix || '/api/v1'}`;
+  const WORKER_TOKEN_KEY = 'pmii_worker_admin_token';
   const q = (sel) => document.querySelector(sel);
   const tabel = q('[data-tabel]');
   if (!tabel) return;
+  const workerForm = q('[data-worker-admin-form]');
+  const workerTokenInput = q('[data-worker-admin-token]');
+  const workerError = q('[data-worker-admin-error]');
+  let workerToken = WORKER_ORIGIN ? sessionStorage.getItem(WORKER_TOKEN_KEY) || '' : '';
 
   const state = { status: '', q: '', page: 1, limit: 20, total: 0, totalPage: 1, baris: [] };
+
+  async function workerApi(path, options = {}) {
+    if (!WORKER_ORIGIN) return A.api(path, options);
+    if (!workerToken) throw new Error('Masukkan token akses MAPABA Worker.');
+
+    let response;
+    try {
+      response = await fetch(`${WORKER_BASE}${path}`, {
+        ...options,
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${workerToken}`,
+          ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+          ...(options.headers || {}),
+        },
+      });
+    } catch {
+      throw new Error('Tidak dapat menghubungi Worker MAPABA. Periksa URL Worker dan koneksi internet.');
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      if (response.status === 401) clearWorkerToken();
+      const error = new Error(
+        payload.message ||
+          (response.status === 401
+            ? 'Token akses MAPABA Worker tidak valid.'
+            : `Permintaan Worker gagal (HTTP ${response.status}).`)
+      );
+      error.status = response.status;
+      throw error;
+    }
+    return payload;
+  }
+
+  function showWorkerError(message) {
+    if (!workerError) return;
+    workerError.textContent = message;
+    workerError.hidden = !message;
+    if (message && workerForm) workerForm.hidden = false;
+  }
+
+  function clearWorkerToken() {
+    workerToken = '';
+    sessionStorage.removeItem(WORKER_TOKEN_KEY);
+    if (workerTokenInput) workerTokenInput.value = '';
+  }
 
   const STATUS = {
     menunggu: ['Menunggu', 'bg-amber-50 text-amber-700 ring-amber-200'],
@@ -33,11 +88,11 @@
     if (!url) {
       return `<span class="text-xs text-slate-400">${label}: —</span>`;
     }
-    return `<a href="${A.escapeHtml(url)}" target="_blank" rel="noopener noreferrer"
+    return `<button type="button" data-file-url="${A.escapeHtml(url)}"
               class="inline-flex items-center gap-1 text-xs font-semibold text-pmii-700 hover:underline">
               <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
-              </svg>${label}</a>`;
+              </svg>${label}</button>`;
   }
 
   function baris(item) {
@@ -88,15 +143,46 @@
       </tr>`;
   }
 
+  function isLegacyMapabaFileUrl(value) {
+    let url;
+    try {
+      url = new URL(value);
+    } catch {
+      return false;
+    }
+    if (url.username || url.password) return false;
+
+    const apiOrigin = new URL(
+      CONFIG.apiBaseUrl || window.location.origin,
+      window.location.origin
+    ).origin;
+    if (url.origin === apiOrigin && url.pathname.startsWith('/uploads/mapaba/')) return true;
+    if (url.protocol !== 'https:' || !url.pathname.includes('/mapaba/')) return false;
+
+    if (
+      url.hostname === 'res.cloudinary.com' ||
+      /(?:^|\.)s3(?:[.-][a-z0-9-]+)?\.amazonaws\.com$/i.test(url.hostname)
+    ) {
+      return true;
+    }
+
+    return Array.isArray(CONFIG.mapabaFileOrigins) &&
+      CONFIG.mapabaFileOrigins.includes(url.origin);
+  }
+
   async function muat() {
     tabel.innerHTML = '<tr><td class="admin-td text-slate-500" colspan="7">Memuat data pendaftar…</td></tr>';
+    if (WORKER_ORIGIN && !workerToken) {
+      tabel.innerHTML = '<tr><td class="admin-td text-slate-500" colspan="7">Masukkan token Worker untuk memuat data.</td></tr>';
+      return false;
+    }
 
     const params = new URLSearchParams({ page: state.page, limit: state.limit });
     if (state.status) params.set('status', state.status);
     if (state.q) params.set('q', state.q);
 
     try {
-      const { data, meta } = await A.api(`/mapaba/admin/pendaftar?${params}`);
+      const { data, meta } = await workerApi(`/mapaba/admin/pendaftar?${params}`);
       state.baris = data;
       state.total = meta.total;
       state.totalPage = meta.totalPage || 1;
@@ -113,27 +199,52 @@
 
       q('[data-hal-sebelumnya]').disabled = state.page <= 1;
       q('[data-hal-berikutnya]').disabled = state.page >= state.totalPage;
+      return true;
     } catch (error) {
+      if (error.status === 401) clearWorkerToken();
+      if (WORKER_ORIGIN) showWorkerError(error.message);
       tabel.innerHTML = `<tr><td class="admin-td text-red-600" colspan="7">${A.escapeHtml(error.message)}</td></tr>`;
+      return false;
     }
   }
 
   async function muatRingkasan() {
     try {
-      const [{ data: ringkasan }, gelombang] = await Promise.all([
-        A.api('/admin/ringkasan'),
-        fetch(`${(window.PMII_CONFIG.apiBaseUrl || '') + (window.PMII_CONFIG.apiPrefix || '/api/v1')}/mapaba/gelombang-aktif`)
-          .then((r) => r.json())
-          .catch(() => null),
-      ]);
-
-      q('[data-stat-total]').textContent = ringkasan.mapaba.total ?? 0;
-      q('[data-stat-menunggu]').textContent = ringkasan.mapaba.menunggu ?? 0;
-      q('[data-stat-diterima]').textContent = ringkasan.mapaba.terverifikasi ?? 0;
-      q('[data-stat-kuota]').textContent = gelombang?.data?.sisaKuota ?? '—';
-    } catch {
-      /* Ringkasan bersifat pelengkap; tabel tetap dapat dipakai tanpanya. */
+      const { data } = await workerApi(
+        WORKER_ORIGIN ? '/mapaba/admin/ringkasan' : '/admin/ringkasan'
+      );
+      const ringkasan = WORKER_ORIGIN ? data : data.mapaba;
+      q('[data-stat-total]').textContent = ringkasan.total ?? 0;
+      q('[data-stat-menunggu]').textContent = ringkasan.menunggu ?? 0;
+      q('[data-stat-diterima]').textContent = ringkasan.terverifikasi ?? 0;
+      const sisaKuota = WORKER_ORIGIN
+        ? ringkasan.sisaKuota
+        : (await A.api('/mapaba/gelombang-aktif')).data.sisaKuota;
+      q('[data-stat-kuota]').textContent = sisaKuota ?? '—';
+    } catch (error) {
+      if (error.status === 401) clearWorkerToken();
+      if (WORKER_ORIGIN) showWorkerError(error.message);
+      else A.toast(error.message, 'galat');
     }
+  }
+
+  async function hubungkanWorker(event) {
+    event.preventDefault();
+    if (!WORKER_ORIGIN) return;
+    workerToken = workerTokenInput?.value.trim() || '';
+    showWorkerError('');
+    if (!workerToken) {
+      showWorkerError('Masukkan token akses MAPABA Worker.');
+      return;
+    }
+
+    if (!(await muat())) {
+      workerToken = '';
+      return;
+    }
+    sessionStorage.setItem(WORKER_TOKEN_KEY, workerToken);
+    if (workerForm) workerForm.hidden = true;
+    await muatRingkasan();
   }
 
   async function ubahStatus(id, status) {
@@ -169,13 +280,12 @@
     if (!hasil) return;
 
     try {
-      await A.api(`/mapaba/admin/pendaftar/${id}`, {
+      await workerApi(`/mapaba/admin/pendaftar/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ status, catatanPanitia: hasil.catatan || undefined }),
       });
       A.toast(status === 'ditolak' ? 'Pendaftar ditolak.' : 'Status pendaftar diperbarui.');
-      muat();
-      muatRingkasan();
+      if (await muat()) await muatRingkasan();
     } catch (error) {
       A.toast(error.message, 'galat');
     }
@@ -188,7 +298,7 @@
       if (state.status) params.set('status', state.status);
       if (state.q) params.set('q', state.q);
 
-      const { data } = await A.api(`/mapaba/admin/pendaftar?${params}`);
+      const { data } = await workerApi(`/mapaba/admin/pendaftar?${params}`);
       A.unduhCsv(`pendaftar-mapaba-${new Date().toISOString().slice(0, 10)}.csv`, [
         ['No. Registrasi', 'Nama', 'NIM', 'Angkatan', 'Universitas', 'Fakultas', 'Prodi', 'JK', 'WhatsApp', 'Email', 'Status', 'Tanggal Daftar'],
         ...data.map((item) => [
@@ -212,11 +322,69 @@
     }
   }
 
+  async function bukaBerkas(path) {
+    if (!WORKER_ORIGIN) {
+      if (!isLegacyMapabaFileUrl(path)) {
+        A.toast('Referensi berkas tidak valid.', 'galat');
+        return;
+      }
+      const tab = window.open('about:blank', '_blank');
+      if (!tab) {
+        A.toast('Izinkan tab baru untuk membuka berkas.', 'galat');
+        return;
+      }
+      tab.opener = null;
+      tab.location.href = path;
+      return;
+    }
+
+    if (!/^\/api\/v1\/mapaba\/admin\/files\/[A-Fa-f0-9-]{36}$/.test(path)) {
+      A.toast('Referensi berkas tidak valid.', 'galat');
+      return;
+    }
+    const tab = window.open('about:blank', '_blank');
+    if (!tab) {
+      A.toast('Izinkan tab baru untuk membuka berkas.', 'galat');
+      return;
+    }
+
+    try {
+      let response;
+      try {
+        response = await fetch(`${WORKER_ORIGIN}${path}`, {
+          headers: { Authorization: `Bearer ${workerToken}` },
+        });
+      } catch {
+        throw new Error('Tidak dapat menghubungi Worker MAPABA. Periksa URL Worker dan koneksi internet.');
+      }
+      if (!response.ok) {
+        if (response.status === 401) {
+          clearWorkerToken();
+          showWorkerError('Token akses MAPABA Worker tidak valid.');
+        }
+        throw new Error(
+          response.status === 401
+            ? 'Token akses MAPABA Worker tidak valid.'
+            : `Berkas tidak dapat dibuka (HTTP ${response.status}).`
+        );
+      }
+      const objectUrl = URL.createObjectURL(await response.blob());
+      tab.opener = null;
+      tab.location.href = objectUrl;
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    } catch (error) {
+      tab.close();
+      A.toast(error.message || 'Tidak dapat membuka berkas MAPABA.', 'galat');
+    }
+  }
+
   function pasangPeristiwa() {
     tabel.addEventListener('click', (event) => {
+      const file = event.target.closest('[data-file-url]');
       const terima = event.target.closest('[data-terima]');
       const tolak = event.target.closest('[data-tolak]');
       const ubah = event.target.closest('[data-ubah]');
+      if (file) bukaBerkas(file.dataset.fileUrl);
       if (terima) ubahStatus(terima.dataset.terima, 'terverifikasi');
       if (tolak) ubahStatus(tolak.dataset.tolak, 'ditolak');
       if (ubah) ubahStatus(ubah.dataset.ubah, 'menunggu');
@@ -262,9 +430,21 @@
     });
 
     q('[data-ekspor-csv]')?.addEventListener('click', eksporCsv);
+    workerForm?.addEventListener('submit', hubungkanWorker);
   }
 
   pasangPeristiwa();
-  muat();
-  muatRingkasan();
+  if (WORKER_ORIGIN && workerToken) {
+    if (workerForm) workerForm.hidden = true;
+    muat().then((loaded) => {
+      if (loaded) muatRingkasan();
+    });
+  } else if (!WORKER_ORIGIN) {
+    if (workerForm) workerForm.hidden = true;
+    muat().then((loaded) => {
+      if (loaded) muatRingkasan();
+    });
+  } else {
+    muat();
+  }
 })();

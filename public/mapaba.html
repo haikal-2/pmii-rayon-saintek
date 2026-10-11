@@ -381,10 +381,17 @@
             </span>
             <h2 class="mt-5 text-xl text-emerald-900">Pendaftaran diterima</h2>
             <p class="mt-2 text-sm leading-relaxed text-emerald-800/80">
-              Simpan nomor registrasi berikut. Panitia akan mengirimkan tautan grup peserta dan petunjuk teknis melalui
+              Simpan nomor registrasi dan kode pelacakan rahasia berikut. Panitia akan mengirimkan tautan grup peserta dan petunjuk teknis melalui
               WhatsApp.
             </p>
             <p class="mt-5 inline-block rounded-xl border border-emerald-300 bg-white px-6 py-3 font-display text-lg font-extrabold tracking-wider text-emerald-900" data-ticket>—</p>
+            <div data-tracking-code-wrap hidden class="mx-auto mt-5 max-w-xl rounded-xl border border-amber-300 bg-amber-50 p-4 text-left">
+              <p class="text-sm font-bold text-amber-950">Kode pelacakan rahasia</p>
+              <p class="mt-1 text-sm text-amber-900">
+                Simpan kode ini. Kode ditampilkan sekali dan diperlukan untuk melihat status pendaftaran.
+              </p>
+              <code data-tracking-code class="mt-3 block break-all rounded-lg bg-white px-4 py-3 text-center font-mono text-sm font-semibold text-slate-900"></code>
+            </div>
             <div class="mt-6">
               <a href="index.html" class="btn-outline btn-sm">Kembali ke Beranda</a>
             </div>
@@ -550,7 +557,7 @@
                   </p>
 
                   <div class="grid gap-5 sm:grid-cols-2">
-                    <div data-uploader data-uploader-target="pasFotoUrl" data-uploader-ratio="3/4">
+                    <div data-uploader data-uploader-api-base="mapaba" data-uploader-target="pasFotoUrl" data-uploader-ratio="3/4">
                       <label class="label" for="pasFoto">Pas foto <span class="text-red-600">*</span></label>
                       <label
                         for="pasFoto"
@@ -571,7 +578,7 @@
                       <p class="error-text" data-error-for="pasFotoUrl"></p>
                     </div>
 
-                    <div data-uploader data-uploader-target="ktmUrl" data-uploader-ratio="16/10">
+                    <div data-uploader data-uploader-api-base="mapaba" data-uploader-target="ktmUrl" data-uploader-ratio="16/10">
                       <label class="label" for="ktm">Kartu Tanda Mahasiswa (KTM) <span class="text-red-600">*</span></label>
                       <label
                         for="ktm"

@@ -33,6 +33,7 @@
   function logout() {
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem('pmii_worker_admin_token');
     window.location.replace(LOGIN_URL);
   }
 

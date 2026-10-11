@@ -7,22 +7,27 @@ Website PR PMII Sains dan Teknologi UIN Sunan Gunung Djati Cabang Kabupaten Band
 ## 1. Ikhtisar Arsitektur
 
 ```
-Pengunjung ──HTTPS──► Nginx ──► /            → berkas statis (public/)
-                             └► /api/v1/*    → Node.js + Express (proses PM2)
-                                                     │
-                                                     ▼
-                                            SQLite (WAL) / MySQL
-                                                     │
-                                            /uploads (dokumen & foto)
+Browser ──► Front-end statis (public/)
+                ├─ apiBaseUrl/api/v1/*       → Express ──► SQLite / MySQL
+                └─ mapabaApiBaseUrl/api/v1/* → Cloudflare Worker
+                                                 ├─ D1 (MAPABA)
+                                                 └─ Cloudinary (berkas privat)
 ```
 
 | Lapisan | Teknologi | Alasan pemilihan |
 | --- | --- | --- |
 | Runtime | Node.js 20+ | Satu bahasa dengan front-end, mudah dilanjutkan pengurus berikutnya |
 | Framework | Express 4 | Ringan, sangat banyak referensi, cukup untuk skala organisasi |
+| Runtime MAPABA transisi | Cloudflare Workers | Memindahkan MAPABA bertahap tanpa memutus Express |
+| Data MAPABA transisi | Cloudflare D1 | Penyimpanan Worker dengan migration SQL dan operasi atomik |
+| Berkas MAPABA | Cloudinary authenticated | Pas foto/KTM privat; Worker mem-proxy unduhan admin |
 | Validasi | Zod | Skema sekaligus tipe; galat dapat dipetakan per-kolom untuk front-end |
 | Autentikasi | JWT (jsonwebtoken) + bcryptjs | Stateless, cocok untuk front-end statis lintas domain |
 | Pembatas laju | express-rate-limit | Melindungi formulir publik dari spam |
+
+**Migrasi bertahap:** Express tetap melayani Advokasi, artikel, galeri, dokumen,
+pengurus, dan login admin lama. Endpoint MAPABA memakai Worker + D1 apabila
+`mapabaApiBaseUrl` diisi; URL ini hanya origin Worker, tanpa `/api/v1`.
 
 **Prinsip yang dipegang**
 
@@ -52,7 +57,7 @@ server/
 │       ├── mapaba.js          pendaftaran + panel panitia
 │       └── admin.js           login pengurus + ringkasan dashboard
 ├── db/{schema.sql, migrate.js, seed.js}
-└── test/smoke.js              24 pemeriksaan alur end-to-end
+└── test/smoke.js              22 pemeriksaan alur end-to-end
 ```
 
 ---
@@ -215,11 +220,16 @@ Siklus status: `baru → verifikasi → pendampingan → selesai` (atau `ditolak
 Halaman: [`public/mapaba.html`](../public/mapaba.html) — kode:
 [`server/src/routes/mapaba.js`](../server/src/routes/mapaba.js)
 
+Implementasi Express di bawah tetap tersedia selama masa transisi. Front-end
+MAPABA mengarah ke Worker saat `mapabaApiBaseUrl` terisi; kontrak Worker,
+pengaturan lokal, dan endpoint lengkap dijelaskan pada bagian
+[Cloudflare Worker MAPABA](#12-cloudflare-worker-mapaba).
+
 | Metode | Path | Akses |
 | --- | --- | --- |
 | GET | `/mapaba/gelombang-aktif` | publik |
 | POST | `/mapaba/pendaftaran` | publik (maks. 10 per IP per jam) |
-| GET | `/mapaba/pendaftaran/:nomor` | publik |
+| POST | `/mapaba/pelacakan` | publik (kode rahasia, maks. 30 per IP per jam) |
 | GET | `/mapaba/admin/pendaftar` | panitia_mapaba / superadmin |
 | PATCH | `/mapaba/admin/pendaftar/:id` | panitia_mapaba / superadmin |
 
@@ -245,7 +255,14 @@ POST /api/v1/mapaba/pendaftaran
 }
 ```
 
-**Respons 201** → `{ "nomorRegistrasi": "MPB-2026-0001", "status": "menunggu", "biaya": 75000 }`
+**Respons 201** menyertakan `nomorRegistrasi`, `status`, `biaya`, `pesan`, dan
+`kodePelacakan`. Kode acak rahasia ditampilkan hanya pada respons pendaftaran
+berhasil; server menyimpan hash-nya. Simpan kode tersebut karena tidak dapat
+dipulihkan kemudian.
+
+Untuk memeriksa status, kirim `POST /api/v1/mapaba/pelacakan` dengan
+`Authorization: Bearer <kodePelacakan>`. Respons hanya berisi `{ "status":
+"menunggu" }`; nomor registrasi saja tidak dapat dipakai untuk pelacakan.
 
 **Aturan bisnis**
 
@@ -415,3 +432,81 @@ storage, notifikasi email/WhatsApp, impor peserta massal, dan skema produksi MyS
 | Sedang | Kebijakan retensi otomatis data pribadi | Cron + endpoint pembersihan |
 | Rendah | 2FA (TOTP) untuk akun superadmin | `routes/admin.js` + tabel baru |
 | Rendah | Pencarian teks penuh artikel | FTS5 (SQLite) atau `tsvector` (PostgreSQL) |
+
+---
+
+## 12. Cloudflare Worker MAPABA
+
+Worker di `worker/` menangani MAPABA selama migrasi bertahap. Express tidak
+dihentikan dan tetap menangani layanan lainnya. Skema D1 ada di
+[`worker/migrations/`](../worker/migrations/); seed contoh terpisah di
+[`worker/seeds/local.sql`](../worker/seeds/local.sql) hanya untuk pengembangan.
+
+### Endpoint Worker
+
+Prefix semua endpoint adalah `/api/v1`:
+
+| Metode | Path | Akses | Keterangan |
+| --- | --- | --- | --- |
+| GET | `/health` | Publik | Health check Worker |
+| GET | `/mapaba/gelombang-aktif` | Publik | Gelombang aktif dan kuota |
+| POST | `/mapaba/pendaftaran` | Publik | Pendaftaran, maksimal 10 permintaan/IP/jam |
+| POST | `/mapaba/pelacakan` | Publik | Status saja; wajib kode rahasia di Bearer header, maks. 30/IP/jam |
+| POST | `/upload` | Publik terbatas | Upload JPEG/PNG/WebP, maksimal 3 MiB |
+| GET | `/mapaba/admin/ringkasan` | Bearer `ADMIN_TOKEN` | Total, status, dan sisa kuota D1 |
+| GET | `/mapaba/admin/pendaftar` | Bearer `ADMIN_TOKEN` | Filter `gelombangId`, `status`, `q`, `page`, `limit` |
+| PATCH | `/mapaba/admin/pendaftar/:id` | Bearer `ADMIN_TOKEN` | Ubah status/catatan, audit D1, notifikasi keputusan |
+| GET | `/mapaba/admin/files/:id` | Bearer `ADMIN_TOKEN` | Proxy berkas privat; `private, no-store` |
+
+`ADMIN_TOKEN` adalah token transisi terpisah dari JWT Express. Halaman admin
+MAPABA masih berada di panel admin lama, kemudian meminta token Worker; token
+Worker hanya disimpan di `sessionStorage`, dikirim sebagai
+`Authorization: Bearer`, dan dihapus saat logout. Jangan masukkan token ke
+`config.js`, URL, HTML, atau Git.
+
+Jika `mapabaApiBaseUrl` kosong, halaman admin MAPABA memakai API Express dan
+sesi JWT panel yang sudah ada, termasuk membuka URL berkas lama secara langsung.
+Token Worker tidak dikirim ke backend Express. URL berkas hanya diterima dari
+endpoint `/uploads/mapaba/` pada origin API, Cloudinary, Amazon S3, atau origin
+CDN kustom eksplisit pada `mapabaFileOrigins` di konfigurasi frontend.
+
+### Pengembangan lokal
+
+```bash
+cd worker
+npm ci
+cp .dev.vars.example .dev.vars
+npm run db:migrate:local
+npm run db:seed:local
+npm test
+npm run dev
+```
+
+Worker lokal berjalan pada `http://localhost:8787`; front-end lokal biasanya
+berjalan pada `http://localhost:4321`. `CORS_ORIGINS` harus memuat origin
+frontend yang tepat. Isi `ADMIN_TOKEN` dan `RATE_LIMIT_SECRET` lokal dengan
+nilai acak; kosongkan integrasi provider yang tidak dipakai. Seed menambahkan
+gelombang uji lokal dan **tidak boleh** dijalankan terhadap database produksi.
+
+Untuk menguji front-end lokal melalui Worker, ubah `mapabaApiBaseUrl` di
+`public/assets/js/config.js` menjadi `http://localhost:8787`. Biarkan
+`apiBaseUrl` tetap menunjuk Express agar layanan lain tidak berubah.
+
+### Binding, konfigurasi, dan data
+
+| Jenis | Nama |
+| --- | --- |
+| Binding D1 | `DB` |
+| Secrets | `ADMIN_TOKEN`, `RATE_LIMIT_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `RESEND_API_KEY`, `CAPTCHA_SECRET_KEY`, `WA_API_TOKEN`, `GOOGLE_SHEETS_MAPABA_WEBHOOK_URL` |
+| Vars publik | `CORS_ORIGINS`, `CAPTCHA_PROVIDER`, `CAPTCHA_MIN_SCORE`, `CAPTCHA_FAIL_OPEN`, `MAPABA_NOTIFY_EMAIL`, `MAIL_FROM`, `WA_API_URL`, `SITE_URL` |
+
+Cloudinary diperlukan untuk unggah dan baca berkas. Resend, WhatsApp, dan
+Google Sheets opsional; kegagalan notifikasi dicatat tanpa membatalkan data
+yang sudah disimpan. Jika `CAPTCHA_PROVIDER` bukan `none`, isi
+`CAPTCHA_SECRET_KEY`; gunakan `none` hanya untuk lokal atau lingkungan yang
+memang belum mengaktifkan CAPTCHA.
+
+D1 produksi dimulai kosong dan tidak mengimpor SQLite. Sebelum mengalihkan
+formulir ke Worker, pengelola harus membuat gelombang produksi secara eksplisit
+dan memastikan `GET /api/v1/mapaba/gelombang-aktif` memberikan respons 200.
+Jangan memakai data seed lokal sebagai data gelombang produksi.
