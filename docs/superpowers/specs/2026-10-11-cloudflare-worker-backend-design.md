@@ -72,6 +72,7 @@ digunakan frontend.
 | `POST` | `/upload` | Publik terbatas | Unggah pas foto/KTM ke Cloudinary privat |
 | `GET` | `/mapaba/admin/pendaftar` | Token Worker | Daftar pendaftar dengan filter dan paginasi |
 | `PATCH` | `/mapaba/admin/pendaftar/:id` | Token Worker | Ubah status/catatan dan tulis audit |
+| `GET` | `/mapaba/admin/files/:id` | Token Worker | Proxy berkas privat ke admin terautentikasi |
 
 Kontrak JSON pendaftaran tetap memakai field yang sudah ada, termasuk
 `namaLengkap`, `nim`, `angkatan`, `universitas`, `fakultas`, `prodi`,
@@ -132,6 +133,11 @@ publik/cache. Frontend meminta berkas dengan header otorisasi dan membuka Blob
 hasilnya. Dengan demikian URL bertanda tangan Cloudinary dan kredensial provider
 tidak terlihat oleh browser; fitur akses bertoken premium Cloudinary tidak
 diperlukan.
+
+Endpoint pendaftaran hanya menerima referensi upload yang diterbitkan Worker
+dan cocok dengan aset tersimpan di D1; URL eksternal arbitrer tidak dapat
+ditetapkan sebagai pas foto atau KTM. Respons daftar admin memetakan ID berkas
+ke route proxy `/mapaba/admin/files/:id`.
 
 ### CAPTCHA, pembatasan laju, dan notifikasi
 
