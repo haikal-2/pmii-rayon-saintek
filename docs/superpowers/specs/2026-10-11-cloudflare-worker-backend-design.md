@@ -125,8 +125,13 @@ Worker menandatangani permintaan upload ke Cloudinary di sisi server dan
 menyimpan asset privat. Secret Cloudinary tidak pernah dikirim ke browser.
 Respons mempertahankan bentuk `data.url`, `data.kunci`, dan `data.ukuranByte`
 yang dipakai uploader, tetapi referensi berkas dikelola oleh Worker. Tautan
-akses berkas hanya diberikan setelah autentikasi admin dan memiliki masa berlaku
-singkat. Berkas tidak dibuat publik untuk memudahkan akses.
+berkas yang dikirim ke browser adalah endpoint Worker, bukan URL Cloudinary.
+Endpoint unduh memeriksa Bearer token admin, mengambil aset privat dari
+Cloudinary di sisi server, lalu mengalirkan kontennya tanpa menyimpan respons
+publik/cache. Frontend meminta berkas dengan header otorisasi dan membuka Blob
+hasilnya. Dengan demikian URL bertanda tangan Cloudinary dan kredensial provider
+tidak terlihat oleh browser; fitur akses bertoken premium Cloudinary tidak
+diperlukan.
 
 ### CAPTCHA, pembatasan laju, dan notifikasi
 
@@ -197,8 +202,8 @@ database produksi dan tidak ada deploy produksi.
    kuota penuh, dan request bersamaan pada batas kuota.
 4. Tes memastikan pelacakan publik tidak mengembalikan NIM, email, WhatsApp,
    motivasi, atau URL berkas privat.
-5. Tes memastikan hanya admin Worker yang menerima tautan akses berkas privat
-   sementara dan secret provider tidak muncul pada respons.
+5. Tes memastikan hanya admin Worker yang dapat mengunduh berkas privat; URL
+   Cloudinary dan secret provider tidak muncul pada respons maupun frontend.
 6. `npm test` tetap lulus untuk backend Express yang dipertahankan.
 7. `npm run build` tetap menghasilkan frontend statis yang valid.
 8. Petunjuk deploy menjelaskan binding dan secrets yang dibutuhkan tanpa
@@ -217,7 +222,7 @@ menerima pendaftaran.
 | Cloudinary/Resend tidak dikonfigurasi | Upload gagal dengan galat eksplisit; notifikasi opsional dicatat sebagai dilewati/gagal tanpa membatalkan data utama |
 | Kuota berubah karena request paralel | Pemeriksaan dan insert menggunakan query/transaksi atomik serta indeks unik |
 | Dua backend aktif selama migrasi | URL Worker MAPABA terpisah; layanan lain tetap menunjuk Express sampai tahap migrasinya selesai |
-| Link file privat bocor setelah dibuat | Tautan admin berumur pendek; endpoint daftar file tidak tersedia tanpa token Worker |
+| Berkas privat diakses tanpa izin | Endpoint proxy memeriksa token Worker dan tidak mengekspos URL Cloudinary |
 
 ## Rencana Tahap Lanjutan
 
