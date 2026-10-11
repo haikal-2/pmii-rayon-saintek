@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "wrangler dev --local",
     "test": "vitest run",
-    "db:migrate:local": "wrangler d1 migrations apply pmii-rayon-saintek --local"
+    "db:migrate:local": "wrangler d1 migrations apply pmii-rayon-saintek --local",
+    "db:seed:local": "wrangler d1 execute pmii-rayon-saintek --local --file=seeds/local.sql"
   },
   "dependencies": {
-    "pk-pmii-uin-sgd-kab-bandung": "file:..",
     "zod": "^3.25.76"
   },
   "devDependencies": {

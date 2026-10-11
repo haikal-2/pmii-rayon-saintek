@@ -4,6 +4,7 @@ node_modules/
 *.log
 npm-debug.log*
 worker/.dev.vars
+worker/.wrangler/
 
 # Database SQLite lokal
 server/db/*.sqlite
